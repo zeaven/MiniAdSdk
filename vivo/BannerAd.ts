@@ -12,6 +12,7 @@ export default class BannerAd extends BaseAd {
     this.isHided = true
     return qg.createBannerAd({
       posId: _id,
+      ...this.properties
     })
   }
   

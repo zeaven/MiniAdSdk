@@ -5,7 +5,7 @@ export default class BaseAd implements AdHandler {
   protected name = 'base ad'
   private ids: string[]
   private idx = 0
-  private data: any = {}
+  protected properties?: any
   protected ad: any
   protected ready = false
   protected createInterval = 3000
@@ -25,7 +25,7 @@ export default class BaseAd implements AdHandler {
   constructor(...ids: string[]) {
     this.ids = ids.filter((t) => !!t)
     if (this.ids[this.ids.length-1] === 'object') {
-      this.data = this.ids.pop()
+      this.properties = this.ids.pop()
     }
     if (this.autoLoad) this.loadAd()
   }

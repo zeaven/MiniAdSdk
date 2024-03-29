@@ -10,6 +10,7 @@ export default class BannerAd extends BaseAd {
   protected createAd(_id: string): any {
     return tt.createBannerAd({
       posId: _id,
+      ...this.properties
     })
   }
 }

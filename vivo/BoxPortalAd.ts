@@ -9,7 +9,6 @@ import VivoAd from './VivoAd'
 export default class BoxPortalAd extends BaseAd {
   protected name: string = '盒子九宫格广告'
   protected createInterval = 1000
-  private param: AdParam
   private isDestroyed = false
   protected autoLoad = false
   protected createAd(_id: string): any {
@@ -18,8 +17,7 @@ export default class BoxPortalAd extends BaseAd {
         this.isDestroyed = false
         return qg.createBoxPortalAd({
           posId: _id,
-          image: this.param?.data?.image,
-          marginTop: this.param?.data?.marginTop,
+          ...this.properties
         })
       }
     }

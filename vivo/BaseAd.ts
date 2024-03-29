@@ -7,7 +7,7 @@ export default class BaseAd implements AdHandler {
   private idx = 0
   protected ad: any
   protected ready = false
-  private properties?: any
+  protected properties?: any
   protected createInterval = 3000
   private unbindAdListeners?: (() => void)
   protected autoUnbindListener = true

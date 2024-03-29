@@ -59,8 +59,8 @@ export default class VivoAd implements AdInterface {
   showBox(param?: AdParam): Promise<AdInvokeResult> {
     let boxAd: AdHandler|undefined
     if (param) {
-      if (param.type === '0') boxAd = this._box_banner
-      if (param.type === '1') boxAd = this._box_portal
+      if (param.type === 0) boxAd = this._box_banner
+      if (param.type === 1) boxAd = this._box_portal
     }
     return this.showAd('盒子广告', boxAd, param)
   }

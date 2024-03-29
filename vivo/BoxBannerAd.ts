@@ -12,6 +12,7 @@ export default class BoxBannerAd extends BaseAd {
     if (qg.createBoxBannerAd) {
       return qg.createBoxBannerAd({
         posId: _id,
+        ...this.properties
       })
     }
     VivoAd.log('不支持的盒子广告类型')

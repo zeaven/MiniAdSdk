@@ -19,6 +19,7 @@ export default class RewardAd extends BaseAd {
     if (!this.ad) {
       return qg.createRewardedVideoAd({
         posId: _id,
+        ...this.properties
       })
     } else {
       this.ad.load()

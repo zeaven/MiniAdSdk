@@ -17,7 +17,8 @@ export default class CustomAd extends BaseAd {
         posId: _id,
         style:{
           gravity: 'center'
-        }
+        },
+        ...this.properties
       })
   }
 }
