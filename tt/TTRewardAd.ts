@@ -4,10 +4,10 @@
 
 
 import { AdHandler, AdInvokeResult, AdParam } from '../Types'
-import BaseAd from './BaseAd'
-import VivoAd from './TTAd'
+import TTBaseAd from './TTBaseAd'
+import TTAd from './TTAd'
 
-export default class RewardAd extends BaseAd {
+export default class TTRewardAd extends TTBaseAd {
   protected name: string = '激励视频广告'
   protected autoUnbindListener: boolean = false
   private rewardPromise?: Promise<void>
@@ -51,7 +51,7 @@ export default class RewardAd extends BaseAd {
   protected reLoad(delay: number): void {
     if (delay === this.createInterval) {
       // 关闭后立即重新加载
-      VivoAd.log(this.name + '重新加载')
+      TTAd.log(this.name + '重新加载')
       this.loadAd()
     } else {
       super.reLoad(delay)
@@ -70,12 +70,12 @@ export default class RewardAd extends BaseAd {
 
     if ((res && res.isEnded) || (res && res.count)) {
       if (this.rewardResolve) {
-        VivoAd.log(this.name, '派发奖励')
+        TTAd.log(this.name, '派发奖励')
         this.rewardResolve()
       }
     } else {
       if (this.rewardReject) {
-        VivoAd.log(this.name, '奖励无效')
+        TTAd.log(this.name, '奖励无效')
         this.rewardReject()
       }
     }

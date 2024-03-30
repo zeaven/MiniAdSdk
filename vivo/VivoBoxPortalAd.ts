@@ -3,10 +3,10 @@
  */
 
 import { AdHandler, AdInvokeResult, AdParam } from '../Types'
-import BaseAd from './BaseAd'
+import VivoBaseAd from './VivoBaseAd'
 import VivoAd from './VivoAd'
 
-export default class BoxPortalAd extends BaseAd {
+export default class VivoBoxPortalAd extends VivoBaseAd {
   protected name: string = '盒子九宫格广告'
   protected createInterval = 1000
   private isDestroyed = false

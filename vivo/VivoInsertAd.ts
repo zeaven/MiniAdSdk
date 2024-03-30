@@ -2,9 +2,9 @@
  * 插屏广告
  */
 
-import BaseAd from "./BaseAd";
+import VivoBaseAd from "./VivoBaseAd";
 
-export default class InsertAd extends BaseAd {
+export default class VivoInsertAd extends VivoBaseAd {
   protected name: string = '插屏广告'
   protected createAd(_id: string): any {
     return qg.createInterstitialAd({

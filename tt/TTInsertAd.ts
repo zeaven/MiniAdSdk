@@ -3,9 +3,9 @@
  */
 
 import { AdParam, AdInvokeResult } from "../Types";
-import BaseAd from "./BaseAd";
+import TTBaseAd from "./TTBaseAd";
 
-export default class InsertAd extends BaseAd {
+export default class TTInsertAd extends TTBaseAd {
   protected name: string = '插屏广告'
   private hasShowed = false
   protected createAd(_id: string): any {

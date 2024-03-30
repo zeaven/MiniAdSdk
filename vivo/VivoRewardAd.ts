@@ -4,10 +4,10 @@
 
 
 import { AdHandler, AdInvokeResult, AdParam } from '../Types'
-import BaseAd from './BaseAd'
+import VivoBaseAd from './VivoBaseAd'
 import VivoAd from './VivoAd'
 
-export default class RewardAd extends BaseAd {
+export default class VivoRewardAd extends VivoBaseAd {
   protected name: string = '激励视频广告'
   protected autoUnbindListener: boolean = false
   private rewardPromise?: Promise<void>

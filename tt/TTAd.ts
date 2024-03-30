@@ -4,9 +4,9 @@
 
 import { AdHandler, AdInterface, AdInvokeResult, AdParam } from "../Types"
 import { get_log, LogHandle } from "../Log";
-import BannerAd from "./BannerAd";
-import RewardAd from "./RewardAd";
-import InsertAd from "./InsertAd";
+import TTBannerAd from "./TTBannerAd";
+import TTRewardAd from "./TTRewardAd";
+import TTInsertAd from "./TTInsertAd";
 
 
 export default class TTAd implements AdInterface {
@@ -23,10 +23,10 @@ export default class TTAd implements AdInterface {
     this.initAds()
   }
   private initAds(): void {
-		  this._banner = new BannerAd('', '')
-		  this._insert = new InsertAd('', '')
+		  this._banner = new TTBannerAd('', '')
+		  this._insert = new TTInsertAd('', '')
 
-		  this._reward = new RewardAd('', '')
+		  this._reward = new TTRewardAd('', '')
   }
   private showAd(
     adName: string,
@@ -61,5 +61,8 @@ export default class TTAd implements AdInterface {
   }
   showCustom(param?: AdParam): Promise<AdInvokeResult> {
     return this.showAd( '原生模板广告', undefined, param)
+  }
+  showToast(msg: string, duration: number): void {
+      tt.showToast({title: msg, duration: duration})
   }
 }

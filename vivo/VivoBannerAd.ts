@@ -3,9 +3,9 @@
  */
 
 import { AdParam, AdInvokeResult } from "../Types";
-import BaseAd from "./BaseAd";
+import VivoBaseAd from "./VivoBaseAd";
 
-export default class BannerAd extends BaseAd {
+export default class VivoBannerAd extends VivoBaseAd {
   protected name: string = 'banner广告'
   private isHided = false
   protected createAd(_id: string): any {

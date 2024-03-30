@@ -1,19 +1,18 @@
 import { AdHandler, AdInvokeResult, AdParam } from '../Types'
-import VivoAd from './VivoAd'
+import TTAd from './TTAd'
 
-export default class BaseAd implements AdHandler {
+export default class TTBaseAd implements AdHandler {
   protected name = 'base ad'
   private ids: string[]
   private idx = 0
+  protected properties?: any
   protected ad: any
   protected ready = false
-  protected properties?: any
   protected createInterval = 3000
   private unbindAdListeners?: (() => void)
   protected autoUnbindListener = true
-  private reloadCount = 0
+  protected reloadCount = 0
   private _isShowed = false
-  protected invokeResult?: AdInvokeResult
   protected get isShowed(): boolean {
     return this._isShowed
   }
@@ -23,7 +22,7 @@ export default class BaseAd implements AdHandler {
   protected autoLoad = true
   private onLoadPromise: any
 
-  constructor(...ids: any[]) {
+  constructor(...ids: string[]) {
     this.ids = ids.filter((t) => !!t)
     if (this.ids[this.ids.length-1] === 'object') {
       this.properties = this.ids.pop()
@@ -68,7 +67,7 @@ export default class BaseAd implements AdHandler {
   }
 
   protected onLoad(res): void {
-    VivoAd.log(this.name + '加载成功')
+    TTAd.log(this.name + '加载成功')
     this.ready = true
     this.reloadCount = 0
     if (this.onLoadPromise) {
@@ -78,52 +77,54 @@ export default class BaseAd implements AdHandler {
   }
 
   protected onError(err): void {
-    VivoAd.log(this.name + '加载失败', JSON.stringify(err))
-    // 加载失败发起重试
-    this.reLoad(false)
-  }
-
-  protected onClose(res): void {
-    VivoAd.log(this.name + '关闭')
-    this.ready = false
-    this.isShowed = false
-    this.invokeResult && this.invokeResult.onClose && this.invokeResult.onClose()
-    this.reLoad(true)
-  }
-  protected reLoad(immediately: boolean): void {
-    VivoAd.log(this.name + '重新加载')
-    let delayMilliSeconds = this.createInterval
-    if (!immediately) {
-        this.reloadCount++
-        delayMilliSeconds = Math.min(
+    if (err && err.errCode >= 1005) {
+        TTAd.log(this.name + '不可用')
+        return
+    }
+    TTAd.log(this.name + '加载失败', JSON.stringify(err))
+    this.reloadCount++
+    let delayMilliSeconds = Math.min(
           10000,
           this.createInterval * this.reloadCount
         )
-    }
-    setTimeout(() => this.loadAd(), delayMilliSeconds)
+    // 加载失败发起重试
+    this.reLoad(delayMilliSeconds)
+  }
+
+  protected onClose(res): void {
+    TTAd.log(this.name + '关闭')
+    this.ready = false
+    this.isShowed = false
+    this.reLoad(this.createInterval)
+  }
+  protected reLoad(delay: number): void {
+    TTAd.log(this.name + '重新加载')
+   
+    setTimeout(() => this.loadAd(), delay)
   }
 
   protected onShow(): void {
-    VivoAd.log(this.name, '展示成功')
+    TTAd.log(this.name, '展示成功')
     this.isShowed = true
   }
 
   /**
-   * 等待onload回调，加载完成后，立即展示，否则在1s时间后取消
+   * 等待onload回调，加载完成后，立即展示，否则在创建间隔时间后取消
    * @returns
    */
-  protected noReadyDelayShow(param: AdParam): Promise<AdInvokeResult> {
+  protected async noReadyDelayShow(param: AdParam): Promise<AdInvokeResult> {
     if (this.onLoadPromise) {
       this.onLoadPromise.reject && this.onLoadPromise.reject()
       this.onLoadPromise = undefined
     }
-    return new Promise((resolve, reject) => {
+    await new Promise((resolve, reject) => {
       this.onLoadPromise = { resolve, reject }
       setTimeout(() => {
         this.onLoadPromise = undefined
-        reject('加载超时')
-      }, 1000)
-    }).then(() => this.show(param))
+        reject()
+      }, this.createInterval)
+    })
+    return await this.show(param)
   }
 
   public show(param: AdParam): Promise<AdInvokeResult> {
@@ -131,36 +132,30 @@ export default class BaseAd implements AdHandler {
     if (this.isShowed) return Promise.resolve({ session: this })
     if (!this.ready) {
       if (!this.autoLoad) this.loadAd() // 未开启自动加载的，启动加载，即外部要先调用一次，用于创建广告对象需要其他参数等
-      VivoAd.log(this.name + '加载中')
-      return this.noReadyDelayShow(param).catch(err => {
-        VivoAd.log(this.name + '展示失败', JSON.stringify(err))
-        throw err;
-      })
+      TTAd.log(this.name + '加载中')
+      return this.noReadyDelayShow(param)
     }
-    VivoAd.log(this.name + 'show')
     return new Promise<AdInvokeResult>((resolve, reject) => {
       this.ad
         .show()
         .then(() => {
           this.onShow()
-          this.invokeResult = { session: this }
-          resolve(this.invokeResult)
+          resolve({ session: this })
         })
         .catch((err) => {
-          VivoAd.log(this.name + '展示失败', JSON.stringify(err))
+          TTAd.log(this.name + '展示失败', JSON.stringify(err))
           reject(err)
         })
     })
   }
   public close(): void {
     if (!this.ad || !this.ready || !this.isShowed) return
-    VivoAd.log(this.name + '隐藏')
     this.isShowed = false
-    this.ad.hide()
+    this.ad.hide && this.ad.hide()
   }
 
   public destroy(): void {
-    VivoAd.log(this.name + '销毁')
+    TTAd.log(this.name + '销毁')
     this.ready = false
     this.isShowed = false
     if (this.unbindAdListeners) {

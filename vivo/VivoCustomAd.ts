@@ -2,9 +2,9 @@
  * 原生模板广告
  */
 
-import BaseAd from './BaseAd'
+import VivoBaseAd from './VivoBaseAd'
 
-export default class CustomAd extends BaseAd {
+export default class VivoCustomAd extends VivoBaseAd {
   protected name: string = '原生模板广告'
   protected createInterval = 1000
   protected get isShowed(): boolean {

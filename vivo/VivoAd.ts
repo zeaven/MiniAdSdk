@@ -4,12 +4,12 @@
 
 import { AdHandler, AdInterface, AdInvokeResult, AdParam } from "../Types"
 import { get_log, LogHandle } from "../Log";
-import BannerAd from "./BannerAd";
-import RewardAd from "./RewardAd";
-import InsertAd from "./InsertAd";
-import CustomAd from "./CustomAd";
-import BoxBannerAd from './BoxBannerAd'
-import BoxPortalAd from "./BoxPortalAd";
+import VivoBannerAd from "./VivoBannerAd";
+import VivoRewardAd from "./VivoRewardAd";
+import VivoInsertAd from "./VivoInsertAd";
+import VivoCustomAd from "./VivoCustomAd";
+import ViviBoxBannerAd from './VivoBoxBannerAd'
+import VivoBoxPortalAd from "./VivoBoxPortalAd";
 
 export default class VivoAd implements AdInterface {
   public static log: LogHandle = get_log('VivoAd')
@@ -30,17 +30,17 @@ export default class VivoAd implements AdInterface {
   }
   private initAds(): void {
     if (this.systemInfo.platformVersionCode >= 1031) {
-		  this._banner = new BannerAd('', '')
-		  this._insert = new InsertAd('', '')
+		  this._banner = new VivoBannerAd('', '')
+		  this._insert = new VivoInsertAd('', '')
     }
 
     if (this.systemInfo.platformVersionCode >= 1041)
-		  this._reward = new RewardAd('', '')
+		  this._reward = new VivoRewardAd('', '')
     if (this.systemInfo.platformVersionCode >= 1091)
-      this._custom = new CustomAd('', '')
+      this._custom = new VivoCustomAd('', '')
     if (this.systemInfo.platformVersionCode >= 1092) {
-		  this._box_banner = new BoxBannerAd('', '')
-		  this._box_portal = new BoxPortalAd('', '')
+		  this._box_banner = new ViviBoxBannerAd('', '')
+		  this._box_portal = new VivoBoxPortalAd('', '')
     }
   }
   private showAd(
@@ -81,5 +81,8 @@ export default class VivoAd implements AdInterface {
   }
   showCustom(param?: AdParam): Promise<AdInvokeResult> {
     return this.showAd( '原生模板广告', this._custom, param)
+  }
+  showToast(msg: string, duration: number): void {
+      qg.showToast({message: msg, duration: 0})
   }
 }

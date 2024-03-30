@@ -2,10 +2,10 @@
  * 原生模板广告
  */
 
-import BaseAd from './BaseAd'
+import VivoBaseAd from './VivoBaseAd'
 import VivoAd from './VivoAd'
 
-export default class BoxBannerAd extends BaseAd {
+export default class ViviBoxBannerAd extends VivoBaseAd {
   protected name: string = '盒子横幅广告'
   protected createInterval = 1000
   protected createAd(_id: string): any {

@@ -28,8 +28,8 @@ export default class AdSdk implements AdInterface {
       const sdkProxy = {
         get: function(target: AdSdk, prop: string) {
           if ((prop.startsWith('show') || prop.startsWith('hide')) && typeof target[prop] === 'function') {
-            return function (param?: AdParam) {
-              return target.invoke(prop, param ??{})
+            return function (...args:any[]) {
+              return target.invoke(prop, ...args)
             }
           } else {
             return target[prop];
@@ -66,20 +66,20 @@ export default class AdSdk implements AdInterface {
     return adapter
   }
 
-  private invoke(method: string, param?: AdParam): Promise<AdInvokeResult> {
+  private invoke(method: string, ...args: any[]): Promise<AdInvokeResult> {
     if (this._adapter && this._adapter[method]) {
       let interceptor = this._interceptors[this._platform]
-      AdSdk.log(`${method}被调用`, JSON.stringify(param))
+      AdSdk.log(`${method}被调用`, JSON.stringify(args))
       if (typeof interceptor[method] === 'function') {
-        let next: AdInvokeType = (p:AdParam) => this._adapter[method](p)
-        let p = interceptor[method](next, param)
+        let next: AdInvokeType = (...p:any[]) => this._adapter[method](...p)
+        let p = interceptor[method](next, ...args)
         if (p instanceof Promise) {
           return p
         } else {
           return Promise.reject('请求取消')
         }
       }
-      return this._adapter[method](param)
+      return this._adapter[method](...args)
     } else {
       return Promise.reject('广告无效');
     }
@@ -130,6 +130,9 @@ export default class AdSdk implements AdInterface {
     throw new Error('Method not implemented.')
   }
   showCustom(param?: AdParam | undefined): Promise<AdInvokeResult> {
+    throw new Error('Method not implemented.')
+  }
+  showToast(msg: string, duration: number): void {
     throw new Error('Method not implemented.')
   }
 }

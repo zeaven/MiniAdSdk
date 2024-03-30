@@ -2,9 +2,9 @@
  * Banner广告
  */
 
-import BaseAd from './BaseAd'
+import TTBaseAd from './TTBaseAd'
 
-export default class BannerAd extends BaseAd {
+export default class TTBannerAd extends TTBaseAd {
   protected name: string = 'banner广告'
 
   protected createAd(_id: string): any {

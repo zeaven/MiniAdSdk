@@ -48,6 +48,7 @@ interface AdInterface {
   showReward(param?: AdParam): Promise<AdInvokeResult>
   showNative(param?: AdParam): Promise<AdInvokeResult>
   showCustom(param?: AdParam): Promise<AdInvokeResult>
+  showToast(msg: string, duration: number): void
 }
 /**
  * 广告类型
