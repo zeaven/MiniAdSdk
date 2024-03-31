@@ -2,7 +2,7 @@
  * VIVO广告
  */
 
-import { AdHandler, AdInterface, AdInvokeResult, AdParam } from "../Types"
+import { AdHandler, AdInterface, AdInvokeResult, AdParam, AdSession } from "../Types"
 import { get_log, LogHandle } from "../Log";
 import VivoBannerAd from "./VivoBannerAd";
 import VivoRewardAd from "./VivoRewardAd";
@@ -21,6 +21,7 @@ export default class VivoAd implements AdInterface {
   private _box_banner?: AdHandler
   private _box_portal?: AdHandler
   private _native?: AdHandler
+  bannerSession: AdSession
 
   init(): void {
     this.systemInfo = qg.getSystemInfoSync()
@@ -65,10 +66,19 @@ export default class VivoAd implements AdInterface {
     return this.showAd('盒子广告', boxAd, param)
   }
   showBanner(param?: AdParam): Promise<AdInvokeResult> {
-    return this.showAd('banner广告',this._banner, param)
+    return this.showAd('banner广告',this._banner, param).then(res => {
+      if (res && res.session) {
+        this.bannerSession = res.session
+      }
+      return res;
+    })
   }
   hideBanner(param?: AdParam): Promise<AdInvokeResult> {
-    return this.showAd('banner隐藏',this._banner, param)
+    if (this.bannerSession) {
+      this.bannerSession.close()
+      this.bannerSession = null
+    }
+    return Promise.reject(false)
   }
   showInsert(param?: AdParam): Promise<AdInvokeResult> {
     return this.showAd('插屏广告', this._insert, param)

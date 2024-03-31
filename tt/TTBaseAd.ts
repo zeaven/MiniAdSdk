@@ -13,7 +13,7 @@ export default class TTBaseAd implements AdHandler {
   protected autoUnbindListener = true
   protected reloadCount = 0
   private _isShowed = false
-  protected get isShowed(): boolean {
+  public get isShowed(): boolean {
     return this._isShowed
   }
   protected set isShowed(val: boolean) {
@@ -129,12 +129,16 @@ export default class TTBaseAd implements AdHandler {
 
   public show(param: AdParam): Promise<AdInvokeResult> {
     if (!this.ad) return Promise.reject(this.name + '无效')
-    if (this.isShowed) return Promise.resolve({ session: this })
+    if (this.isShowed) {
+      TTAd.log(this.name + '已展示')
+      return Promise.resolve({ session: this })
+    }
     if (!this.ready) {
       if (!this.autoLoad) this.loadAd() // 未开启自动加载的，启动加载，即外部要先调用一次，用于创建广告对象需要其他参数等
       TTAd.log(this.name + '加载中')
       return this.noReadyDelayShow(param)
     }
+    TTAd.log(this.name + '展示')
     return new Promise<AdInvokeResult>((resolve, reject) => {
       this.ad
         .show()

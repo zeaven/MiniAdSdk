@@ -2,7 +2,7 @@
  * VIVO广告
  */
 
-import { AdHandler, AdInterface, AdInvokeResult, AdParam } from "../Types"
+import { AdHandler, AdInterface, AdInvokeResult, AdParam, AdSession } from "../Types"
 import { get_log, LogHandle } from "../Log";
 import TTBannerAd from "./TTBannerAd";
 import TTRewardAd from "./TTRewardAd";
@@ -15,6 +15,7 @@ export default class TTAd implements AdInterface {
   private _banner?: AdHandler
   private _insert?: AdHandler
   private _reward?: AdHandler
+  bannerSession: AdSession;
   
   init(): void {
     this.systemInfo = tt.getSystemInfoSync()
@@ -45,10 +46,19 @@ export default class TTAd implements AdInterface {
     return this.showAd('盒子广告',undefined, param)
   }
   showBanner(param?: AdParam): Promise<AdInvokeResult> {
-    return this.showAd('banner广告',this._banner, param)
+    return this.showAd('banner广告',this._banner, param).then(res => {
+      if (res && res.session) {
+        this.bannerSession = res.session
+      }
+      return res;
+    })
   }
   hideBanner(param?: AdParam): Promise<AdInvokeResult> {
-    return this.showAd('banner隐藏',this._banner, param)
+    if (this.bannerSession) {
+      this.bannerSession.close()
+      this.bannerSession = null
+    }
+    return Promise.reject(false)
   }
   showInsert(param?: AdParam): Promise<AdInvokeResult> {
     return this.showAd('插屏广告', this._insert, param)

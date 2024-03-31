@@ -7,7 +7,7 @@ import VivoBaseAd from './VivoBaseAd'
 export default class VivoCustomAd extends VivoBaseAd {
   protected name: string = '原生模板广告'
   protected createInterval = 1000
-  protected get isShowed(): boolean {
+  public get isShowed(): boolean {
     return this.ad ? this.ad.isShow() : false
   }
   protected set isShowed(val: boolean) {}

@@ -6,7 +6,7 @@ const { ccclass } = cc._decorator
 import AdEventBus from "./AdEventBus";
 import { get_log, set_debug_enable } from "./Log";
 import { Platform, getPlatform } from "./Platform";
-import { AdCallback, AdEvent, AdInterceptor, AdInterface, AdInvokeResult, AdInvokeType, AdParam } from "./Types";
+import { AdCallback, AdEvent, AdInterceptor, AdInterface, AdInvokeResult, AdInvokeType, AdParam, AdType } from "./Types";
 import { TTInterceptor } from './Interceptor'
 import TTAd from "./tt/TTAd";
 import VivoAd from "./vivo/VivoAd";
@@ -24,7 +24,7 @@ export default class AdSdk implements AdInterface {
   private _interceptors: { [key:string]: AdInterceptor[] } = {}
 
   static get instance(): AdSdk {
-    if (this._instance == null) {
+    if (!this._instance) {
       const sdkProxy = {
         get: function(target: AdSdk, prop: string) {
           if ((prop.startsWith('show') || prop.startsWith('hide')) && typeof target[prop] === 'function') {
@@ -68,14 +68,18 @@ export default class AdSdk implements AdInterface {
 
   private invoke(method: string, ...args: any[]): Promise<AdInvokeResult> {
     if (this._adapter && this._adapter[method]) {
-      let interceptor = this._interceptors[this._platform]
       AdSdk.log(`${method}被调用`, JSON.stringify(args))
-      if (typeof interceptor[method] === 'function') {
+      let interceptor = this._interceptors[this._platform]
+      if (interceptor && typeof interceptor[method] === 'function') {
         let next: AdInvokeType = (...p:any[]) => this._adapter[method](...p)
         let p = interceptor[method](next, ...args)
         if (p instanceof Promise) {
-          return p
+          return p.catch(err => {
+            AdSdk.log('请求失败：' + err)
+            throw err
+          })
         } else {
+          AdSdk.log('请求取消')
           return Promise.reject('请求取消')
         }
       }
@@ -105,9 +109,15 @@ export default class AdSdk implements AdInterface {
    * @param callback 监听事件回调
    * @param target 绑定对象
    */
-  public on(adEvent: AdEvent, callback: AdCallback, target: any) {
-    AdEventBus.instance.on(adEvent, (node: cc.Node, data: string) => {
-      callback({event: adEvent, node: node}, data)
+  public on(adEvent: AdEvent | AdType, callback: AdCallback, target: any) {
+    let event: string
+    if (typeof adEvent === 'number') {
+      event = AdType[adEvent]
+    } else {
+      event = adEvent
+    }
+    AdEventBus.instance.on(event, (node: cc.Node, data: string) => {
+      callback({event: event, node: node}, data)
     }, target)
   }
 

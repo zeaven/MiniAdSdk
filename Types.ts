@@ -93,7 +93,7 @@ class AdEventHandler {
  * 广告事件回调上下文
  */
 type AdContext = {
-  event: AdEvent    // 广告事件
+  event: string    // 广告事件
   node: cc.Node     // 触发广告的节点
 }
 /**
@@ -110,6 +110,6 @@ interface AdInterceptor {
 }
 
 export {
-  AdParam, AdInvokeResult, AdInterface, AdHandler, Callback, AdType, AdEvent,
+  AdParam, AdInvokeResult, AdInterface, AdHandler, Callback, AdType, AdEvent,AdSession,
   AdEventHandler, AdContext, AdCallback, AdInterceptor,AdInterceptorCallback,AdInvokeType
 }
