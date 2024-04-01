@@ -28,11 +28,11 @@ export default class AdSdk implements AdInterface {
       const sdkProxy = {
         get: function(target: AdSdk, prop: string) {
           if ((prop.startsWith('show') || prop.startsWith('hide')) && typeof target[prop] === 'function') {
-            return function (...args:any[]) {
+            return function (...args:any[]): any {
               return target.invoke(prop, ...args)
             }
           } else {
-            return target[prop];
+            return target[prop]
           }
         }
       }
@@ -76,7 +76,7 @@ export default class AdSdk implements AdInterface {
         if (p instanceof Promise) {
           return p.catch(err => {
             AdSdk.log('请求失败：' + err)
-            throw err
+            return Promise.reject(err)
           })
         } else {
           AdSdk.log('请求取消')
@@ -85,7 +85,7 @@ export default class AdSdk implements AdInterface {
       }
       return this._adapter[method](...args)
     } else {
-      return Promise.reject('广告无效');
+      return Promise.reject('广告无效')
     }
   }
   /**

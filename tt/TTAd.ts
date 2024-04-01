@@ -73,6 +73,6 @@ export default class TTAd implements AdInterface {
     return this.showAd( '原生模板广告', undefined, param)
   }
   showToast(msg: string, duration: number): void {
-      tt.showToast({title: msg, duration: duration})
+      tt.showToast({title: msg, duration: duration ?? 1500})
   }
 }

@@ -86,7 +86,7 @@ Enum(AdType)
 class AdEventHandler {
   @property({type:AdType, tooltip: '广告类型'})
   type: AdType = AdType.None
-  @property({type:cc.String, tooltip: '广告数据, 如: 1、2等,在展示广告时判断展示样式'})
+  @property({tooltip: '广告数据, 如: 1、2等,在展示广告时判断展示样式'})
   data: string = ''
 }
 /**

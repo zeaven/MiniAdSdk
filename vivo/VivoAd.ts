@@ -8,7 +8,7 @@ import VivoBannerAd from "./VivoBannerAd";
 import VivoRewardAd from "./VivoRewardAd";
 import VivoInsertAd from "./VivoInsertAd";
 import VivoCustomAd from "./VivoCustomAd";
-import ViviBoxBannerAd from './VivoBoxBannerAd'
+import VivoBoxBannerAd from './VivoBoxBannerAd'
 import VivoBoxPortalAd from "./VivoBoxPortalAd";
 
 export default class VivoAd implements AdInterface {
@@ -40,7 +40,7 @@ export default class VivoAd implements AdInterface {
     if (this.systemInfo.platformVersionCode >= 1091)
       this._custom = new VivoCustomAd('', '')
     if (this.systemInfo.platformVersionCode >= 1092) {
-		  this._box_banner = new ViviBoxBannerAd('', '')
+		  this._box_banner = new VivoBoxBannerAd('', '')
 		  this._box_portal = new VivoBoxPortalAd('', '')
     }
   }
