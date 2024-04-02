@@ -8,8 +8,8 @@ export default class TTBannerAd extends TTBaseAd {
   protected name: string = 'banner广告'
 
   protected createAd(_id: string): any {
-    return tt.createBannerAd({
-      posId: _id,
+    return globalThis.tt.createBannerAd({
+      adUnitId: _id,
       ...this.properties
     })
   }

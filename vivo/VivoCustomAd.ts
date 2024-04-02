@@ -12,8 +12,8 @@ export default class VivoCustomAd extends VivoBaseAd {
   }
   protected set isShowed(val: boolean) {}
   protected createAd(_id: string): any {
-    if (qg.createCustomAd)
-      return qg.createCustomAd({
+    if (globalThis.qg.createCustomAd)
+      return globalThis.qg.createCustomAd({
         posId: _id,
         style:{
           gravity: 'center'

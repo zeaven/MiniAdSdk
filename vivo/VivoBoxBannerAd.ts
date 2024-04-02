@@ -9,8 +9,8 @@ export default class ViviBoxBannerAd extends VivoBaseAd {
   protected name: string = '盒子横幅广告'
   protected createInterval = 1000
   protected createAd(_id: string): any {
-    if (qg.createBoxBannerAd) {
-      return qg.createBoxBannerAd({
+    if (globalThis.qg.createBoxBannerAd) {
+      return globalThis.qg.createBoxBannerAd({
         posId: _id,
         ...this.properties
       })

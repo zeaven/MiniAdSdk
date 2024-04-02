@@ -110,6 +110,6 @@ interface AdInterceptor {
 }
 
 export {
-  AdParam, AdInvokeResult, AdInterface, AdHandler, Callback, AdType, AdEvent,AdSession,
+  AdParam, AdInvokeResult, AdInterface, AdHandler, Callback, AdType, AdEvent,AdSession, Runnable,
   AdEventHandler, AdContext, AdCallback, AdInterceptor,AdInterceptorCallback,AdInvokeType
 }

@@ -12,10 +12,10 @@ export default class VivoBoxPortalAd extends VivoBaseAd {
   private isDestroyed = false
   protected autoLoad = false
   protected createAd(_id: string): any {
-    if (qg.createBoxPortalAd) {
+    if (globalThis.qg.createBoxPortalAd) {
       if (this.isDestroyed || !this.ad) {
         this.isDestroyed = false
-        return qg.createBoxPortalAd({
+        return globalThis.qg.createBoxPortalAd({
           posId: _id,
           ...this.properties
         })

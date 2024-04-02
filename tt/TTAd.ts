@@ -18,7 +18,7 @@ export default class TTAd implements AdInterface {
   bannerSession: AdSession;
   
   init(): void {
-    this.systemInfo = tt.getSystemInfoSync()
+    this.systemInfo = globalThis.tt.getSystemInfoSync()
     TTAd.log('init', JSON.stringify(this.systemInfo))
 
     this.initAds()
@@ -73,6 +73,6 @@ export default class TTAd implements AdInterface {
     return this.showAd( '原生模板广告', undefined, param)
   }
   showToast(msg: string, duration: number): void {
-      tt.showToast({title: msg, duration: duration ?? 1500})
+      globalThis.tt.showToast({title: msg, duration: duration ?? 1500})
   }
 }

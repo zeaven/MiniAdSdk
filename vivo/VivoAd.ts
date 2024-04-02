@@ -24,7 +24,7 @@ export default class VivoAd implements AdInterface {
   bannerSession: AdSession
 
   init(): void {
-    this.systemInfo = qg.getSystemInfoSync()
+    this.systemInfo = globalThis.qg.getSystemInfoSync()
     VivoAd.log('init', JSON.stringify(this.systemInfo))
 
     this.initAds()
@@ -93,6 +93,6 @@ export default class VivoAd implements AdInterface {
     return this.showAd( '原生模板广告', this._custom, param)
   }
   showToast(msg: string, duration: number): void {
-      qg.showToast({message: msg, duration: 0})
+      globalThis.qg.showToast({message: msg, duration: 0})
   }
 }

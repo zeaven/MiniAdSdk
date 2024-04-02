@@ -10,7 +10,7 @@ export default class VivoBannerAd extends VivoBaseAd {
   private isHided = false
   protected createAd(_id: string): any {
     this.isHided = true
-    return qg.createBannerAd({
+    return globalThis.qg.createBannerAd({
       posId: _id,
       ...this.properties
     })

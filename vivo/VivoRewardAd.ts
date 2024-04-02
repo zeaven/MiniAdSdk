@@ -17,7 +17,7 @@ export default class VivoRewardAd extends VivoBaseAd {
 
   protected createAd(_id: string): any {
     if (!this.ad) {
-      return qg.createRewardedVideoAd({
+      return globalThis.qg.createRewardedVideoAd({
         posId: _id,
         ...this.properties
       })

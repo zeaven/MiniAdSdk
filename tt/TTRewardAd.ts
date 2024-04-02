@@ -21,8 +21,8 @@ export default class TTRewardAd extends TTBaseAd {
       setTimeout(() => {
         this.ad && this.ad.load()
       }, 1000);
-      return tt.createRewardedVideoAd({
-        posId: _id,
+      return globalThis.tt.createRewardedVideoAd({
+        adUnitId: _id,
       })
     } else {
       // 注意 1：

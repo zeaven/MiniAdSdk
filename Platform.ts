@@ -28,15 +28,15 @@ let getPlatform = (): string => {
       (cc.sys.OS_IOS == cc.sys.os || cc.sys.OS_OSX == cc.sys.os)
     ) {
       platform = Platform.IOS
-    } else if (window.qq) {
+    } else if (globalThis.qg) {
       platform = Platform.QQ
     } else if (cc.sys.platform === cc.sys.OPPO_GAME) {
       platform = Platform.OPPO
     } else if (cc.sys.platform === cc.sys.VIVO_GAME) {
       platform = Platform.VIVO
-    } else if (window.tt) {
+    } else if (globalThis.tt) {
       platform = Platform.TT
-    } else if (window.FBInstant) {
+    } else if (globalThis.FBInstant) {
       platform = Platform.FB
     } else if (CC_PREVIEW) {
       platform = Platform.WEB

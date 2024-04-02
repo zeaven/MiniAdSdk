@@ -11,8 +11,8 @@ export default class TTInsertAd extends TTBaseAd {
   protected createAd(_id: string): any {
     this.hasShowed = false
     if (!this.ad) {
-      return tt.createInterstitialAd({
-        posId: _id,
+      return globalThis.tt.createInterstitialAd({
+        adUnitId: _id,
       })
     }
     return this.ad
