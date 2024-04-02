@@ -1,7 +1,9 @@
 import { get_log } from "../../Log";
 import { Callback, Runnable } from "../../Types";
 import { ManualPromise } from "../../AdUtils";
+import AdEventBus from "../../AdEventBus";
 
+const {ccclass} = cc._decorator
 
 const save = (key: string, val: any): void => {
   val = JSON.stringify(val)
@@ -10,7 +12,7 @@ const save = (key: string, val: any): void => {
 
 const load = (key: string, defaultVal: any): any => {
   let val = cc.sys.localStorage.getItem(key)
-  if (val === null) {
+  if (!val) {
     return defaultVal
   }
   return JSON.parse(val)
@@ -18,6 +20,7 @@ const load = (key: string, defaultVal: any): any => {
 
 const log = get_log('TTSidebar')
 
+@ccclass
 export default class TTSidebar {
   private static _store_key = 'tt_sidebar_reward_key'
   private static _instance: TTSidebar
@@ -26,7 +29,7 @@ export default class TTSidebar {
   private launchPromise: ManualPromise<boolean>
   // 侧边栏是否可用
   private avaliablePromise: ManualPromise<boolean>
-  rewardCallback: Runnable[];
+  private hasRewarded:boolean
 
   static get instance(): TTSidebar {
     if (!TTSidebar._instance) {
@@ -38,7 +41,6 @@ export default class TTSidebar {
   private constructor() {
     this.launchPromise = new ManualPromise<boolean>()
     this.avaliablePromise = new ManualPromise<boolean>()
-    this.rewardCallback = []
   }
 
   private init(): void {
@@ -50,8 +52,8 @@ export default class TTSidebar {
     } else {
       this.launchPromise.resolve(false)
     }
-    const hasRewarded: boolean = load(TTSidebar._store_key, false)
-    if (hasRewarded) {
+    this.hasRewarded = load(TTSidebar._store_key, false)
+    if (this.hasRewarded) {
       // 已获得入口奖励，禁用侧边栏
       this.avaliablePromise.resolve(false)
       return
@@ -60,7 +62,7 @@ export default class TTSidebar {
     if (globalThis.tt.checkScene) {
       globalThis.tt.checkScene({scene: 'sidebar', success: res => {
         log('checkScene', res)
-        this.avaliablePromise.resolve(!!res.isExist)
+        this.avaliablePromise.resolve(res.isExist ? res.isExist : true)
       }, fail: err => this.avaliablePromise.resolve(false)})
     } else {
       this.avaliablePromise.resolve(false)
@@ -91,13 +93,22 @@ export default class TTSidebar {
   }
 
   public onRewarded(callback: Runnable): void {
-    this.rewardCallback.push(callback)
+    AdEventBus.instance.on('TTSidebar:reward', () => {
+      if (this.hasRewarded) return
+      this.hasRewarded = true
+      save(TTSidebar._store_key, true)
+      callback()
+    })
   }
 
-  public reward(): void {
-    save(TTSidebar._store_key, true)
-    for ( const item of this.rewardCallback) {
-      item()
-    }
+  public onOpened(callback: Runnable): void {
+    AdEventBus.instance.on('TTSidebar:open', callback)
   }
+
+  public onClosed(callback: Runnable): void {
+    AdEventBus.instance.on('TTSidebar:close', callback)
+  }
+
 }
+
+module.exports = TTSidebar
