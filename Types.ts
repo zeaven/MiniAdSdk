@@ -1,7 +1,7 @@
 const {Enum} = cc
 const { ccclass, property } = cc._decorator
 
-type Runnable = () => {}
+type Runnable = () => void
 type Callback = (...args: any[]) => void
 /**
  * 广告参数
@@ -48,6 +48,7 @@ interface AdInterface {
   showReward(param?: AdParam): Promise<AdInvokeResult>
   showNative(param?: AdParam): Promise<AdInvokeResult>
   showCustom(param?: AdParam): Promise<AdInvokeResult>
+  hideCustom(param?: AdParam): Promise<AdInvokeResult>
   showToast(msg: string, duration: number): void
 }
 /**

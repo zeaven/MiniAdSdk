@@ -142,6 +142,9 @@ export default class AdSdk implements AdInterface {
   showCustom(param?: AdParam | undefined): Promise<AdInvokeResult> {
     throw new Error('Method not implemented.')
   }
+  hideCustom(param?: AdParam | undefined): Promise<AdInvokeResult> {
+    throw new Error('Method not implemented.')
+  }
   showToast(msg: string, duration: number): void {
     throw new Error('Method not implemented.')
   }

@@ -1,4 +1,5 @@
 import { get_log } from "./Log"
+import { Runnable } from "./Types"
 
 /**
  * 广告事件总线
@@ -24,8 +25,11 @@ export default class AdEventBus {
     this.eventTarget.emit(event, ...args)
   }
 
-  public on(event: string, callback: any, target?: any) : void {
+  public on(event: string, callback: any, target?: any) : Runnable {
     AdEventBus.log('on', event, target)
     this.eventTarget.on(event, callback, target)
+    return () => {
+      this.eventTarget.off(event, callback, target)
+    }
   }
 }

@@ -30,6 +30,7 @@ export default class TTSidebar {
   // 侧边栏是否可用
   private avaliablePromise: ManualPromise<boolean>
   private hasRewarded:boolean
+  private unbinds = []
 
   static get instance(): TTSidebar {
     if (!TTSidebar._instance) {
@@ -39,18 +40,18 @@ export default class TTSidebar {
     return TTSidebar._instance
   }
   private constructor() {
+    log('创建')
     this.launchPromise = new ManualPromise<boolean>()
     this.avaliablePromise = new ManualPromise<boolean>()
   }
 
   private init(): void {
-    if (!globalThis.tt) return
     log('初始化')
     // 注册 tt.onShow生命周期
     if (globalThis.tt_onShow) {
       globalThis.tt_onShow.then(res => this.onShowed(res))
     } else {
-      this.launchPromise.resolve(false)
+      this.launchPromise.resolve(CC_DEBUG)
     }
     this.hasRewarded = load(TTSidebar._store_key, false)
     if (this.hasRewarded) {
@@ -59,13 +60,13 @@ export default class TTSidebar {
       return
     }
     // 检查是否支付侧边栏功能
-    if (globalThis.tt.checkScene) {
+    if (globalThis.tt && globalThis.tt.checkScene) {
       globalThis.tt.checkScene({scene: 'sidebar', success: res => {
         log('checkScene', res)
         this.avaliablePromise.resolve(res.isExist ? res.isExist : true)
-      }, fail: err => this.avaliablePromise.resolve(false)})
+      }, fail: () => this.avaliablePromise.resolve(false)})
     } else {
-      this.avaliablePromise.resolve(false)
+      this.avaliablePromise.resolve(CC_DEBUG)
     }
   }
 
@@ -93,22 +94,31 @@ export default class TTSidebar {
   }
 
   public onRewarded(callback: Runnable): void {
-    AdEventBus.instance.on('TTSidebar:reward', () => {
+    const cb = AdEventBus.instance.on('TTSidebar:reward', () => {
       if (this.hasRewarded) return
       this.hasRewarded = true
       save(TTSidebar._store_key, true)
       callback()
+      this.unbind()
     })
+    this.unbinds.push(cb)
   }
 
   public onOpened(callback: Runnable): void {
-    AdEventBus.instance.on('TTSidebar:open', callback)
+    const cb = AdEventBus.instance.on('TTSidebar:open', callback)
+    this.unbinds.push(cb)
   }
 
   public onClosed(callback: Runnable): void {
-    AdEventBus.instance.on('TTSidebar:close', callback)
+    const cb = AdEventBus.instance.on('TTSidebar:close', callback)
+    this.unbinds.push(cb)
   }
 
+  private unbind(): void {
+    for (const cb of this.unbinds) {
+      cb()
+    }
+  }
 }
 
-module.exports = TTSidebar
+// module.exports = TTSidebar

@@ -15,7 +15,6 @@ export default class TTAd implements AdInterface {
   private _banner?: AdHandler
   private _insert?: AdHandler
   private _reward?: AdHandler
-  bannerSession: AdSession;
   
   init(): void {
     this.systemInfo = globalThis.tt.getSystemInfoSync()
@@ -46,18 +45,10 @@ export default class TTAd implements AdInterface {
     return this.showAd('盒子广告',undefined, param)
   }
   showBanner(param?: AdParam): Promise<AdInvokeResult> {
-    return this.showAd('banner广告',this._banner, param).then(res => {
-      if (res && res.session) {
-        this.bannerSession = res.session
-      }
-      return res;
-    })
+    return this.showAd('banner广告',this._banner, param)
   }
   hideBanner(param?: AdParam): Promise<AdInvokeResult> {
-    if (this.bannerSession) {
-      this.bannerSession.close()
-      this.bannerSession = null
-    }
+    this._banner && this._banner.close()
     return Promise.reject(false)
   }
   showInsert(param?: AdParam): Promise<AdInvokeResult> {
@@ -71,6 +62,9 @@ export default class TTAd implements AdInterface {
   }
   showCustom(param?: AdParam): Promise<AdInvokeResult> {
     return this.showAd( '原生模板广告', undefined, param)
+  }
+  hideCustom(param?: AdParam): Promise<AdInvokeResult> {
+    return Promise.reject(false)
   }
   showToast(msg: string, duration: number): void {
       globalThis.tt.showToast({title: msg, duration: duration ?? 1500})

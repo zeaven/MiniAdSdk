@@ -21,7 +21,6 @@ export default class VivoAd implements AdInterface {
   private _box_banner?: AdHandler
   private _box_portal?: AdHandler
   private _native?: AdHandler
-  bannerSession: AdSession
 
   init(): void {
     this.systemInfo = globalThis.qg.getSystemInfoSync()
@@ -66,18 +65,10 @@ export default class VivoAd implements AdInterface {
     return this.showAd('盒子广告', boxAd, param)
   }
   showBanner(param?: AdParam): Promise<AdInvokeResult> {
-    return this.showAd('banner广告',this._banner, param).then(res => {
-      if (res && res.session) {
-        this.bannerSession = res.session
-      }
-      return res;
-    })
+    return this.showAd('banner广告',this._banner, param)
   }
   hideBanner(param?: AdParam): Promise<AdInvokeResult> {
-    if (this.bannerSession) {
-      this.bannerSession.close()
-      this.bannerSession = null
-    }
+    this._banner && this._banner.close()
     return Promise.reject(false)
   }
   showInsert(param?: AdParam): Promise<AdInvokeResult> {
@@ -91,6 +82,10 @@ export default class VivoAd implements AdInterface {
   }
   showCustom(param?: AdParam): Promise<AdInvokeResult> {
     return this.showAd( '原生模板广告', this._custom, param)
+  }
+  hideCustom(param?: AdParam): Promise<AdInvokeResult> {
+    this._custom && this._custom.close()
+    return Promise.reject(false)
   }
   showToast(msg: string, duration: number): void {
       globalThis.qg.showToast({message: msg, duration: 0})
