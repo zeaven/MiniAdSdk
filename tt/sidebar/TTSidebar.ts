@@ -1,14 +1,10 @@
 import { get_log } from "../../Log";
-import { Callback, Runnable } from "../../Types";
+import { Callback } from "../../Types";
 import { ManualPromise } from "../../AdUtils";
-import AdEventBus from "../../AdEventBus";
+
 
 const {ccclass} = cc._decorator
 
-const save = (key: string, val: any): void => {
-  val = JSON.stringify(val)
-  cc.sys.localStorage.setItem(key, val);  
-}
 
 const load = (key: string, defaultVal: any): any => {
   let val = cc.sys.localStorage.getItem(key)
@@ -22,7 +18,7 @@ const log = get_log('TTSidebar')
 
 @ccclass
 export default class TTSidebar {
-  private static _store_key = 'tt_sidebar_reward_key'
+  public static _store_key = 'tt_sidebar_reward_key'
   private static _instance: TTSidebar
 
   // 是否侧边栏启动
@@ -30,7 +26,6 @@ export default class TTSidebar {
   // 侧边栏是否可用
   private avaliablePromise: ManualPromise<boolean>
   private hasRewarded:boolean
-  private unbinds = []
 
   static get instance(): TTSidebar {
     if (!TTSidebar._instance) {
@@ -93,32 +88,6 @@ export default class TTSidebar {
     this.avaliablePromise.promise.then(res => callback(res))
   }
 
-  public onRewarded(callback: Runnable): void {
-    const cb = AdEventBus.instance.on('TTSidebar:reward', () => {
-      if (this.hasRewarded) return
-      this.hasRewarded = true
-      save(TTSidebar._store_key, true)
-      callback()
-      this.unbind()
-    })
-    this.unbinds.push(cb)
-  }
-
-  public onOpened(callback: Runnable): void {
-    const cb = AdEventBus.instance.on('TTSidebar:open', callback)
-    this.unbinds.push(cb)
-  }
-
-  public onClosed(callback: Runnable): void {
-    const cb = AdEventBus.instance.on('TTSidebar:close', callback)
-    this.unbinds.push(cb)
-  }
-
-  private unbind(): void {
-    for (const cb of this.unbinds) {
-      cb()
-    }
-  }
 }
 
 // module.exports = TTSidebar

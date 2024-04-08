@@ -11,6 +11,7 @@ export default class TTSidebarUI extends cc.Component {
   sidebarImg: cc.SpriteFrame;
   rewardItem: cc.SpriteFrame;
   rewardAmount: string;
+  gameName: string
  
 
   protected onLoad(): void {
@@ -35,13 +36,15 @@ export default class TTSidebarUI extends cc.Component {
     }
   }
 
-  public setData(sidebarImg: cc.SpriteFrame, rewardItem: cc.SpriteFrame, rewardAmount: string): void {
+  public setData(gameName: string, sidebarImg: cc.SpriteFrame, rewardItem: cc.SpriteFrame, rewardAmount: number): void {
+    this.gameName = gameName
     this.sidebarImg= sidebarImg
     this.rewardItem= rewardItem
-    this.rewardAmount= rewardAmount
+    this.rewardAmount= 'x' + rewardAmount
   }
 
   private init(): void {
+    const step3Node = cc.find('content/step3', this.panel)
     const imgNode = cc.find('content/sidebarImg', this.panel)
     const itemNode = cc.find('content/rewardItem', this.panel)
     const amountNode = cc.find('content/rewardAmount', this.panel)
@@ -49,6 +52,11 @@ export default class TTSidebarUI extends cc.Component {
     if (imgNode) {
       sprite = imgNode.getComponent(cc.Sprite)
       sprite.spriteFrame = this.sidebarImg
+      const nameNode = cc.find('gameName', imgNode)
+      if (nameNode) {
+        const nameLabel = nameNode.getComponent(cc.Label)
+        nameLabel.string = this.gameName
+      }
     }
     if (itemNode) {
       sprite = itemNode.getComponent(cc.Sprite)
@@ -57,6 +65,10 @@ export default class TTSidebarUI extends cc.Component {
     if (amountNode) {
       const label = amountNode.getComponent(cc.Label)
       label.string = this.rewardAmount
+    }
+    if (step3Node) {
+      const label = step3Node.getComponent(cc.Label)
+      label.string = label.string.replace('{game}', this.gameName)
     }
   }
 

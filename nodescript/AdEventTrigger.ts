@@ -18,18 +18,18 @@ export default class AdEventTrigger extends cc.Component {
 
   @property({type:[AdEventHandler], serializable:true, tooltip:'广告配置列表'})
   public ads: AdEventHandler[] = []
-  @property({tooltip: '是否组合广告, 组合时可自行展示插屏成功后再展示banner'})
-  public combo = false
+  // @property({tooltip: '是否组合广告, 组合时可自行展示插屏成功后再展示banner'})
+  // public combo = false
 
   static log = get_log('AdEventConfig')
 
 
   protected onEnable(): void {
     let ads = this.ads.filter(t => t.type !== AdType.None)
-    if (this.combo) {
-      AdEventBus.instance.emit(AdType[AdType.Combo], this.node, ads)
-      return
-    }
+    // if (this.combo) {
+    //   AdEventBus.instance.emit(AdType[AdType.Combo], this.node, ads)
+    //   return
+    // }
     for (const event of ads) {
       AdEventBus.instance.emit(AdType[event.type], this.node, event.data)
     }

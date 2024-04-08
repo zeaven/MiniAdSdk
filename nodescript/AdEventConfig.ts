@@ -41,7 +41,7 @@ export default class AdEventConfig extends cc.Component {
     let triggers =this.triggerEvents.filter(t => t.type !== AdType.None)
     if (this.combo) {
       AdEventBus.instance.emit(AdEvent.ComboShow, this.node, ads)
-      AdEventBus.instance.emit(AdType[AdType.Combo], this.node, triggers)
+      // AdEventBus.instance.emit(AdType[AdType.Combo], this.node, triggers)
       return
     }
     for (const event of ads) {

@@ -100,7 +100,7 @@ type AdContext = {
 /**
  * 广告事件回调函数
  */
-type AdCallback = (context: AdContext, data: string) => void
+type AdCallback = (context: AdContext, data: AdEventHandler[]|string) => void
 type AdInvokeType = (param:AdParam) => Promise<AdInvokeResult>
 type AdInterceptorCallback = (next: AdInvokeType, param: AdParam) => Promise<AdInvokeResult>
 /**
