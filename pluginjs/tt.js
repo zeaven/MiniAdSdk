@@ -5,7 +5,7 @@
  * 让cocos启动后也能监听到，其他的tt系统周期方法也一样适用
  */
 !function () {
-  if (!window.tt_onShow) {
+  if (window.tt && !window.tt_onShow) {
     window.tt_onShow = new Promise((resolve) => {
       window.tt.onShow(res => resolve(res));
     });

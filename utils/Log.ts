@@ -1,5 +1,5 @@
 
-let debug_enable = false;
+let debug_enable = CC_DEBUG;
 type LogHandle = (...msg: any[]) => void;
 
 let set_debug_enable = function (debug: boolean) {
@@ -19,11 +19,11 @@ let current_time = function (): string {
 let debug_log = function (tag: string, ...msg: any[]) {
   let currentTime = current_time()
   if (debug_enable) {
-    console.debug(
-      currentTime + ': ' + tag + ' ' + msg.map((t) => t?.toString()).join(' ')
+    console.warn(
+      currentTime, tag, msg.map((t) => t?.toString()).join(' ')
     )
   }
-  if (CC_DEBUG) {
+  if (debug_enable) {
     cc.log(currentTime + ': ' + tag, ...msg)
   }
 }

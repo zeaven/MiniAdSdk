@@ -3,14 +3,15 @@
  */
 
 const { ccclass } = cc._decorator
-import AdEventBus from "./AdEventBus";
-import { get_log, set_debug_enable } from "./Log";
-import { Platform, getPlatform } from "./Platform";
+import AdEventBus from "./utils/AdEventBus";
+import { get_log } from "./utils/Log";
+import { Platform, getPlatform } from "./utils/Platform";
 import { AdCallback, AdEvent, AdEventHandler, AdInterceptor, AdInterface, AdInvokeResult, AdInvokeType, AdParam, AdType } from "./Types";
-import { TTInterceptor } from './Interceptor'
+import { TTInterceptor } from './utils/Interceptor'
 import TTAd from "./tt/TTAd";
 import VivoAd from "./vivo/VivoAd";
-import ConfigBinder from "./ConfigBinder";
+import ConfigBinder from "./utils/ConfigBinder";
+import JsAd from "./JsAd";
 
 
 
@@ -23,6 +24,7 @@ export default class AdSdk implements AdInterface {
   private _adapter?: AdInterface
   
   private _interceptors: { [key:string]: AdInterceptor[] } = {}
+  private _whitePackage: boolean;
   private _inited = false
 
   static get instance(): AdSdk {
@@ -47,7 +49,6 @@ export default class AdSdk implements AdInterface {
   init(): void {
     if (this._inited) return
     this._inited = true
-    set_debug_enable(CC_DEBUG)
     this._platform = getPlatform()
     AdSdk.log('初始化, 平台:' + this._platform)
     this._adapter = this.getAdapter(this._platform)
@@ -65,6 +66,7 @@ export default class AdSdk implements AdInterface {
         adapter = new TTAd()
         this.addInterceptor(name, new TTInterceptor())
       default:
+        adapter = new JsAd()
         break
     }
 
@@ -72,6 +74,9 @@ export default class AdSdk implements AdInterface {
   }
 
   private invoke(method: string, ...args: any[]): Promise<AdInvokeResult> {
+    if (this._whitePackage) {
+      return Promise.resolve( {session: null, rewardPromise: Promise.resolve()})
+    }
     if (this._adapter && this._adapter[method]) {
       AdSdk.log(`${method}被调用`, JSON.stringify(args))
       const interceptors = this._interceptors[this._platform]
@@ -147,6 +152,10 @@ export default class AdSdk implements AdInterface {
     AdEventBus.instance.on(event, (node: cc.Node, data: AdEventHandler[]|string) => {
       callback({event: event, node: node}, data)
     }, target)
+  }
+
+  public setWhitePackage(whitePackage: boolean) {
+    this._whitePackage = whitePackage
   }
 
   showBox(param?: AdParam): Promise<AdInvokeResult> {

@@ -1,14 +1,10 @@
-import AdEventBus from "../../AdEventBus";
+import AdEventBus from "../../utils/AdEventBus";
 import { Runnable } from "../../Types";
 import TTSidebar from "./TTSidebar";
 import TTSidebarUI from "./TTSidebarUI";
+import { saveItem } from "../../utils/AdUtils";
 
 const {ccclass, property} = cc._decorator;
-
-const save = (key: string, val: any): void => {
-  val = JSON.stringify(val)
-  cc.sys.localStorage.setItem(key, val);  
-}
 
 
 @ccclass
@@ -16,7 +12,7 @@ export default class TTSidebarIcon extends cc.Component {
   @property({type: cc.Prefab, tooltip: '入口奖励预制节点'})
   panel: cc.Prefab = null
   @property({tooltip: '游戏名称'})
-  gameName: string = null
+  gameName: string = ""
   @property({type: cc.SpriteFrame, tooltip: '侧边栏游戏图标'})
   sidebarImg: cc.SpriteFrame = null
   @property({type: cc.SpriteFrame, tooltip: '奖励物品图标'})
@@ -26,11 +22,11 @@ export default class TTSidebarIcon extends cc.Component {
   @property()
   anim: boolean = false
   @property({type: cc.Component.EventHandler,tooltip: '奖励回调'})
-  rewardEvent: cc.Component.EventHandler = null
+  rewardEvent: cc.Component.EventHandler = new cc.Component.EventHandler
   @property({type: cc.Component.EventHandler,tooltip: '打开回调'})
-  openEvent: cc.Component.EventHandler = null
+  openEvent: cc.Component.EventHandler = new cc.Component.EventHandler
   @property({type: cc.Component.EventHandler,tooltip: '关闭回调'})
-  closeEvent: cc.Component.EventHandler = null
+  closeEvent: cc.Component.EventHandler = new cc.Component.EventHandler
 
   private panelNode: cc.Node
   unbinds: Runnable[] = []
@@ -40,18 +36,7 @@ export default class TTSidebarIcon extends cc.Component {
     this.node.active = CC_DEBUG
     TTSidebar.instance.onAvaliable(res => this.node.active = res)
 
-    let cb = AdEventBus.instance.on('TTSidebar:close', (reward) => {
-      const nodeScript = this.panelNode.getComponent(TTSidebarUI)
-      nodeScript.close(() => {
-        if(reward) {
-          this.node.destroy()
-        } else {
-          this.panelNode.active = false
-        }
-      })
-    })
-    this.unbinds.push(cb)
-    cb = AdEventBus.instance.on('TTSidebar:reward', this.onRewarded, this)
+    let cb = AdEventBus.instance.on('TTSidebar:reward', this.onRewarded, this)
     this.unbinds.push(cb)
     cb = AdEventBus.instance.on('TTSidebar:close', this.onClosed, this)
     this.unbinds.push(cb)
@@ -106,13 +91,20 @@ export default class TTSidebarIcon extends cc.Component {
   private onRewarded(): void {
     if (this.hasRewarded) return
     this.hasRewarded = true
-    save(TTSidebar._store_key, true)
+    saveItem(TTSidebar._store_key, true)
     this.rewardEvent && this.rewardEvent.emit([this.rewardAmount])
-    this.unbind()
   }
 
-  private onClosed(): void {
+  private onClosed(reward): void {
     this.closeEvent && this.closeEvent.emit([])
+    const nodeScript = this.panelNode.getComponent(TTSidebarUI)
+    nodeScript.close(() => {
+      if(reward) {
+        this.node.destroy()
+      } else {
+        this.panelNode.active = false
+      }
+    })
   }
 
   private unbind(): void {

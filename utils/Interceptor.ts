@@ -1,4 +1,4 @@
-import { AdInterceptor, AdInvokeResult, AdInvokeType, AdParam } from "./Types";
+import { AdInterceptor, AdInvokeResult, AdInvokeType, AdParam } from "../Types";
 
 /**
  * 插屏广告频控

@@ -3,7 +3,7 @@
  */
 
 import { AdHandler, AdInterface, AdInvokeResult, AdParam, AdSession } from "../Types"
-import { get_log, LogHandle } from "../Log";
+import { get_log, LogHandle } from "../utils/Log";
 import VivoBannerAd from "./VivoBannerAd";
 import VivoRewardAd from "./VivoRewardAd";
 import VivoInsertAd from "./VivoInsertAd";

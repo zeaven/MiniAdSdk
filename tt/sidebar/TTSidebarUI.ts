@@ -1,4 +1,4 @@
-import AdEventBus from "../../AdEventBus";
+import AdEventBus from "../../utils/AdEventBus";
 import { Runnable } from "../../Types";
 import Sidebar from "./TTSidebar";
 

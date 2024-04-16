@@ -1,5 +1,5 @@
-import AdEventBus from "../AdEventBus"
-import { get_log } from "../Log"
+import AdEventBus from "../utils/AdEventBus"
+import { get_log } from "../utils/Log"
 import { AdEvent, AdEventHandler, AdType } from "../Types"
 
 const { ccclass, property } = cc._decorator
@@ -47,9 +47,10 @@ export default class AdEventConfig extends cc.Component {
     for (const event of ads) {
       let adEvent: string = lowercaseFirstLetter(AdType[event.type] + ':show')
       AdEventBus.instance.emit(adEvent, this.node, event.data)
+    }
+    for (const event of triggers) {
       AdEventBus.instance.emit(AdType[event.type], this.node, event.data)
     }
-
   }
 
   protected onDisable(): void {

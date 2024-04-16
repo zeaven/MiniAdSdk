@@ -1,5 +1,5 @@
-import AdEventBus from "../AdEventBus"
-import { get_log } from "../Log"
+import AdEventBus from "../utils/AdEventBus"
+import { get_log } from "../utils/Log"
 import { AdEventHandler, AdType } from "../Types"
 
 const { ccclass, property } = cc._decorator

@@ -1,5 +1,5 @@
 import { get_log } from "./Log"
-import { Runnable } from "./Types"
+import { Runnable } from "../Types"
 
 /**
  * 广告事件总线

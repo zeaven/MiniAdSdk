@@ -1,5 +1,5 @@
-import AdSdk from "./AdSdk"
-import { AdContext, AdEvent, AdEventHandler, AdType } from "./Types"
+import AdSdk from "../AdSdk"
+import { AdContext, AdEvent, AdEventHandler, AdType } from "../Types"
 
 /**
  * 配置广告绑定逻辑

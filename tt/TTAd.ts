@@ -3,7 +3,7 @@
  */
 
 import { AdHandler, AdInterface, AdInvokeResult, AdParam, AdSession } from "../Types"
-import { get_log, LogHandle } from "../Log";
+import { get_log, LogHandle } from "../utils/Log";
 import TTBannerAd from "./TTBannerAd";
 import TTRewardAd from "./TTRewardAd";
 import TTInsertAd from "./TTInsertAd";

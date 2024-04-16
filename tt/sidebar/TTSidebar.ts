@@ -1,18 +1,10 @@
-import { get_log } from "../../Log";
+import { get_log } from "../../utils/Log";
 import { Callback } from "../../Types";
-import { ManualPromise } from "../../AdUtils";
+import { ManualPromise, getItem } from "../../utils/AdUtils";
 
 
 const {ccclass} = cc._decorator
 
-
-const load = (key: string, defaultVal: any): any => {
-  let val = cc.sys.localStorage.getItem(key)
-  if (!val) {
-    return defaultVal
-  }
-  return JSON.parse(val)
-}
 
 const log = get_log('TTSidebar')
 
@@ -48,7 +40,7 @@ export default class TTSidebar {
     } else {
       this.launchPromise.resolve(CC_DEBUG)
     }
-    this.hasRewarded = load(TTSidebar._store_key, false)
+    this.hasRewarded = getItem(TTSidebar._store_key, false)
     if (this.hasRewarded) {
       // 已获得入口奖励，禁用侧边栏
       this.avaliablePromise.resolve(false)
