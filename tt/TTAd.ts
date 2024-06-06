@@ -8,6 +8,10 @@ import TTBannerAd from "./TTBannerAd";
 import TTRewardAd from "./TTRewardAd";
 import TTInsertAd from "./TTInsertAd";
 
+// 配置广告位
+const BANNER_AD_ID = ['']
+const INTERS_AD_ID = ['']
+const REWARD_AD_ID = ['']
 
 export default class TTAd implements AdInterface {
   public static log: LogHandle = get_log('TTAd')
@@ -23,10 +27,10 @@ export default class TTAd implements AdInterface {
     this.initAds()
   }
   private initAds(): void {
-		  this._banner = new TTBannerAd('', '')
-		  this._insert = new TTInsertAd('', '')
+		  this._banner = new TTBannerAd(...BANNER_AD_ID)
+		  this._insert = new TTInsertAd(...INTERS_AD_ID)
 
-		  this._reward = new TTRewardAd('', '')
+		  this._reward = new TTRewardAd(...REWARD_AD_ID)
   }
   private showAd(
     adName: string,

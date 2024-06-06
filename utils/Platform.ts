@@ -11,12 +11,16 @@ let Platform = cc.Enum({
   VIVO: 'vivo',
   TT: 'tt',
   m4399: '4399',
+  KS: 'ks',
 })
 
 
 let getPlatform = (): string => {
     let platform = '';
-    if (cc.sys.platform === cc.sys.WECHAT_GAME) {
+    let isKSGame = typeof globalThis.KSGameGlobal != 'undefined'
+    if (isKSGame) {
+      platform = Platform.KS
+    } else if (cc.sys.platform === cc.sys.WECHAT_GAME) {
       platform = Platform.WX
     } else if (
       CC_NATIVERENDERER &&

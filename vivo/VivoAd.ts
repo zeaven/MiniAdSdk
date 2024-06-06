@@ -11,6 +11,13 @@ import VivoCustomAd from "./VivoCustomAd";
 import VivoBoxBannerAd from './VivoBoxBannerAd'
 import VivoBoxPortalAd from "./VivoBoxPortalAd";
 
+
+const BANNER_AD_ID = ['']
+const INTERS_AD_ID = ['']
+const REWARD_AD_ID = ['']
+const CUSTOM_AD_ID = ['']
+const BANNER_BOX_AD_ID = ['']
+
 export default class VivoAd implements AdInterface {
   public static log: LogHandle = get_log('VivoAd')
   private systemInfo!: any
@@ -30,16 +37,16 @@ export default class VivoAd implements AdInterface {
   }
   private initAds(): void {
     if (this.systemInfo.platformVersionCode >= 1031) {
-		  this._banner = new VivoBannerAd('', '')
-		  this._insert = new VivoInsertAd('', '')
+		  this._banner = new VivoBannerAd(...BANNER_AD_ID)
+		  this._insert = new VivoInsertAd(...INTERS_AD_ID)
     }
 
     if (this.systemInfo.platformVersionCode >= 1041)
-		  this._reward = new VivoRewardAd('', '')
+		  this._reward = new VivoRewardAd(...REWARD_AD_ID)
     if (this.systemInfo.platformVersionCode >= 1091)
-      this._custom = new VivoCustomAd('', '')
+      this._custom = new VivoCustomAd(...CUSTOM_AD_ID)
     if (this.systemInfo.platformVersionCode >= 1092) {
-		  this._box_banner = new VivoBoxBannerAd('', '')
+		  this._box_banner = new VivoBoxBannerAd(...BANNER_BOX_AD_ID)
 		  this._box_portal = new VivoBoxPortalAd('', '')
     }
   }

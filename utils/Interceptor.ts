@@ -1,5 +1,21 @@
 import { AdInterceptor, AdInvokeResult, AdInvokeType, AdParam } from "../Types";
 
+function throttle(func: Function, limit: number): any {
+    let inThrottle: boolean = false;
+
+    return function(next: AdInvokeType, param: AdParam): any {
+        if (!inThrottle) {
+            inThrottle = true;
+            return new Promise((resolve) => {
+              setTimeout(() => {
+                resolve(func(next, param))
+                inThrottle = false
+              }, limit)
+            })
+        }
+    };
+}
+
 /**
  * 插屏广告频控
 对于插屏广告的展示，有一定的频率控制，具体如下：
@@ -44,4 +60,18 @@ class TTInterceptor implements AdInterceptor {
   }
 }
 
-export { TTInterceptor }
+/**
+ * 激励视频延时1秒展示
+ */
+class DelayInterceptor implements AdInterceptor {
+  init(): void {
+    const _method = this.showReward.bind(this)
+    this.showReward = throttle(_method, 1000)
+  }
+  showReward (next: AdInvokeType, param: AdParam): Promise<AdInvokeResult> | void {
+    return next(param)
+  }
+}
+
+export { TTInterceptor, DelayInterceptor }
+

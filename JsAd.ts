@@ -2,6 +2,7 @@ import { AdInterface, AdInvokeResult, AdParam } from "./Types";
 
 export default class JsAd implements AdInterface {
   init(): void {
+    if (!globalThis.$JsBridge) return
     if(!CC_DEBUG && !globalThis.JsBridge){
       setTimeout(() => {
         try {
@@ -10,7 +11,7 @@ export default class JsAd implements AdInterface {
           })
         } catch (error) {
         }
-      }, 3000);
+      }, 8000)
     }
   }
   showBox(param?: AdParam): Promise<AdInvokeResult> {

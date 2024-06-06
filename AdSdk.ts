@@ -7,7 +7,7 @@ import AdEventBus from "./utils/AdEventBus";
 import { get_log } from "./utils/Log";
 import { Platform, getPlatform } from "./utils/Platform";
 import { AdCallback, AdEvent, AdEventHandler, AdInterceptor, AdInterface, AdInvokeResult, AdInvokeType, AdParam, AdType } from "./Types";
-import { TTInterceptor } from './utils/Interceptor'
+import { DelayInterceptor, TTInterceptor } from './utils/Interceptor'
 import TTAd from "./tt/TTAd";
 import VivoAd from "./vivo/VivoAd";
 import ConfigBinder from "./utils/ConfigBinder";
@@ -61,10 +61,13 @@ export default class AdSdk implements AdInterface {
     switch (name) {
       case Platform.VIVO:
         adapter = new VivoAd()
+        this.addInterceptor(name, new DelayInterceptor())
         break
       case Platform.TT:
         adapter = new TTAd()
+        this.addInterceptor(name, new DelayInterceptor())
         this.addInterceptor(name, new TTInterceptor())
+        break
       default:
         adapter = new JsAd()
         break
@@ -80,18 +83,16 @@ export default class AdSdk implements AdInterface {
     if (this._adapter && this._adapter[method]) {
       AdSdk.log(`${method}被调用`, JSON.stringify(args))
       const interceptors = this._interceptors[this._platform]
+      const next = (...params: any[]) => this._adapter[method](...params)
       if (interceptors) {
-        return this.callInterceptor(method, args, interceptors)
-          .then(result => {
-            if (Array.isArray(result)) {
-              return this._adapter[method](...result)
-            }
-            return result
-          })
-          .catch(err => {
-            AdSdk.log('请求失败: ' + err)
+        let rr= this.callInterceptor(method, args, interceptors, next)
+        if (rr instanceof Promise) {
+          rr = rr.catch(err => {
+            AdSdk.log(`${method}请求失败: ${err}`)
             return Promise.reject(err)
           })
+        }
+        return rr
       }
       
       return this._adapter[method](...args)
@@ -99,26 +100,29 @@ export default class AdSdk implements AdInterface {
       return Promise.reject('广告无效')
     }
   }
-  private callInterceptor(method: string, args: any[], interceptors: AdInterceptor[]): Promise<any> {
-    let result = Promise.resolve(args)
+  private callInterceptor(method: string, args: any[], interceptors: AdInterceptor[], next: any): Promise<any> {
+    const middlewares = []
+    const runner = (...params: any[]) => {
+      const invokeMethod = middlewares.shift()
+      if (invokeMethod) {
+        const ret = invokeMethod(runner, ...params)
+        if (ret instanceof Promise) {
+          return ret
+        } else {
+          return Promise.reject('请求取消')
+        }
+      } else {
+        return next(...params)
+      }
+    }
     for (const interceptor of interceptors) {
       if (typeof interceptor[method] !== 'function') {
         continue
       }
-      result = result.then(lastParam => {
-        if (Array.isArray(lastParam)) {
-          return new Promise(resolve => {
-            interceptor[method](res => resolve(res), ...lastParam)
-          })
-        } else if (!lastParam) {
-          return Promise.reject('取消请求')
-        }
-        
-        return lastParam
-      })
+      middlewares.push(interceptor[method].bind(interceptor))
     }
-    
-    return result
+
+    return runner(args)
   }
   /**
    * 添加拦截器
