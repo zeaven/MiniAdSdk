@@ -8,7 +8,7 @@ const REWARD_AD_ID = '';
 const INTERS_AD_ID = '';
 
 export default class KsAd implements AdInterface {
-  public static log: LogHandle = get_log('VivoAd')
+  public static log: LogHandle = get_log('KsAd')
   systemInfo: any;
   private _inters: KsAdInters;
   private _reward: KsAdReward;

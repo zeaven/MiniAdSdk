@@ -10,7 +10,7 @@ let Platform = cc.Enum({
   OPPO: 'oppo',
   VIVO: 'vivo',
   TT: 'tt',
-  m4399: '4399',
+  M4399: '4399',
   KS: 'ks',
 })
 
@@ -42,6 +42,8 @@ let getPlatform = (): string => {
       platform = Platform.TT
     } else if (globalThis.FBInstant) {
       platform = Platform.FB
+    } else if (globalThis.h5api) {
+      platform = Platform.M4399
     } else if (CC_PREVIEW) {
       platform = Platform.WEB
     }

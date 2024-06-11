@@ -162,6 +162,12 @@ export default class AdSdk implements AdInterface {
     this._whitePackage = whitePackage
   }
 
+  public setPlatform(platform: string) {
+    this._platform = platform
+    this._adapter = this.getAdapter(this._platform)
+    this._adapter && this._adapter.init()
+  }
+
   showBox(param?: AdParam): Promise<AdInvokeResult> {
     throw new Error('Method not implemented.')
   }
