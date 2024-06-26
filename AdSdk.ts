@@ -12,6 +12,9 @@ import TTAd from "./tt/TTAd";
 import VivoAd from "./vivo/VivoAd";
 import ConfigBinder from "./utils/ConfigBinder";
 import JsAd from "./JsAd";
+import KsAd from "./ks/KsAd";
+import Ad4399 from "./4399/Ad4399";
+import BoxAd from "./box4399/BoxAd";
 
 
 
@@ -68,8 +71,20 @@ export default class AdSdk implements AdInterface {
         this.addInterceptor(name, new DelayInterceptor())
         this.addInterceptor(name, new TTInterceptor())
         break
+      case Platform.KS:
+        adapter = new KsAd()
+        this.addInterceptor(name, new DelayInterceptor())
+        break
+      case Platform.M4399:
+        adapter = new Ad4399()
+        this.addInterceptor(name, new DelayInterceptor())
+        break
+      case Platform.BOX4399:
+        adapter = new BoxAd()
+        this.addInterceptor(name, new DelayInterceptor())
       default:
         adapter = new JsAd()
+        this.addInterceptor(name, new DelayInterceptor())
         break
     }
 

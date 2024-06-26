@@ -11,6 +11,7 @@ let Platform = cc.Enum({
   VIVO: 'vivo',
   TT: 'tt',
   M4399: '4399',
+  BOX4399: 'box4399',
   KS: 'ks',
 })
 
@@ -44,6 +45,8 @@ let getPlatform = (): string => {
       platform = Platform.FB
     } else if (globalThis.h5api) {
       platform = Platform.M4399
+    } else if (globalThis.hasOwnProperty("gamebox")) {
+      platform = Platform.BOX4399
     } else if (CC_PREVIEW) {
       platform = Platform.WEB
     }
