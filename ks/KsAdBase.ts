@@ -14,7 +14,7 @@ export default abstract class KsAdBase implements AdHandler {
 
   constructor(adStr: string) {
     let arr = adStr.split(',').filter(t => !!t)
-
+    this.ids = arr
     this.loadAd()
   }
   loadAd() {
