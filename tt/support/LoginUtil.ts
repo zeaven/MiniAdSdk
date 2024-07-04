@@ -1,4 +1,4 @@
-import { AdHttp } from "../../AdUtils";
+import { AdHttp } from "../../utils/AdUtils";
 
 function autoLogin(res) {
   if (!globalThis.tt.login) {
