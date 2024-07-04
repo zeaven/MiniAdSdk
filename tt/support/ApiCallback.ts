@@ -1,9 +1,11 @@
 import { AdHttp, getItem, saveItem } from "../../utils/AdUtils"
 import { get_log } from "../../utils/Log"
+import { getPlatform } from "../../utils/Platform"
 
 
 const log = get_log('ApiCallback')
 const ApiCallbackKey = 'tt_api_callback_clickid'
+const ApiCallbackURL = 'https://analytics.oceanengine.com/api/v2/conversion';
 
 type ApiCallbackInfo = {
   clickid: string,
@@ -16,13 +18,15 @@ const dayDiff = 86400000
 export default class ApiCallback {
   private static instance: ApiCallback
   info: ApiCallbackInfo
+  platform: string
   static init(query: any) {
-    if (!query || !query.clickid) return
+    log('ApiCallback启动参数', query)
     this.instance = new ApiCallback(query.clickid)
   }
 
   constructor(clickid: string) {
-    log('初始化')
+    log('ApiCallback初始化:' + clickid)
+    this.platform = getPlatform()
     this.info = getItem(ApiCallbackKey, null)
     if (!this.info) {
       this.info = {
@@ -34,9 +38,10 @@ export default class ApiCallback {
       this.info.clickid = clickid
     }
     
-    this.report()
+    this.reportDay()
   }
-  report() {
+  reportDay() {
+    if (!this.info.clickid) return
     let event_type: string
     const timestamp = Date.now()
     if (!this.info.updatedAt) {
@@ -65,7 +70,7 @@ export default class ApiCallback {
     }
 
     if (event_type) {
-      AdHttp.post('https://analytics.oceanengine.com/api/v2/conversion', {
+      AdHttp.post(ApiCallbackURL, {
         event_type, context: {
           ad: {
             callback: this.info.clickid
@@ -82,5 +87,27 @@ export default class ApiCallback {
         log(err)
       })
     }
+  }
+  /**
+   * 上报关键行为
+   */
+  report(event_type = 'game_addiction', properties = {}) {
+    if (!this.info.clickid) return
+    const timestamp = Date.now()
+    AdHttp.post(ApiCallbackURL, {
+      event_type, context: { 
+        ad: { callback: this.info.clickid },
+        device: { platform: this.platform },
+        properties
+      }, timestamp
+    }).then(res => {
+        if (res.code === 0) {
+          log('回传成功')
+        } else {
+          log(res.message)
+        }
+      }).catch(err => {
+        log(err)
+      })
   }
 }

@@ -1,6 +1,8 @@
-import { get_log } from "../../utils/Log";
+import { get_log, set_debug_enable } from "../../utils/Log";
 import { Callback } from "../../Types";
 import { ManualPromise, getItem } from "../../utils/AdUtils";
+import ApiCallback from "../support/ApiCallback";
+import LoginUtil from "../support/LoginUtil";
 
 
 const {ccclass} = cc._decorator
@@ -58,6 +60,12 @@ export default class TTSidebar {
   }
 
   private onShowed(res): void {
+    if (globalThis.tt.getLaunchOptionsSync) {
+      res = globalThis.tt.getLaunchOptionsSync();
+    }
+    if (!!res.query && !!res.query.debug) {
+      set_debug_enable(true)
+    }
     log("启动参数：", res.query);
     log("来源信息：", res.refererInfo);
     log("场景值：", res.scene);
@@ -70,6 +78,8 @@ export default class TTSidebar {
     } else {
       this.launchPromise.resolve(false)
     }
+    ApiCallback.init(res.query)
+    LoginUtil.login(res)
   }
 
   public onLaunched(callback: Callback): void {
