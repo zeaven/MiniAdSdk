@@ -112,19 +112,18 @@ export default class TTBaseAd implements AdHandler {
    * 等待onload回调，加载完成后，立即展示，否则在创建间隔时间后取消
    * @returns
    */
-  protected async noReadyDelayShow(param: AdParam): Promise<AdInvokeResult> {
+  protected noReadyDelayShow(delay: number): Promise<AdInvokeResult> {
     if (this.onLoadPromise) {
       this.onLoadPromise.reject && this.onLoadPromise.reject()
       this.onLoadPromise = undefined
     }
-    await new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       this.onLoadPromise = { resolve, reject }
       setTimeout(() => {
         this.onLoadPromise = undefined
-        reject()
-      }, this.createInterval)
+        reject('加载超时')
+      }, delay)
     })
-    return await this.show(param)
   }
 
   public show(param: AdParam): Promise<AdInvokeResult> {
@@ -136,7 +135,7 @@ export default class TTBaseAd implements AdHandler {
     if (!this.ready) {
       if (!this.autoLoad) this.loadAd() // 未开启自动加载的，启动加载，即外部要先调用一次，用于创建广告对象需要其他参数等
       TTAd.log(this.name + '加载中')
-      return this.noReadyDelayShow(param)
+      return this.noReadyDelayShow(1000).then(() => this.show(param))
     }
     TTAd.log(this.name + '展示')
     return new Promise<AdInvokeResult>((resolve, reject) => {

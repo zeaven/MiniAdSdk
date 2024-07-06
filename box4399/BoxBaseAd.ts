@@ -96,7 +96,7 @@ export default abstract class BoxBaseAd implements AdHandler {
    * 等待onload回调，加载完成后，立即展示，否则在1s时间后取消
    * @returns
    */
-  protected noReadyDelayShow(param: AdParam): Promise<AdInvokeResult> {
+  protected noReadyDelayShow(delay: number): Promise<AdInvokeResult> {
     if (this.onLoadPromise) {
       this.onLoadPromise.reject && this.onLoadPromise.reject()
       this.onLoadPromise = undefined
@@ -106,8 +106,8 @@ export default abstract class BoxBaseAd implements AdHandler {
       setTimeout(() => {
         this.onLoadPromise = undefined
         reject('加载超时')
-      }, 1000)
-    }).then(() => this.show(param))
+      }, delay)
+    })
   }
 
   show(param: AdParam): Promise<AdInvokeResult> {
@@ -119,10 +119,10 @@ export default abstract class BoxBaseAd implements AdHandler {
     if (!this.ready) {
       if (!this.autoLoad) this.loadAd() // 未开启自动加载的，启动加载，即外部要先调用一次，用于创建广告对象需要其他参数等
       BoxAd.log(this.name + '加载中')
-      return this.noReadyDelayShow(param).catch(err => {
+      return this.noReadyDelayShow(1000).catch(err => {
         BoxAd.log(this.name + '展示失败', JSON.stringify(err))
         throw err;
-      })
+      }).then(() => this.show(param))
     }
     BoxAd.log(this.name + '展示')
     return new Promise<AdInvokeResult>((resolve, reject) => {
