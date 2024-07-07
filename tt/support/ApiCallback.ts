@@ -1,6 +1,6 @@
 import { AdHttp, getItem, saveItem } from "../../utils/AdUtils"
 import { get_log } from "../../utils/Log"
-import { getPlatform } from "../../utils/Platform"
+import { getPlatform } from "../../utils/AdPlatform"
 
 
 const log = get_log('ApiCallback')

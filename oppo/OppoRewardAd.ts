@@ -4,11 +4,13 @@
 
 
 import { AdHandler, AdInvokeResult, AdParam } from '../Types'
-import VivoBaseAd from './VivoBaseAd'
-import VivoAd from './VivoAd'
+import OppoBaseAd from './OppoBaseAd'
+import OppoAd from './OppoAd'
 
-export default class VivoRewardAd extends VivoBaseAd {
-  protected name: string = '激励视频广告'
+export default class OppoRewardAd extends OppoBaseAd {
+  protected get name(): string {
+      return '激励视频广告'
+  }
   protected autoUnbindListener: boolean = false
   private rewardPromise?: Promise<void>
   private rewardResolve?: (value?: any) => void
@@ -18,7 +20,7 @@ export default class VivoRewardAd extends VivoBaseAd {
   protected createAd(_id: string): any {
     if (!this.ad) {
       return globalThis.qg.createRewardedVideoAd({
-        posId: _id,
+        adUnitId: _id,
         ...this.properties
       })
     } else {
@@ -46,14 +48,14 @@ export default class VivoRewardAd extends VivoBaseAd {
   protected onLoad(res: any): void {
     super.onLoad(res)
     if (res && res == 'localAdVideo') {
-      VivoAd.log(this.name, '兜底广告-onload触发')
+      OppoAd.log(this.name, '兜底广告-onload触发')
     }
   }
 
   protected reLoad(immediately: boolean): void {
     if (immediately) {
       // 关闭后立即重新加载
-      VivoAd.log(this.name + 'Ad reload')
+      OppoAd.log(this.name + 'Ad reload')
       this.loadAd()
     } else {
       super.reLoad(immediately)
@@ -70,12 +72,12 @@ export default class VivoRewardAd extends VivoBaseAd {
 
     if ((res && res.isEnded) || res === undefined) {
       if (this.rewardResolve) {
-        VivoAd.log(this.name, '派发奖励')
+        OppoAd.log(this.name, '派发奖励')
         this.rewardResolve()
       }
     } else {
       if (this.rewardReject) {
-        VivoAd.log(this.name, '奖励无效')
+        OppoAd.log(this.name, '奖励无效')
         this.rewardReject()
       }
     }

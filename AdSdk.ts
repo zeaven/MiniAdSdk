@@ -5,7 +5,7 @@
 const { ccclass } = cc._decorator
 import AdEventBus from "./utils/AdEventBus";
 import { get_log } from "./utils/Log";
-import { Platform, getPlatform } from "./utils/Platform";
+import { Platform, getPlatform } from "./utils/AdPlatform";
 import { AdCallback, AdEvent, AdEventHandler, AdInterceptor, AdInterface, AdInvokeResult, AdInvokeType, AdParam, AdType } from "./Types";
 import { DelayInterceptor, TTInterceptor } from './utils/Interceptor'
 import TTAd from "./tt/TTAd";
@@ -15,6 +15,7 @@ import JsAd from "./JsAd";
 import KsAd from "./ks/KsAd";
 import Ad4399 from "./4399/Ad4399";
 import BoxAd from "./box4399/BoxAd";
+import OppoAd from "./oppo/OppoAd";
 
 
 
@@ -82,6 +83,11 @@ export default class AdSdk implements AdInterface {
       case Platform.BOX4399:
         adapter = new BoxAd()
         this.addInterceptor(name, new DelayInterceptor())
+        break;
+      case Platform.OPPO:
+        adapter = new OppoAd()
+        this.addInterceptor(name, new DelayInterceptor())
+        break;
       default:
         adapter = new JsAd()
         this.addInterceptor(name, new DelayInterceptor())
