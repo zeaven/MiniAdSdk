@@ -17,9 +17,6 @@ export default class OppoCustomAd extends OppoBaseAd {
     if (globalThis.qg.createCustomAd)
       return globalThis.qg.createCustomAd({
         adUnitId: _id,
-        style:{
-          gravity: 'center'
-        },
         ...this.properties
       })
   }
