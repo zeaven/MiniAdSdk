@@ -44,7 +44,13 @@ export default class OppoAd implements AdInterface {
     if (this.systemInfo.platformVersionCode >= 1061)
 		  this._insert = new OppoInsertAd(...INTERS_AD_ID)
     if (this.systemInfo.platformVersionCode >= 1103)
-      this._custom = new OppoCustomAd(...CUSTOM_AD_ID)
+      this._custom = new OppoCustomAd(...CUSTOM_AD_ID, {
+        style: {//开发者自行设置
+              top: 0,
+              left: 0,
+              width: this.systemInfo.screenWidth,
+            }
+    })
     if (this.systemInfo.platformVersionCode >= 1076) {
 		  this._box_banner = new OppoBoxBannerAd(...BANNER_BOX_AD_ID)
 		  this._box_portal = new OppoBoxPortalAd('', '')

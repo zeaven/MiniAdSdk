@@ -41,10 +41,12 @@ export default class OppoBaseAd implements AdHandler {
       this.destroy()
     }
     this.ad = this.createAd(this.ids[this.idx++])
+    OppoAd.log(this.name + '创建成功')
     if (this.ad.load) {
       this.ad.load()
+    } else {
+      this.onLoad(null)
     }
-    OppoAd.log(this.name + '创建成功')
     this.unbindAdListeners = this.bindAdListeners()
   }
 
@@ -58,15 +60,19 @@ export default class OppoBaseAd implements AdHandler {
     if (this.unbindAdListeners) this.unbindAdListeners()
     if (!this.ad) return () => {}
     let onErrorBinder = this.onError.bind(this)
-    let onLoadBinder = this.onLoad.bind(this)
+    let onLoadBinder
+    if (this.ad.load) {
+      onLoadBinder = this.onLoad.bind(this)
+      this.ad.onLoad && this.ad.onLoad(onLoadBinder)
+    }
     let onCloseBinder = this.onClose.bind(this)
     this.ad.onError && this.ad.onError(onErrorBinder)
-    this.ad.onLoad && this.ad.onLoad(onLoadBinder)
+    
     this.ad.onClose && this.ad.onClose(onCloseBinder)
     return () => {
       if (!this.ad) return
       this.ad.offError && this.ad.offError(onErrorBinder)
-      this.ad.offLoad && this.ad.offLoad(onLoadBinder)
+      onLoadBinder && this.ad.offLoad(onLoadBinder)
       this.ad.offClose && this.ad.offClose(onCloseBinder)
     }
   }
