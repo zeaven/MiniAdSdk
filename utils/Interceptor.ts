@@ -38,7 +38,7 @@ class TTInterceptor implements AdInterceptor {
     this.startTime = Date.now()
   }
 
-  showInsert (next: AdInvokeType, param: AdParam): Promise<AdInvokeResult>| void {
+  showInters (next: AdInvokeType, param: AdParam): Promise<AdInvokeResult>| void {
     if (this.rule1) {
       this.rule1 = (Date.now() - this.startTime) < 30000
       if (this.rule1) return

@@ -1,4 +1,4 @@
-import { AdHandler, AdInterface, AdInvokeResult, AdParam } from "../Types";
+import { AdHandler, AdInterface, AdInvokeResult, AdParam, IAdConfig } from "../Types";
 import { LogHandle, get_log } from "../utils/Log";
 import BoxBannerAd from "./BoxBannerAd";
 import BoxIntersAd from "./BoxIntersAd";
@@ -9,7 +9,12 @@ export default class BoxAd implements AdInterface {
   systemInfo: any;
   private _banner: BoxBannerAd;
   private _reward: BoxRewardAd;
-  private _insert: BoxIntersAd;
+  private _inters: BoxIntersAd;
+  config: IAdConfig;
+
+  constructor (config: IAdConfig) {
+    this.config = config
+  }
 
   init(): void {
     this.systemInfo = globalThis.gamebox.getSystemInfoSync()
@@ -22,7 +27,7 @@ export default class BoxAd implements AdInterface {
     const bannerLeft = (this.systemInfo.screenWidth * pixelRatio - width)/2;
     const bannerTop = this.systemInfo.screenHeight * pixelRatio - height;
     this._banner = new BoxBannerAd({width, height, bannerLeft, bannerTop})
-    this._insert = new BoxIntersAd()
+    this._inters = new BoxIntersAd()
     this._reward = new BoxRewardAd()
   }
   private showAd(
@@ -48,8 +53,8 @@ export default class BoxAd implements AdInterface {
     this._banner && this._banner.close()
     return Promise.reject(false)
   }
-  showInsert(param?: AdParam): Promise<AdInvokeResult> {
-    return this.showAd('插屏广告', this._insert, param)
+  showInters(param?: AdParam): Promise<AdInvokeResult> {
+    return this.showAd('插屏广告', this._inters, param)
   }
   showReward(param?: AdParam): Promise<AdInvokeResult> {
     return this.showAd('激励视频广告广告', this._reward, param)

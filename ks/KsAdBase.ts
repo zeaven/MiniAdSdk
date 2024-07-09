@@ -12,8 +12,8 @@ export default abstract class KsAdBase implements AdHandler {
   isShowed: boolean = false
   invokeResult: AdInvokeResult
 
-  constructor(adStr: string) {
-    let arr = adStr.split(',').filter(t => !!t)
+  constructor(ads: string[]) {
+    let arr = ads.filter(t => !!t)
     this.ids = arr
     this.loadAd()
   }

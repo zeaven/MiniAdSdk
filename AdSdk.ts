@@ -16,6 +16,7 @@ import KsAd from "./ks/KsAd";
 import Ad4399 from "./4399/Ad4399";
 import BoxAd from "./box4399/BoxAd";
 import OppoAd from "./oppo/OppoAd";
+import { Ad4399Config, Box4399Config, KsConfig, OppoConfig, TTConfig, VivoConfig } from "./AdConfig";
 
 
 
@@ -64,28 +65,28 @@ export default class AdSdk implements AdInterface {
     let adapter: AdInterface | undefined
     switch (name) {
       case Platform.VIVO:
-        adapter = new VivoAd()
+        adapter = new VivoAd(new VivoConfig())
         this.addInterceptor(name, new DelayInterceptor())
         break
       case Platform.TT:
-        adapter = new TTAd()
+        adapter = new TTAd(new TTConfig())
         this.addInterceptor(name, new DelayInterceptor())
         this.addInterceptor(name, new TTInterceptor())
         break
       case Platform.KS:
-        adapter = new KsAd()
+        adapter = new KsAd(new KsConfig())
         this.addInterceptor(name, new DelayInterceptor())
         break
       case Platform.M4399:
-        adapter = new Ad4399()
+        adapter = new Ad4399(new Ad4399Config())
         this.addInterceptor(name, new DelayInterceptor())
         break
       case Platform.BOX4399:
-        adapter = new BoxAd()
+        adapter = new BoxAd(new Box4399Config())
         this.addInterceptor(name, new DelayInterceptor())
         break;
       case Platform.OPPO:
-        adapter = new OppoAd()
+        adapter = new OppoAd(new OppoConfig())
         this.addInterceptor(name, new DelayInterceptor())
         break;
       default:
@@ -198,7 +199,7 @@ export default class AdSdk implements AdInterface {
   hideBanner(param?: AdParam | undefined): Promise<AdInvokeResult> {
     throw new Error('Method not implemented.')
   }
-  showInsert(param?: AdParam | undefined): Promise<AdInvokeResult> {
+  showInters(param?: AdParam | undefined): Promise<AdInvokeResult> {
     throw new Error('Method not implemented.')
   }
   showReward(param?: AdParam | undefined): Promise<AdInvokeResult> {

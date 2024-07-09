@@ -3,6 +3,20 @@ const { ccclass, property } = cc._decorator
 
 type Runnable = () => void
 type Callback = (...args: any[]) => void
+
+/**
+ * 广告配置
+ */
+interface IAdConfig {
+  BANNER_ID: string[]
+  INTERS_ID: string[]
+  REWARD_ID: string[]
+  CUSTOM_ID: string[]
+  NATIVE_ID: string[]
+  BOX_ID: string[]  // 
+  PORTAL_ID: string[]
+}
+
 /**
  * 广告参数
  */
@@ -44,7 +58,7 @@ interface AdInterface {
   showBox(param?: AdParam): Promise<AdInvokeResult>
   showBanner(param?: AdParam): Promise<AdInvokeResult>
   hideBanner(param?: AdParam): Promise<AdInvokeResult>
-  showInsert(param?: AdParam): Promise<AdInvokeResult>
+  showInters(param?: AdParam): Promise<AdInvokeResult>
   showReward(param?: AdParam): Promise<AdInvokeResult>
   showNative(param?: AdParam): Promise<AdInvokeResult>
   showCustom(param?: AdParam): Promise<AdInvokeResult>
@@ -112,5 +126,5 @@ interface AdInterceptor {
 
 export {
   AdParam, AdInvokeResult, AdInterface, AdHandler, Callback, AdType, AdEvent,AdSession, Runnable,
-  AdEventHandler, AdContext, AdCallback, AdInterceptor,AdInterceptorCallback,AdInvokeType
+  AdEventHandler, AdContext, AdCallback, AdInterceptor,AdInterceptorCallback,AdInvokeType,IAdConfig
 }

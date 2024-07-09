@@ -1,17 +1,22 @@
-import { AdHandler, AdInterface, AdInvokeResult, AdParam } from "../Types";
+import { AdHandler, AdInterface, AdInvokeResult, AdParam, IAdConfig } from "../Types";
 import { LogHandle, get_log } from "../utils/Log";
 import KsAdInters from "./KsAdInters";
 import KsAdReward from "./KsAdReward";
 
-// 配置广告位,多个用逗号分开
-const REWARD_AD_ID = '';
-const INTERS_AD_ID = '';
 
 export default class KsAd implements AdInterface {
   public static log: LogHandle = get_log('KsAd')
   systemInfo: any;
   private _inters: KsAdInters;
   private _reward: KsAdReward;
+  config: IAdConfig;
+
+  /**
+   *
+   */
+  constructor(config: IAdConfig) {
+    this.config = config
+  }
 
   init(): void {
     this.systemInfo = globalThis.ks.getSystemInfoSync()
@@ -20,8 +25,8 @@ export default class KsAd implements AdInterface {
     this.initAds();
   }
   initAds() {
-    this._inters = new KsAdInters(INTERS_AD_ID)
-    this._reward = new KsAdReward(REWARD_AD_ID)
+    this._inters = new KsAdInters(this.config.INTERS_ID)
+    this._reward = new KsAdReward(this.config.REWARD_ID)
   }
   private showAd(
     adName: string,
@@ -45,7 +50,7 @@ export default class KsAd implements AdInterface {
   hideBanner(param?: AdParam): Promise<AdInvokeResult> {
     throw new Error("Method not implemented.");
   }
-  showInsert(param?: AdParam): Promise<AdInvokeResult> {
+  showInters(param?: AdParam): Promise<AdInvokeResult> {
     return this.showAd('插屏广告', this._inters, param)
   }
   showReward(param?: AdParam): Promise<AdInvokeResult> {

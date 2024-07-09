@@ -1,10 +1,16 @@
-import { AdInterface, AdInvokeResult, AdParam } from "../Types";
+import { AdInterface, AdInvokeResult, AdParam, IAdConfig } from "../Types";
 import { LogHandle, get_log } from "../utils/Log";
 import RewardAd4399 from "./RewardAd4399";
 
 export default class Ad4399 implements AdInterface {
   public static log: LogHandle = get_log('4399Ad')
   private _reward: RewardAd4399;
+  config: IAdConfig;
+
+  constructor (config: IAdConfig) {
+    this.config = config
+  }
+
   init(): void {
     this._reward = new RewardAd4399();
   }
@@ -17,7 +23,7 @@ export default class Ad4399 implements AdInterface {
   hideBanner(param?: AdParam): Promise<AdInvokeResult> {
     throw new Error("Method not implemented.");
   }
-  showInsert(param?: AdParam): Promise<AdInvokeResult> {
+  showInters(param?: AdParam): Promise<AdInvokeResult> {
     throw new Error("Method not implemented.");
   }
   showReward(param?: AdParam): Promise<AdInvokeResult> {

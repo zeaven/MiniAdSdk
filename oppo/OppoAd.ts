@@ -2,13 +2,13 @@
  * VIVO广告
  */
 
-import { AdHandler, AdInterface, AdInvokeResult, AdParam, AdSession } from "../Types"
+import { AdHandler, AdInterface, AdInvokeResult, AdParam, AdSession, IAdConfig } from "../Types"
 import { get_log, LogHandle } from "../utils/Log";
 import OppoBannerAd from "./OppoBannerAd";
 import OppoBoxBannerAd from "./OppoBoxBannerAd";
 import OppoBoxPortalAd from "./OppoBoxPortalAd";
 import OppoCustomAd from "./OppoCustomAd";
-import OppoInsertAd from "./OppoInsertAd";
+import OppoIntersAd from "./OppoIntersAd";
 import OppoRewardAd from "./OppoRewardAd";
 
 
@@ -22,12 +22,17 @@ export default class OppoAd implements AdInterface {
   public static log: LogHandle = get_log('OppoAd')
   private systemInfo!: any
   private _banner?: AdHandler
-  private _insert?: AdHandler
+  private _inters?: AdHandler
   private _reward?: AdHandler
   private _custom?: AdHandler
   private _box_banner?: AdHandler
   private _box_portal?: AdHandler
   private _native?: AdHandler
+  config: IAdConfig;
+
+  constructor (config: IAdConfig) {
+    this.config = config
+  }
 
   init(): void {
     this.systemInfo = globalThis.qg.getSystemInfoSync()
@@ -37,14 +42,14 @@ export default class OppoAd implements AdInterface {
   }
   private initAds(): void {
     if (this.systemInfo.platformVersionCode >= 1051) {
-		  this._banner = new OppoBannerAd(...BANNER_AD_ID)
-      this._reward = new OppoRewardAd(...REWARD_AD_ID)
+		  this._banner = new OppoBannerAd(...this.config.BANNER_ID)
+      this._reward = new OppoRewardAd(...this.config.REWARD_ID)
     }
 
     if (this.systemInfo.platformVersionCode >= 1061)
-		  this._insert = new OppoInsertAd(...INTERS_AD_ID)
+		  this._inters = new OppoIntersAd(...this.config.INTERS_ID)
     if (this.systemInfo.platformVersionCode >= 1103)
-      this._custom = new OppoCustomAd(...CUSTOM_AD_ID, {
+      this._custom = new OppoCustomAd(...this.config.CUSTOM_ID, {
         style: {//开发者自行设置
               top: 0,
               left: 0,
@@ -52,8 +57,8 @@ export default class OppoAd implements AdInterface {
             }
     })
     if (this.systemInfo.platformVersionCode >= 1076) {
-		  this._box_banner = new OppoBoxBannerAd(...BANNER_BOX_AD_ID)
-		  this._box_portal = new OppoBoxPortalAd('', '')
+		  this._box_banner = new OppoBoxBannerAd(...this.config.BOX_ID)
+		  this._box_portal = new OppoBoxPortalAd(...this.config.PORTAL_ID)
     }
   }
   private showAd(
@@ -84,8 +89,8 @@ export default class OppoAd implements AdInterface {
     this._banner && this._banner.close()
     return Promise.reject(false)
   }
-  showInsert(param?: AdParam): Promise<AdInvokeResult> {
-    return this.showAd('插屏广告', this._insert, param)
+  showInters(param?: AdParam): Promise<AdInvokeResult> {
+    return this.showAd('插屏广告', this._inters, param)
   }
   showReward(param?: AdParam): Promise<AdInvokeResult> {
     return this.showAd('激励视频广告广告', this._reward, param)

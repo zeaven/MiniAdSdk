@@ -2,23 +2,24 @@
  * VIVO广告
  */
 
-import { AdHandler, AdInterface, AdInvokeResult, AdParam, AdSession } from "../Types"
+import { AdHandler, AdInterface, AdInvokeResult, AdParam, AdSession, IAdConfig } from "../Types"
 import { get_log, LogHandle } from "../utils/Log";
 import TTBannerAd from "./TTBannerAd";
 import TTRewardAd from "./TTRewardAd";
-import TTInsertAd from "./TTInsertAd";
+import TTIntersAd from "./TTIntersAd";
 
-// 配置广告位
-const BANNER_AD_ID = ['']
-const INTERS_AD_ID = ['']
-const REWARD_AD_ID = ['']
 
 export default class TTAd implements AdInterface {
   public static log: LogHandle = get_log('TTAd')
   private systemInfo!: any
   private _banner?: AdHandler
-  private _insert?: AdHandler
+  private _inters?: AdHandler
   private _reward?: AdHandler
+  config: IAdConfig;
+
+  constructor(config: IAdConfig) {
+    this.config = config
+  }
   
   init(): void {
     this.systemInfo = globalThis.tt.getSystemInfoSync()
@@ -27,10 +28,10 @@ export default class TTAd implements AdInterface {
     this.initAds()
   }
   private initAds(): void {
-		  this._banner = new TTBannerAd(...BANNER_AD_ID)
-		  this._insert = new TTInsertAd(...INTERS_AD_ID)
+		  this._banner = new TTBannerAd(...this.config.BANNER_ID)
+		  this._inters = new TTIntersAd(...this.config.INTERS_ID)
 
-		  this._reward = new TTRewardAd(...REWARD_AD_ID)
+		  this._reward = new TTRewardAd(...this.config.REWARD_ID)
   }
   private showAd(
     adName: string,
@@ -55,8 +56,8 @@ export default class TTAd implements AdInterface {
     this._banner && this._banner.close()
     return Promise.reject(false)
   }
-  showInsert(param?: AdParam): Promise<AdInvokeResult> {
-    return this.showAd('插屏广告', this._insert, param)
+  showInters(param?: AdParam): Promise<AdInvokeResult> {
+    return this.showAd('插屏广告', this._inters, param)
   }
   showReward(param?: AdParam): Promise<AdInvokeResult> {
     return this.showAd('激励视频广告广告', this._reward, param)

@@ -26,7 +26,7 @@ export default class JsAd implements AdInterface {
     // throw new Error("Method not implemented.");
     return Promise.resolve({session: null})
   }
-  showInsert(param?: AdParam): Promise<AdInvokeResult> {
+  showInters(param?: AdParam): Promise<AdInvokeResult> {
     globalThis.JsBridge && globalThis.JsBridge.showInterstitial()
     return Promise.resolve({session:null})
   }
