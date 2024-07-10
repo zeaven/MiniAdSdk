@@ -6,7 +6,7 @@ const { ccclass } = cc._decorator
 import AdEventBus from "./utils/AdEventBus";
 import { get_log } from "./utils/Log";
 import { Platform, getPlatform } from "./utils/AdPlatform";
-import { AdCallback, AdEvent, AdEventHandler, AdInterceptor, AdInterface, AdInvokeResult, AdInvokeType, AdParam, AdType } from "./Types";
+import { AdCallback, AdEvent, AdEventHandler, AdInterceptor, AdInterface, AdInvokeResult, AdParam, AdType } from "./Types";
 import { DelayInterceptor, TTInterceptor } from './utils/Interceptor'
 import TTAd from "./tt/TTAd";
 import VivoAd from "./vivo/VivoAd";
