@@ -1,6 +1,7 @@
 import { AdHttp } from "./AdUtils"
 
 function login(data: any) {
+  console.log(data)
 
   AdHttp.post('https://nk.olalay.cn:22001/oapi.php?act=login', data)
         .then(res => console.log(res))

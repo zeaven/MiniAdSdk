@@ -20,7 +20,6 @@ function autoLogin(res) {
         mpVersion,
         appId
       }
-      console.log(data)
 
       login(data)
     },

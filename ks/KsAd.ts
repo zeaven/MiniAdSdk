@@ -2,6 +2,7 @@ import { AdHandler, AdInterface, AdInvokeResult, AdParam, IAdConfig } from "../T
 import { LogHandle, get_log } from "../utils/Log";
 import KsAdInters from "./KsAdInters";
 import KsAdReward from "./KsAdReward";
+import ksLogin from "./support/KsLogin";
 
 
 export default class KsAd implements AdInterface {
@@ -22,7 +23,8 @@ export default class KsAd implements AdInterface {
     this.systemInfo = globalThis.ks.getSystemInfoSync()
     KsAd.log('init', JSON.stringify(this.systemInfo))
 
-    this.initAds();
+    this.initAds()
+    ksLogin()
   }
   initAds() {
     this._inters = new KsAdInters(this.config.INTERS_ID)
