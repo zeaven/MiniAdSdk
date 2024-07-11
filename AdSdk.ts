@@ -105,8 +105,9 @@ export default class AdSdk implements AdInterface {
     if (this._adapter && this._adapter[method]) {
       AdSdk.log(`${method}被调用`, JSON.stringify(args))
       const interceptors = this._interceptors[this._platform]
-      const next = (...params: any[]) => this._adapter[method](...params)
       if (interceptors) {
+        const next = (...params: any[]) => this._adapter[method](...params)
+        // 拦截器调用链
         let rr= this.callInterceptor(method, args, interceptors, next)
         if (rr instanceof Promise) {
           rr = rr.catch(err => {
@@ -131,7 +132,7 @@ export default class AdSdk implements AdInterface {
         if (ret instanceof Promise) {
           return ret
         } else {
-          return Promise.reject('请求取消')
+          return Promise.reject('拦截取消')
         }
       } else {
         return next(...params)

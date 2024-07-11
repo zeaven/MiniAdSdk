@@ -1,4 +1,4 @@
-import { AdHttp } from "../../utils/AdUtils";
+import { login } from "../../utils/Service";
 
 function autoLogin(res) {
   if (!globalThis.tt.login) {
@@ -22,9 +22,7 @@ function autoLogin(res) {
       }
       console.log(data)
 
-      AdHttp.post('https://nk.olalay.cn:22001/oapi.php?act=login', data)
-        .then(res => console.log(res))
-        .catch( err => console.log(err))
+      login(data)
     },
     fail(res) {
       console.log(`login 调用失败`);
