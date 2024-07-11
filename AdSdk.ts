@@ -63,35 +63,31 @@ export default class AdSdk implements AdInterface {
 
   private getAdapter(name: string): AdInterface | undefined {
     let adapter: AdInterface | undefined
+    this.addInterceptor(name, new DelayInterceptor())
+
     switch (name) {
       case Platform.VIVO:
         adapter = new VivoAd(new VivoConfig())
-        this.addInterceptor(name, new DelayInterceptor())
         break
       case Platform.TT:
         adapter = new TTAd(new TTConfig())
-        this.addInterceptor(name, new DelayInterceptor())
         this.addInterceptor(name, new TTInterceptor())
         break
       case Platform.KS:
         adapter = new KsAd(new KsConfig())
-        this.addInterceptor(name, new DelayInterceptor())
+        this.addInterceptor(name, new TTInterceptor())
         break
       case Platform.M4399:
         adapter = new Ad4399(new Ad4399Config())
-        this.addInterceptor(name, new DelayInterceptor())
         break
       case Platform.BOX4399:
         adapter = new BoxAd(new Box4399Config())
-        this.addInterceptor(name, new DelayInterceptor())
         break;
       case Platform.OPPO:
         adapter = new OppoAd(new OppoConfig())
-        this.addInterceptor(name, new DelayInterceptor())
         break;
       default:
         adapter = new JsAd()
-        this.addInterceptor(name, new DelayInterceptor())
         break
     }
 
