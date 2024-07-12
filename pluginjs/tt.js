@@ -6,8 +6,18 @@
  */
 !function () {
   if (window.tt && !window.tt_onShow) {
-    window.tt_onShow = new Promise((resolve) => {
-      window.tt.onShow(res => resolve(res));
-    });
+    // window.tt_onShow = new Promise((resolve) => {
+    //   window.tt.onShow(res => resolve(res));
+    // });
+    let _callback = null;
+    let _onShowRes = null;
+    window.tt_onShow = (callback) => {
+      _callback = callback;
+      _onShowRes && _callback(_onShowRes);
+    }
+    window.tt.onShow(res => {
+      _onShowRes = res;
+      _callback && _callback(res);
+    })
   }
 }();

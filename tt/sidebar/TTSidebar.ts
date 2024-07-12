@@ -38,7 +38,7 @@ export default class TTSidebar {
     log('初始化')
     // 注册 tt.onShow生命周期
     if (globalThis.tt_onShow) {
-      globalThis.tt_onShow.then(res => this.onShowed(res))
+      globalThis.tt_onShow(this.onShowed.bind(this))
     } else {
       this.launchPromise.resolve(CC_DEBUG)
     }
