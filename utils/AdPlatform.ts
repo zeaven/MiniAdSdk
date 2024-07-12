@@ -45,7 +45,7 @@ let getPlatform = (): string => {
       platform = Platform.FB
     } else if (globalThis.h5api) {
       platform = Platform.M4399
-    } else if (globalThis.hasOwnProperty("gamebox")) {
+    } else if (globalThis.gamebox) {
       platform = Platform.BOX4399
     } else if (CC_PREVIEW) {
       platform = Platform.WEB
