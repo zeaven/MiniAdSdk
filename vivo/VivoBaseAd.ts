@@ -2,7 +2,7 @@ import { AdHandler, AdInvokeResult, AdParam } from '../Types'
 import VivoAd from './VivoAd'
 
 export default class VivoBaseAd implements AdHandler {
-  protected name = 'base ad'
+  protected get name(): string { return 'basead' }
   private ids: string[]
   private idx = 0
   protected ad: any

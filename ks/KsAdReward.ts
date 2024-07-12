@@ -3,7 +3,7 @@ import KsAd from "./KsAd";
 import KsAdBase from "./KsAdBase";
 
 export default class KsAdReward extends KsAdBase {
-  protected name: string = '激励视频广告'
+  protected get name(): string { return '激励视频' }
   rewardReject: any;
   rewardPromise: Promise<void>;
   rewardResolve: (...arg: any[]) => void;

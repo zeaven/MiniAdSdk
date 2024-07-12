@@ -5,7 +5,7 @@
 import TTBaseAd from './TTBaseAd'
 
 export default class TTBannerAd extends TTBaseAd {
-  protected name: string = 'banner广告'
+  protected get name(): string { return 'banner' }
 
   protected createAd(_id: string): any {
     return globalThis.tt.createBannerAd({

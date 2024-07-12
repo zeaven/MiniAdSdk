@@ -2,7 +2,7 @@ import { AdHandler, AdInvokeResult, AdParam } from '../Types'
 import TTAd from './TTAd'
 
 export default class TTBaseAd implements AdHandler {
-  protected name = 'base ad'
+  protected get name(): string { return 'ad base' }
   private ids: string[]
   private idx = 0
   protected properties?: any

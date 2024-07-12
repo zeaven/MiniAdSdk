@@ -21,8 +21,6 @@ let getPlatform = (): string => {
     let isKSGame = typeof globalThis.KSGameGlobal != 'undefined'
     if (isKSGame) {
       platform = Platform.KS
-    } else if (cc.sys.platform === cc.sys.WECHAT_GAME) {
-      platform = Platform.WX
     } else if (
       CC_NATIVERENDERER &&
       (cc.sys.OS_ANDROID == cc.sys.os || cc.sys.OS_LINUX == cc.sys.os)
@@ -47,6 +45,8 @@ let getPlatform = (): string => {
       platform = Platform.M4399
     } else if (globalThis.gamebox) {
       platform = Platform.BOX4399
+    } else if (cc.sys.platform === cc.sys.WECHAT_GAME) {
+      platform = Platform.WX
     } else if (CC_PREVIEW) {
       platform = Platform.WEB
     }

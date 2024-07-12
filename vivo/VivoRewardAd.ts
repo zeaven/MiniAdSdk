@@ -8,7 +8,7 @@ import VivoBaseAd from './VivoBaseAd'
 import VivoAd from './VivoAd'
 
 export default class VivoRewardAd extends VivoBaseAd {
-  protected name: string = '激励视频广告'
+  protected get name(): string { return '激励视频' }
   protected autoUnbindListener: boolean = false
   private rewardPromise?: Promise<void>
   private rewardResolve?: (value?: any) => void

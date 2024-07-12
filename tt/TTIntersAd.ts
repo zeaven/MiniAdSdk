@@ -6,7 +6,7 @@ import { AdParam, AdInvokeResult } from "../Types";
 import TTBaseAd from "./TTBaseAd";
 
 export default class TTInsertAd extends TTBaseAd {
-  protected name: string = '插屏广告'
+  protected get name(): string { return '插屏' }
   private hasShowed = false
   protected createAd(_id: string): any {
     this.hasShowed = false

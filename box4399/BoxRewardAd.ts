@@ -6,7 +6,7 @@ import BoxBaseAd from "./BoxBaseAd";
 export default class BoxRewardAd extends BoxBaseAd {
   rewardPromise?: ManualPromise<void>;
   unBindComplete: () => void;
-
+  protected get name(): string { return '激励视频' }
 
   protected createAd(attrs?: Object): any {
     if (!this.ad) {

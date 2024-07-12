@@ -6,7 +6,7 @@ import VivoBaseAd from './VivoBaseAd'
 import VivoAd from './VivoAd'
 
 export default class ViviBoxBannerAd extends VivoBaseAd {
-  protected name: string = '盒子横幅广告'
+  protected get name(): string { return '盒子横幅' }
   protected createInterval = 1000
   protected createAd(_id: string): any {
     if (globalThis.qg.createBoxBannerAd) {

@@ -2,7 +2,7 @@ import { AdHandler, AdInvokeResult, AdParam, Runnable } from "../Types";
 import KsAd from "./KsAd";
 
 export default abstract class KsAdBase implements AdHandler {
-  protected name: string = 'ad base'
+  protected get name(): string { return 'base' }
   private ids: string[]
   private idx = 0
   ad: any;

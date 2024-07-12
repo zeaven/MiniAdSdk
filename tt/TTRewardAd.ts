@@ -8,7 +8,7 @@ import TTBaseAd from './TTBaseAd'
 import TTAd from './TTAd'
 
 export default class TTRewardAd extends TTBaseAd {
-  protected name: string = '激励视频广告'
+  protected get name(): string { return '激励视频' }
   protected autoUnbindListener: boolean = false
   private rewardPromise?: Promise<void>
   private rewardResolve?: (value?: any) => void

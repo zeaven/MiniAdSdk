@@ -2,7 +2,7 @@ import { AdHandler, AdInvokeResult, AdParam, Runnable } from "../Types";
 import BoxAd from "./BoxAd";
 
 export default abstract class BoxBaseAd implements AdHandler {
-  protected name: string = 'ad base'
+  protected get name(): string { return 'ad base' }
   ad: any;
   unbindAdListeners: Runnable
   createInterval = 1000
