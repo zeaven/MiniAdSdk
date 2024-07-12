@@ -90,7 +90,7 @@ export default class ConfigBinder {
     const ads = this.adsSort(data)
     if (ads[0]) AdSdk.instance.showCustom()
         .catch(() => { if (ads[1]) return AdSdk.instance.showInters() })
-        .catch(() => { if (ads[1]) return AdSdk.instance.showBanner() })
+        .catch(() => { if (ads[2]) return AdSdk.instance.showBanner() })
   }
   onComboHide(context: AdContext, data: AdEventHandler[]): void {
     const ads = this.adsSort(data)
