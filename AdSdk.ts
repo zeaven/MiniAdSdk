@@ -155,6 +155,9 @@ export default class AdSdk implements AdInterface {
     if (!(platform in this._interceptors)) {
       this._interceptors[platform] = []
     }
+    if (this._interceptors[platform].includes(interceptor)) {
+      return
+    }
     this._interceptors[platform].push(interceptor)
     interceptor.init()
   }

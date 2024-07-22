@@ -1,5 +1,11 @@
-import { AdInterceptor, AdInvokeResult, AdInvokeType, AdParam } from "../Types";
+import { AdInterceptor, AdInvokeResult, AdInvokeType, AdParam, AdType } from "../Types";
 
+/**
+ * 
+ * @param func 延时方法
+ * @param limit 延时时间
+ * @returns 
+ */
 function throttle(func: Function, limit: number): any {
     let inThrottle: boolean = false;
 
@@ -14,6 +20,37 @@ function throttle(func: Function, limit: number): any {
             })
         }
     };
+}
+
+/**
+ * retry方法
+ * @param {Function} fn - 需要重试的异步函数
+ * @param {number} retries - 重试次数
+ * @param {number} delay - 每次重试之间的延迟（毫秒）
+ * @param {timeout} timeout - 超时时间
+ * @returns {Promise} - 返回一个Promise对象
+ */
+async function retry(fn: Function, retries = 3, delay = 100, timeout = 5000) {
+  const startTime = new Date().getTime()
+  let curTime = 0
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await fn()
+    } catch (error) {
+      curTime = new Date().getTime()
+      if (startTime + timeout > curTime) {
+        // 超时
+        throw error
+      }
+      if (attempt < retries) {
+        console.warn(`Attempt ${attempt + 1} failed. Retrying in ${delay}ms...`)
+        await new Promise(resolve => setTimeout(resolve, delay))
+      } else {
+        console.error(`All ${retries + 1} attempts failed.`)
+        throw error
+      }
+    }
+  }
 }
 
 /**
@@ -70,6 +107,44 @@ class DelayInterceptor implements AdInterceptor {
   }
   showReward (next: AdInvokeType, param: AdParam): Promise<AdInvokeResult> | void {
     return next(param)
+  }
+}
+
+/**
+ * 重试广告
+ */
+class RetryInterceptor implements AdInterceptor {
+  count: number;
+  timeoutMs: number;
+  adTypes: AdType[];
+  /**
+   * 
+   * @param count 重试次数
+   * @param timeoutMs 重试超时时间
+   * @param {AdType} adTypes - 需要重试的广告类型
+   */
+  constructor (count: number, timeoutMs: number, adTypes: AdType[]) {
+    this.count = count
+    this.timeoutMs = timeoutMs
+    this.adTypes = adTypes
+  }
+  init(): void {
+    
+  }
+
+  show (next: AdInvokeType, param: AdParam, adType: AdType): Promise<AdInvokeResult> | void {
+    if (!this.adTypes.includes(adType)) {
+      return next(param)
+    }
+    return retry(() => next(param), this.count, 100, this.timeoutMs)
+  }
+
+  showCustom (next: AdInvokeType, param: AdParam): Promise<AdInvokeResult> | void {
+    return this.show(next, param, AdType.Custom)
+  }
+
+  showInters (next: AdInvokeType, param: AdParam): Promise<AdInvokeResult> | void {
+    return this.show(next, param, AdType.Interstitial)
   }
 }
 
