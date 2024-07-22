@@ -148,5 +148,5 @@ class RetryInterceptor implements AdInterceptor {
   }
 }
 
-export { TTInterceptor, DelayInterceptor }
+export { TTInterceptor, DelayInterceptor, RetryInterceptor }
 
