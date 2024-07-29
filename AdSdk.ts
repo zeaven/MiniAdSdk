@@ -119,29 +119,37 @@ export default class AdSdk implements AdInterface {
       return Promise.reject('广告无效')
     }
   }
-  private callInterceptor(method: string, args: any[], interceptors: AdInterceptor[], next: any): Promise<any> {
-    const middlewares = []
-    const runner = (...params: any[]) => {
-      const invokeMethod = middlewares.shift()
-      if (invokeMethod) {
-        const ret = invokeMethod(runner, ...params)
-        if (ret instanceof Promise) {
-          return ret
-        } else {
-          return Promise.reject('拦截取消')
-        }
-      } else {
-        return next(...params)
-      }
-    }
+  private async callInterceptor(method: string, args: any[], interceptors: AdInterceptor[], next: any): Promise<any> {
+    const middlewares: Array<(...params: any[]) => Promise<any>> = [];
+
+    // 将中间件函数从拦截器中提取并绑定上下文
     for (const interceptor of interceptors) {
-      if (typeof interceptor[method] !== 'function') {
-        continue
+      if (typeof interceptor[method] === 'function') {
+        middlewares.push(interceptor[method].bind(interceptor));
       }
-      middlewares.push(interceptor[method].bind(interceptor))
     }
 
-    return runner(args)
+    // 中间件链执行函数
+    const runner = async (...params: any[]): Promise<any> => {
+      const invokeMethod = middlewares.shift();
+      if (invokeMethod) {
+        try {
+          const result = invokeMethod(runner, ...params);
+          return result instanceof Promise ? result : Promise.reject('拦截取消');
+        } catch (error) {
+          return Promise.reject(error);
+        }
+      } else {
+        return next(...params);
+      }
+    };
+
+    // 启动中间件链
+    try {
+      return await runner(...args);
+    } catch (error) {
+      return Promise.reject(error);
+    }
   }
   /**
    * 添加拦截器
@@ -193,25 +201,25 @@ export default class AdSdk implements AdInterface {
   showBox(param?: AdParam): Promise<AdInvokeResult> {
     throw new Error('Method not implemented.')
   }
-  showBanner(param?: AdParam | undefined): Promise<AdInvokeResult> {
+  showBanner(param?: AdParam): Promise<AdInvokeResult> {
     throw new Error('Method not implemented.')
   }
-  hideBanner(param?: AdParam | undefined): Promise<AdInvokeResult> {
+  hideBanner(param?: AdParam): Promise<AdInvokeResult> {
     throw new Error('Method not implemented.')
   }
-  showInters(param?: AdParam | undefined): Promise<AdInvokeResult> {
+  showInters(param?: AdParam): Promise<AdInvokeResult> {
     throw new Error('Method not implemented.')
   }
-  showReward(param?: AdParam | undefined): Promise<AdInvokeResult> {
+  showReward(param?: AdParam): Promise<AdInvokeResult> {
     throw new Error('Method not implemented.')
   }
-  showNative(param?: AdParam | undefined): Promise<AdInvokeResult> {
+  showNative(param?: AdParam): Promise<AdInvokeResult> {
     throw new Error('Method not implemented.')
   }
-  showCustom(param?: AdParam | undefined): Promise<AdInvokeResult> {
+  showCustom(param?: AdParam): Promise<AdInvokeResult> {
     throw new Error('Method not implemented.')
   }
-  hideCustom(param?: AdParam | undefined): Promise<AdInvokeResult> {
+  hideCustom(param?: AdParam): Promise<AdInvokeResult> {
     throw new Error('Method not implemented.')
   }
   showToast(msg: string, duration: number): void {
