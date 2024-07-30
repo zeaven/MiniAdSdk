@@ -60,7 +60,7 @@ class AdHttp {
     })
   }
 
-  static async get<T>(url: string, data?: any): Promise<T> {
+  static async get(url: string, data?: any): Promise<Object> {
     if (typeof data === 'object') {
       url += url.includes('?') ? '&' : '?'
       for (const key of data) {
@@ -70,13 +70,13 @@ class AdHttp {
       url = url.slice(0, -1)
 
       const text = await AdHttp.request(url, 'GET')
-      return JSON.parse(text)
+      return (!!text && text.startsWith('{')) ? JSON.parse(text): text
     }
   }
 
-  static async post<T>(url: string, data?: any): Promise<T> {
+  static async post(url: string, data?: any): Promise<Object> {
     const text = await AdHttp.request(url, 'POST', data)
-    return JSON.parse(text)
+    return (!!text && text.startsWith('{')) ? JSON.parse(text): text
   }
 }
 
