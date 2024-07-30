@@ -29,9 +29,7 @@ let debug_log = function (tag: string, ...msg: any[]) {
 }
 
 let get_log = function (name: string): LogHandle {
-  return (...msg: any[]) => {
-    debug_log(name, msg);
-  };
+  return (...msg: any[]) => debug_log(name, msg)
 }
 
 export { debug_log, set_debug_enable, get_log, LogHandle}
