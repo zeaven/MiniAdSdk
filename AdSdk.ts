@@ -128,28 +128,23 @@ export default class AdSdk implements AdInterface {
         middlewares.push(interceptor[method].bind(interceptor));
       }
     }
+    if (middlewares.length === 0) {
+      return await next(...args)
+    }
 
     // 中间件链执行函数
     const runner = async (...params: any[]): Promise<any> => {
-      const invokeMethod = middlewares.shift();
+      const invokeMethod = middlewares.shift()
       if (invokeMethod) {
-        try {
-          const result = invokeMethod(runner, ...params);
-          return result instanceof Promise ? result : Promise.reject('拦截取消');
-        } catch (error) {
-          return Promise.reject(error);
-        }
+        const result = invokeMethod(runner, ...params)
+        return result instanceof Promise ? result : Promise.reject('拦截取消')
       } else {
-        return next(...params);
+        return next(...params)
       }
     };
 
     // 启动中间件链
-    try {
-      return await runner(...args);
-    } catch (error) {
-      return Promise.reject(error);
-    }
+    return await runner(...args);
   }
   /**
    * 添加拦截器
