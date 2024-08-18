@@ -152,17 +152,17 @@ export default class OppoBaseAd implements AdHandler {
     }
     OppoAd.log(this.name + '展示')
     return new Promise<AdInvokeResult>((resolve, reject) => {
-      this.ad
-        .show()
-        .then(() => {
-          this.onShow()
-          this.invokeResult = { session: this }
-          resolve(this.invokeResult)
-        })
-        .catch((err) => {
-          OppoAd.log(this.name + '展示失败', JSON.stringify(err))
-          reject(err)
-        })
+      this.ad.show()
+        // .then((result) => {
+          
+        // })
+        // .catch((err) => {
+        //   OppoAd.log(this.name + '展示失败', JSON.stringify(err))
+        //   reject(err)
+        // })
+      this.onShow()
+      this.invokeResult = { session: this }
+      resolve(this.invokeResult)
     })
   }
   public close(): void {
