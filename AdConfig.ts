@@ -60,11 +60,22 @@ class Ad4399Config implements IAdConfig {
   PORTAL_ID = ['']
 }
 
+class AlipayConfig implements IAdConfig {
+  BANNER_ID = ['']
+  INTERS_ID = ['']
+  REWARD_ID = ['']
+  CUSTOM_ID = ['']
+  NATIVE_ID = ['']
+  BOX_ID = ['']
+  PORTAL_ID = ['']
+}
+
 export {
   VivoConfig,
   OppoConfig,
   KsConfig,
   TTConfig,
   Box4399Config,
-  Ad4399Config
+  Ad4399Config,
+  AlipayConfig,
 }

@@ -13,6 +13,7 @@ let Platform = cc.Enum({
   M4399: '4399',
   BOX4399: 'box4399',
   KS: 'ks',
+  ALIPAY: 'alipay'
 })
 
 
@@ -33,6 +34,8 @@ let getPlatform = (): string => {
       platform = Platform.IOS
     // } else if (globalThis.qg) {
       // platform = Platform.QQ
+    } else if (cc.sys.ALIPAY_GAME) {
+      platform = Platform.ALIPAY
     } else if (cc.sys.platform === cc.sys.OPPO_GAME) {
       platform = Platform.OPPO
     } else if (cc.sys.platform === cc.sys.VIVO_GAME) {

@@ -19,7 +19,7 @@ class ManualPromise<T> {
   public resolve(value: T | PromiseLike<T>): void {
     this._resolve(value)
   }
-  public reject(reason: string): void {
+  public reject(reason?: string): void {
     this._reject(reason)
   }
 }
