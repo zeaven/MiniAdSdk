@@ -1,32 +1,36 @@
+/**
+ * 华为广告
+ */
+
 import { AdHandler, AdInterface, AdInvokeResult, AdParam, IAdConfig } from "../Types";
 import { LogHandle, get_log } from "../utils/Log";
-import AliBannerAd from "./AliBannerAd";
-import AliBaseAd from "./AliBaseAd";
-import AliIntersAd from "./AliIntersAd";
-import AliRewardAd from "./AliRewardAd";
 
-export default class BoxAd implements AdInterface {
-  public static log: LogHandle = get_log('Alipay')
-  systemInfo: any;
-  private _banner: AliBaseAd;
-  private _inters: AliBaseAd;
-  private _reward: AliBaseAd;
+
+export default class HuaweiAd implements AdInterface {
+  public static log: LogHandle = get_log('HuaweiAd')
+
+  private systemInfo!: any
+  private _banner?: AdHandler
+  private _inters?: AdHandler
+  private _reward?: AdHandler
+  private _box?: AdHandler
   config: IAdConfig;
 
-  constructor (config: IAdConfig) {
+  constructor(config: IAdConfig) {
     this.config = config
   }
-
+  
   init(): void {
-    this.systemInfo = my.getSystemInfoSync()
-   this.initAds()
+    this.systemInfo = qg.getSystemInfoSync()
+    HuaweiAd.log('init', JSON.stringify(this.systemInfo))
+
+    this.initAds()
   }
   private initAds(): void {
-    const pixelRatio = this.systemInfo.pixelRatio;
-    my.setEnableDebug({enableDebug: CC_DEBUG})
-    this._inters = new AliIntersAd(...this.config.INTERS_ID)
-    this._reward = new AliRewardAd(...this.config.REWARD_ID)
-    this._banner = new AliBannerAd(...this.config.BANNER_ID)
+		  // this._banner = new TTBannerAd(...this.config.BANNER_ID)
+		  // this._inters = new TTIntersAd(...this.config.INTERS_ID)
+
+		  // this._reward = new TTRewardAd(...this.config.REWARD_ID)
   }
   private showAd(
     adName: string,
@@ -34,15 +38,15 @@ export default class BoxAd implements AdInterface {
     param?: AdParam
   ): Promise<AdInvokeResult> {
     if (ad) {
-      BoxAd.log(`广告${adName}被调用`)
+      HuaweiAd.log(`广告${adName}被调用`)
       return ad.show(param)
     } else {
-      BoxAd.log(`广告${adName}未初始化`)
+      HuaweiAd.log(`广告${adName}未初始化`)
       return Promise.reject(adName + '无效')
     }
   }
   showBox(param?: AdParam): Promise<AdInvokeResult> {
-    return this.showAd('banner广告',null, param)
+    return this.showAd('盒子广告',this._box, param)
   }
   showBanner(param?: AdParam): Promise<AdInvokeResult> {
     return this.showAd('banner广告',this._banner, param)
@@ -58,20 +62,15 @@ export default class BoxAd implements AdInterface {
     return this.showAd('激励视频广告广告', this._reward, param)
   }
   showNative(param?: AdParam): Promise<AdInvokeResult> {
-    return this.showAd( '原生自渲染广告', null, param)
+    return this.showAd( '原生自渲染广告', undefined, param)
   }
   showCustom(param?: AdParam): Promise<AdInvokeResult> {
-    return this.showAd( '原生自渲染广告', null, param)
+    return this.showAd( '原生模板广告', undefined, param)
   }
   hideCustom(param?: AdParam): Promise<AdInvokeResult> {
-    // this._custom && this._custom.close()
     return Promise.reject(false)
   }
   showToast(msg: string, duration: number): void {
-    !!msg && my.showToast({
-      content: msg,
-      duration: duration?? 1500
-    })
+      !!msg && qg.showToast({title: msg, duration: duration ?? 1500})
   }
-
 }

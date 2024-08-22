@@ -70,6 +70,16 @@ class AlipayConfig implements IAdConfig {
   PORTAL_ID = ['']
 }
 
+class HuaweiConfig implements IAdConfig {
+  BANNER_ID = ['']
+  INTERS_ID = ['']
+  REWARD_ID = ['']
+  CUSTOM_ID = ['']
+  NATIVE_ID = ['']
+  BOX_ID = ['']
+  PORTAL_ID = ['']
+}
+
 export {
   VivoConfig,
   OppoConfig,
@@ -78,4 +88,5 @@ export {
   Box4399Config,
   Ad4399Config,
   AlipayConfig,
+  HuaweiConfig,
 }

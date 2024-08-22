@@ -46,7 +46,8 @@ interface AdHandler extends AdSession {
 interface AdInvokeResult {
   session: AdSession
   rewardPromise?: Promise<void> | null
-  onClose?: Runnable
+  onClose?: Runnable,
+  [extra: string]: any
 }
 
 /**
