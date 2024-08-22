@@ -1,5 +1,6 @@
 import { AdHandler, AdInterface, AdInvokeResult, AdParam, IAdConfig } from "../Types";
 import { LogHandle, get_log } from "../utils/Log";
+import AliBannerAd from "./AliBannerAd";
 import AliBaseAd from "./AliBaseAd";
 import AliIntersAd from "./AliIntersAd";
 import AliRewardAd from "./AliRewardAd";
@@ -7,6 +8,7 @@ import AliRewardAd from "./AliRewardAd";
 export default class BoxAd implements AdInterface {
   public static log: LogHandle = get_log('Alipay')
   systemInfo: any;
+  private _banner: AliBaseAd;
   private _inters: AliBaseAd;
   private _reward: AliBaseAd;
   config: IAdConfig;
@@ -24,6 +26,7 @@ export default class BoxAd implements AdInterface {
     my.setEnableDebug({enableDebug: CC_DEBUG})
     this._inters = new AliIntersAd(...this.config.INTERS_ID)
     this._reward = new AliRewardAd(...this.config.REWARD_ID)
+    this._banner = new AliBannerAd(...this.config.BANNER_ID)
   }
   private showAd(
     adName: string,
@@ -42,10 +45,10 @@ export default class BoxAd implements AdInterface {
     return this.showAd('banner广告',null, param)
   }
   showBanner(param?: AdParam): Promise<AdInvokeResult> {
-    return this.showAd('banner广告',null, param)
+    return this.showAd('banner广告',this._banner, param)
   }
   hideBanner(param?: AdParam): Promise<AdInvokeResult> {
-    // this._banner && this._banner.close()
+    this._banner && this._banner.close()
     return Promise.reject(false)
   }
   showInters(param?: AdParam): Promise<AdInvokeResult> {

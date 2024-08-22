@@ -18,7 +18,7 @@ export default class AliRewardAd extends AliBaseAd {
       }, 1000);
       return my.createRewardedAd({
         adUnitId: _id,
-        multiton: true
+        // multiton: true
       })
     } else {
       this.ad.load()
@@ -58,7 +58,7 @@ export default class AliRewardAd extends AliBaseAd {
   protected onClose(res: any): void {
     super.onClose(res)
 
-    if (res && res.isEnded) {
+    if (res && res.isEnded || res === undefined) {
       if (this.rewardPromise) {
         AlipayAd.log(this.name, '派发奖励')
         this.rewardPromise.resolve()
@@ -70,5 +70,11 @@ export default class AliRewardAd extends AliBaseAd {
       }
     }
     this.rewardPromise = undefined
+  }
+
+  public destroy(): void {
+    // 激励视频是单实例，不用销毁
+    // if (this.isShowed) return
+    // super.destroy()
   }
 }
