@@ -41,14 +41,22 @@ export default class HwNativeAd extends HwBaseAd {
 
   protected onLoad(res: any): void {
     super.onLoad(res)
+    this.ready = false
     if (res.adList.length > 0) {
       this.adData = res.adList[0]
       cc.assetManager.loadRemote(this.adData.imgUrlList,(err, texture: cc.Texture2D) => {
         if (texture) {
           this.node.addComponent(cc.Sprite).spriteFrame = new cc.SpriteFrame(texture)
+          this.node.on(cc.Node.EventType.TOUCH_END, this.onClick, this)
+          this.ready = true
         }
       })
     }
+  }
+
+  private onClick() {
+    this.ad.reportAdClick({adId: this.adData.adId})
+    this.ad.startDownload({adId: this.adData.adId})
   }
 
   show(param: AdParam): Promise<AdInvokeResult> {
@@ -60,6 +68,8 @@ export default class HwNativeAd extends HwBaseAd {
   }
 
   private showDownloadButton() {
+    this.ad.reportAdShow({adId: this.adData.adId})
+
     this.ad.showDownloadButton({
         adId : this.adData.adId,
         style : {
