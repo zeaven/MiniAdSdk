@@ -46,7 +46,7 @@ export default abstract class BoxBaseAd implements AdHandler {
       if (!this.ad) return
       this.ad.offError && this.ad.offError(onErrorBinder)
       this.ad.offClose && this.ad.offClose(onCloseBinder)
-      this.ad.offLoad && this.ad.offLoad(onCloseBinder)
+      this.ad.offLoad && this.ad.offLoad(onLoadBinder)
     }
   }
 

@@ -16,8 +16,9 @@ import KsAd from "./ks/KsAd";
 import Ad4399 from "./4399/Ad4399";
 import BoxAd from "./box4399/BoxAd";
 import OppoAd from "./oppo/OppoAd";
-import { Ad4399Config, AlipayConfig, Box4399Config, KsConfig, OppoConfig, TTConfig, VivoConfig } from "./AdConfig";
+import { Ad4399Config, AlipayConfig, Box4399Config, HuaweiConfig, KsConfig, OppoConfig, TTConfig, VivoConfig } from "./AdConfig";
 import AlipayAd from "./alipay/AlipayAd";
+import HuaweiAd from "./huawei/HuaweiAd";
 
 
 
@@ -89,6 +90,9 @@ export default class AdSdk implements AdInterface {
         break;
       case Platform.ALIPAY:
         adapter = new AlipayAd(new AlipayConfig())
+        break;
+      case Platform.HUAWEI:
+        adapter = new HuaweiAd(new HuaweiConfig())
         break;
       default:
         adapter = new JsAd()
