@@ -130,12 +130,10 @@ export default abstract class HwBaseAd implements AdHandler {
       }).then(() => this.show(param))
     }
     HuaweiAd.log(this.name + '展示')
-    return new Promise<AdInvokeResult>((resolve, reject) => {
-      this.ad.show()
-      this.onShow()
-      this.invokeResult = { session: this }
-      resolve(this.invokeResult)
-    })
+    this.ad.show && this.ad.show()
+    this.onShow()
+    this.invokeResult = { session: this }
+    return Promise.resolve(this.invokeResult)
   }
   close(): void {
     if (!this.ad || !this.ready || !this.isShowed) return
