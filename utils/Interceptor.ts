@@ -1,12 +1,12 @@
 import { AdInterceptor, AdInvokeResult, AdInvokeType, AdParam, AdType } from "../Types";
 
 /**
- * 
+ * 延时调用，首次触发，在指定时间后仅执行一次
  * @param func 延时方法
- * @param limit 延时时间
+ * @param wait 延时时间(ms)
  * @returns 
  */
-function throttle(func: Function, limit: number): any {
+function delay(func: Function, wait: number): any {
     let inThrottle: boolean = false;
 
     return function(next: AdInvokeType, param: AdParam): any {
@@ -16,11 +16,58 @@ function throttle(func: Function, limit: number): any {
               setTimeout(() => {
                 resolve(func(next, param))
                 inThrottle = false
-              }, limit)
+              }, wait)
             })
         }
     };
 }
+
+/**
+ * 防抖方法，在指定时间内只触发最后一次调用
+ * @param func 需要防抖的方法
+ * @param wait 等待时间(ms)
+ * @returns 
+ */
+function debounce(func: Function, wait: number): any {
+  let timeout: any = null;
+  
+  return function(next: AdInvokeType, param: AdParam): any {
+    if (timeout !== null) {
+      clearTimeout(timeout);
+    }
+    
+    return new Promise((resolve) => {
+      timeout = setTimeout(() => {
+        resolve(func(next, param));
+      }, wait);
+    });
+  };
+}
+
+/**
+ * 防并发方法，在一次调用完成前忽略其他调用
+ * @param func 需要防并发的方法
+ * @returns 
+ */
+function mutex(func: Function): any {
+  let isRunning = false;
+  
+  return async function(next: AdInvokeType, param: AdParam): Promise<any> {
+    if (isRunning) {
+      return;
+    }
+    
+    try {
+      isRunning = true;
+      return await func(next, param);
+    } finally {
+      isRunning = false; 
+    }
+  }
+}
+
+
+
 
 /**
  * retry方法
@@ -103,7 +150,20 @@ class TTInterceptor implements AdInterceptor {
 class DelayInterceptor implements AdInterceptor {
   init(): void {
     const _method = this.showReward.bind(this)
-    this.showReward = throttle(_method, 1000)
+    this.showReward = delay(_method, 1000)
+  }
+  showReward (next: AdInvokeType, param: AdParam): Promise<AdInvokeResult> | void {
+    return next(param)
+  }
+}
+
+/**
+ * 防并发广告
+ */
+class MutexInterceptor implements AdInterceptor {
+  init(): void {
+    const _method = this.showReward.bind(this)
+    this.showReward = mutex(_method)
   }
   showReward (next: AdInvokeType, param: AdParam): Promise<AdInvokeResult> | void {
     return next(param)
@@ -148,5 +208,5 @@ class RetryInterceptor implements AdInterceptor {
   }
 }
 
-export { TTInterceptor, DelayInterceptor, RetryInterceptor }
+export { TTInterceptor, DelayInterceptor, RetryInterceptor, MutexInterceptor }
 
