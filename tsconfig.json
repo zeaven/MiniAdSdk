@@ -6,14 +6,18 @@
     "experimentalDecorators": true,
     "skipLibCheck": true,
     "outDir": "temp/vscode-dist",
-    "forceConsistentCasingInFileNames": true
+    "typeRoots": [
+      "./types",
+      "./node_modules/@types"
+    ]
   },
   "exclude": [
     "node_modules",
     "library",
     "local",
     "temp",
-    "build",
-    "settings"
+    "build", 
+    "settings",
+    "**/*.spec.ts"  // 添加测试文件排除
   ]
 }

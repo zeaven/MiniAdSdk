@@ -12,13 +12,18 @@ import HwRewardAd from "./HwRewardAd";
 
 export default class HuaweiAd implements AdInterface {
   public static log: LogHandle = get_log('HuaweiAd')
-
-  private systemInfo!: any
+  
+  private systemInfo!: {
+    brand: string;
+    model: string;
+    // 其他需要的属性...
+  }
   private _banner?: AdHandler
   private _inters?: AdHandler
   private _native?: AdHandler
   private _reward?: AdHandler
-  config: IAdConfig;
+  private _box: AdHandler
+  config: IAdConfig
 
   constructor(config: IAdConfig) {
     this.config = config

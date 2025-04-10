@@ -58,7 +58,7 @@ export default class TTRewardAd extends TTBaseAd {
     }
   }
 
-  protected noReadyDelayShow(param: AdParam): Promise<AdInvokeResult> {
+  protected noReadyDelayShow(delay: number): Promise<AdInvokeResult> {
     // 激励视频未加载则直接返回错误，因为奖励物品不一致
     return Promise.reject(this.name + '加载中')
   }

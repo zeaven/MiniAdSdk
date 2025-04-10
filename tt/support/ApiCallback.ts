@@ -12,6 +12,11 @@ type ApiCallbackInfo = {
   activedAt: number
   updatedAt: number
 }
+interface ApiResponse {
+  code: number;
+  message?: string;
+  // ...其他可能的字段
+}
 
 const dayDiff = 86400000
 
@@ -76,7 +81,7 @@ export default class ApiCallback {
             callback: this.info.clickid
           }
         }, timestamp
-      }).then(res => {
+      }).then((res: ApiResponse) => {
         if (res.code === 0) {
           this.info.updatedAt = timestamp
           saveItem(ApiCallbackKey, this.info)
@@ -100,7 +105,7 @@ export default class ApiCallback {
         device: { platform: this.platform },
         properties
       }, timestamp
-    }).then(res => {
+    }).then((res: ApiResponse) => {
         if (res.code === 0) {
           log('回传成功')
         } else {
