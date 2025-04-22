@@ -3,7 +3,7 @@ const TerserPlugin = require('terser-webpack-plugin');
 const JavaScriptObfuscator = require('webpack-obfuscator');
 
 module.exports = {
-  entry: './temp/vscode-dist/AdSdk.js',
+  entry: './temp/core/AdSdk.js',
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: 'AdSdk.core.js',
