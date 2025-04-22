@@ -1,0 +1,124 @@
+import { AdEventType, AdHandler, AdInvokeResult, AdParam, Runnable } from "../../Types";
+import AdEventBus from "../../utils/AdEventBus";
+import log from "./KsLog"
+
+export default abstract class KsAdBase implements AdHandler {
+  protected get name(): string { return 'base' }
+  private ids: string[]
+  private idx = 0
+  ad: any;
+  unbindAdListeners: Runnable
+  createInterval = 1000
+  reloadCount = 0
+  isShowed: boolean = false
+  invokeResult: AdInvokeResult
+
+  constructor(ads: string[]) {
+    let arr = ads.filter(t => !!t)
+    this.ids = arr
+    this.loadAd()
+  }
+  loadAd() {
+    if (this.ids.length === 0) return
+    if (this.idx >= this.ids.length) {
+      this.idx = 0
+    }
+    if (this.ad) {
+      // 销毁之前实例
+      this.destroy()
+    }
+    this.ad = this.createAd(this.ids[this.idx++])
+    if (!this.ad) {
+      log(this.name + '创建失败')
+    }
+    this.unbindAdListeners = this.bindAdListeners()
+    AdEventBus.instance.emit(AdEventType.AdLoaded, this)
+  }
+
+  bindAdListeners(): Runnable {
+ 
+    // Unbind the last listeners First
+    if (this.unbindAdListeners) this.unbindAdListeners()
+    if (!this.ad) return () => {}
+    let onErrorBinder = this.onError.bind(this)
+    let onCloseBinder = this.onClose.bind(this)
+    this.ad.onError && this.ad.onError(onErrorBinder)
+    this.ad.onClose && this.ad.onClose(onCloseBinder)
+    return () => {
+      if (!this.ad) return
+      this.ad.offError && this.ad.offError(onErrorBinder)
+      this.ad.offClose && this.ad.offClose(onCloseBinder)
+    }
+  }
+
+  protected abstract createAd(_id: string): any 
+
+  protected onError(err): void {
+    log(this.name + '加载失败', JSON.stringify(err))
+    AdEventBus.instance.emit(AdEventType.AdError, this, err)
+    this.reLoad()
+  }
+
+  protected onClose(res): void {
+    log(this.name + '关闭')
+    this.isShowed = false
+    this.reloadCount = 0
+    AdEventBus.instance.emit(AdEventType.AdClosed, this)
+    this.invokeResult && this.invokeResult.onClose && this.invokeResult.onClose()
+    this.reLoad()
+  }
+  protected reLoad(): void {
+    log(this.name + '重新加载')
+    let delayMilliSeconds = this.createInterval
+    this.reloadCount++
+    delayMilliSeconds = Math.min(
+      10000,
+      this.createInterval * this.reloadCount
+    )
+    setTimeout(() => this.loadAd(), delayMilliSeconds)
+  }
+  protected onShow(): void {
+    log(this.name, '展示成功')
+    this.isShowed = true
+    AdEventBus.instance.emit(AdEventType.AdShow, this)
+  }
+
+  show(param: AdParam): Promise<AdInvokeResult> {
+    if (!this.ad) return Promise.reject(this.name + '无效')
+    if (this.isShowed) {
+      log(this.name + '已展示')
+      return Promise.resolve({ session: this })
+    }
+    return new Promise<AdInvokeResult>((resolve, reject) => {
+      this.ad
+        .show()
+        .then(() => {
+          this.onShow()
+          this.invokeResult = { session: this }
+          resolve(this.invokeResult)
+        })
+        .catch((err) => {
+          log(this.name + '展示失败', JSON.stringify(err))
+          reject(err)
+        })
+    })
+  }
+  close(): void {
+    throw new Error("Method not implemented.");
+  }
+  destroy(): void {
+    log(this.name + '销毁')
+    this.isShowed = false
+    if (this.unbindAdListeners) {
+      this.unbindAdListeners()
+      this.unbindAdListeners = undefined
+    }
+    if (this.ad) {
+      if (typeof this.ad.destroy == 'function') {
+        this.ad.destroy()
+      }
+      this.ad = null
+    }
+  }
+
+}

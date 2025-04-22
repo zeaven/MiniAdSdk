@@ -35,7 +35,7 @@ interface AdSession {
  * 广告处理接口，如banner、插屏、奖励视频等
  */
 interface AdHandler extends AdSession {
-  show(param: AdParam): Promise<AdInvokeResult>
+  show(param?: AdParam): Promise<AdInvokeResult>
   close(): void
   destroy(): void
 }
@@ -44,7 +44,7 @@ interface AdHandler extends AdSession {
  * 广告回调类型
  */
 interface AdInvokeResult {
-  session: AdSession
+  session?: AdSession
   rewardPromise?: Promise<void> | null
   onClose?: Runnable,
   [extra: string]: any
@@ -98,6 +98,16 @@ enum AdEvent {
 
 Enum(AdType)
 
+enum AdEventType {
+  AdLoaded = 'ad:loaded',
+  AdClosed = 'ad:closed',
+  AdError = 'ad:error',
+  AdReward = 'ad:reward',
+  AdShow = 'ad:show',
+  AdHide = 'ad:hide',
+  AdClick = 'ad:click',
+}
+
 @ccclass('AdEventHandler')
 class AdEventHandler {
   @property({type:AdType, tooltip: '广告类型'})
@@ -127,5 +137,6 @@ interface AdInterceptor {
 
 export {
   AdParam, AdInvokeResult, AdInterface, AdHandler, Callback, AdType, AdEvent,AdSession, Runnable,
-  AdEventHandler, AdContext, AdCallback, AdInterceptor,AdInterceptorCallback,AdInvokeType,IAdConfig
+  AdEventHandler, AdContext, AdCallback, AdInterceptor,AdInterceptorCallback,AdInvokeType,IAdConfig,
+  AdEventType
 }

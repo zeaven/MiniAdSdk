@@ -1,3 +1,4 @@
+import { Platform, platform } from "./AdPlatform";
 
 let debug_enable = CC_DEBUG;
 type LogHandle = (...msg: any[]) => void;
@@ -23,7 +24,7 @@ let debug_log = function (tag: string, ...msg: any[]) {
       currentTime, tag, msg.map((t) => t?.toString()).join(' ')
     )
   }
-  if (debug_enable) {
+  if (debug_enable && platform !== Platform.WEB) {
     cc.log(currentTime + ': ' + tag, ...msg)
   }
 }

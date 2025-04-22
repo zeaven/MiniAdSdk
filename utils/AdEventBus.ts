@@ -3,6 +3,11 @@ import { Runnable } from "../Types"
 
 /**
  * 广告事件总线
+ * example:
+ *  AdEventBus.instance.on(AdEventType.AdLoaded, (ad: AdBase, ...otherArgs) => {
+ *    // do something
+ *  })
+ *  AdEventBus.instance.emit(AdEventType.AdLoaded, ad, ...otherArgs);
  */
 export default class AdEventBus {
   private static _instance: AdEventBus
@@ -26,7 +31,6 @@ export default class AdEventBus {
   }
 
   public on(event: string, callback: any, target?: any) : Runnable {
-    AdEventBus.log('on', event, target)
     this.eventTarget.on(event, callback, target)
     return () => {
       this.eventTarget.off(event, callback, target)

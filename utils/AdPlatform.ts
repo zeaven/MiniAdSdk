@@ -1,6 +1,6 @@
 //特定无法区分的平台直接改这里
 
-let Platform = cc.Enum({
+const Platform = cc.Enum({
   WX: 'wx',
   Android: 'Android',
   IOS: 'IOS',
@@ -10,7 +10,7 @@ let Platform = cc.Enum({
   OPPO: 'oppo',
   VIVO: 'vivo',
   TT: 'tt',
-  M4399: '4399',
+  M4399: 'm4399',
   BOX4399: 'box4399',
   KS: 'ks',
   ALIPAY: 'alipay',
@@ -18,7 +18,7 @@ let Platform = cc.Enum({
 })
 
 
-let getPlatform = (): string => {
+const getPlatform = (): string => {
     let platform = '';
     let isKSGame = typeof globalThis.KSGameGlobal != 'undefined'
     if (isKSGame) {
@@ -35,7 +35,7 @@ let getPlatform = (): string => {
       platform = Platform.IOS
     // } else if (globalThis.qg) {
       // platform = Platform.QQ
-    } else if (cc.sys.ALIPAY_GAME) {
+    } else if (cc.sys.platform === cc.sys.ALIPAY_GAME) {
       platform = Platform.ALIPAY
     } else if (cc.sys.platform === cc.sys.OPPO_GAME) {
       platform = Platform.OPPO
@@ -62,7 +62,7 @@ let getPlatform = (): string => {
 
 //游戏平台ID(1:微信小游戏; 2:QQ小游戏，3：Oppo小游戏,4:Vivo小游戏,5:头条小游戏;)
 
-let getPLATID = (): number => {
+const getPLATID = (): number => {
     switch (getPlatform()) {
         case Platform.WEB:
             return 2;
@@ -83,5 +83,6 @@ let getPLATID = (): number => {
     
 }
 
+const platform = getPlatform()
 
-export {getPlatform, getPLATID, Platform}
+export {platform, getPlatform, getPLATID, Platform}

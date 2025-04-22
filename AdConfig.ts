@@ -11,9 +11,9 @@ class VivoConfig implements IAdConfig {
 }
 
 class OppoConfig implements IAdConfig {
-  BANNER_ID = ['']
+  BANNER_ID = ['1557678']
   INTERS_ID = ['']
-  REWARD_ID = ['']
+  REWARD_ID = ['1557681']
   CUSTOM_ID = ['']
   NATIVE_ID = ['']
   BOX_ID = ['']
@@ -50,7 +50,7 @@ class Box4399Config implements IAdConfig {
   PORTAL_ID = ['']
 }
 
-class Ad4399Config implements IAdConfig {
+class M4399Config implements IAdConfig {
   BANNER_ID = ['']
   INTERS_ID = ['']
   REWARD_ID = ['']
@@ -80,13 +80,13 @@ class HuaweiConfig implements IAdConfig {
   PORTAL_ID = ['']
 }
 
-export {
+export default {
   VivoConfig,
   OppoConfig,
   KsConfig,
   TTConfig,
   Box4399Config,
-  Ad4399Config,
+  M4399Config,
   AlipayConfig,
   HuaweiConfig,
 }

@@ -5,22 +5,24 @@
 const { ccclass } = cc._decorator
 import AdEventBus from "./utils/AdEventBus";
 import { get_log } from "./utils/Log";
-import { Platform, getPlatform } from "./utils/AdPlatform";
-import { AdCallback, AdEvent, AdEventHandler, AdInterceptor, AdInterface, AdInvokeResult, AdParam, AdType } from "./Types";
+import { Platform, platform } from "./utils/AdPlatform";
+import { AdCallback, AdEvent, AdEventHandler, AdInterceptor, AdInterface, AdInvokeResult, AdParam, AdType, IAdConfig } from "./Types";
 import { DelayInterceptor, TTInterceptor } from './utils/Interceptor'
-import TTAd from "./tt/TTAd";
-import VivoAd from "./vivo/VivoAd";
 import ConfigBinder from "./utils/ConfigBinder";
-import JsAd from "./JsAd";
-import KsAd from "./ks/KsAd";
-import Ad4399 from "./4399/Ad4399";
-import BoxAd from "./box4399/BoxAd";
-import OppoAd from "./oppo/OppoAd";
-import { Ad4399Config, AlipayConfig, Box4399Config, HuaweiConfig, KsConfig, OppoConfig, TTConfig, VivoConfig } from "./AdConfig";
-import AlipayAd from "./alipay/AlipayAd";
-import HuaweiAd from "./huawei/HuaweiAd";
+import AdConfig from "./AdConfig";
 
-
+// 配置加载器
+const adapters: Record<string, () => Promise<any>> = {
+  [Platform.WEB]: () => import('./adapters/web'),
+  [Platform.ALIPAY]: () => import('./adapters/alipay'),
+  [Platform.BOX4399]: () => import('./adapters/box4399'),
+  [Platform.HUAWEI]: () => import('./adapters/huawei'),
+  [Platform.KS]: () => import('./adapters/ks'),
+  [Platform.M4399]: () => import('./adapters/m4399'),
+  [Platform.OPPO]: () => import('./adapters/oppo'),
+  [Platform.TT]: () => import('./adapters/tt'),
+  [Platform.VIVO]: () => import('./adapters/vivo'),
+}
 
 @ccclass
 export default class AdSdk implements AdInterface {
@@ -56,61 +58,57 @@ export default class AdSdk implements AdInterface {
   init(): void {
     if (this._inited) return
     this._inited = true
-    this._platform = getPlatform()
+    this._platform = platform
     AdSdk.log('初始化, 平台:' + this._platform)
-    this._adapter = this.getAdapter(this._platform)
-    if (this._adapter) this._adapter.init()
+    this.getAdapter(this._platform)
     ConfigBinder.instance.init()
   }
 
-  private getAdapter(name: string): AdInterface | undefined {
-    let adapter: AdInterface | undefined
+  private async getAdapter(name: string): Promise<void>  {
     this.addInterceptor(name, new DelayInterceptor())
 
-    switch (name) {
-      case Platform.VIVO:
-        adapter = new VivoAd(new VivoConfig())
-        break
-      case Platform.TT:
-        adapter = new TTAd(new TTConfig())
-        this.addInterceptor(name, new TTInterceptor())
-        break
-      case Platform.KS:
-        adapter = new KsAd(new KsConfig())
-        this.addInterceptor(name, new TTInterceptor())
-        break
-      case Platform.M4399:
-        adapter = new Ad4399(new Ad4399Config())
-        break
-      case Platform.BOX4399:
-        adapter = new BoxAd(new Box4399Config())
-        break;
-      case Platform.OPPO:
-        adapter = new OppoAd(new OppoConfig())
-        break;
-      case Platform.ALIPAY:
-        adapter = new AlipayAd(new AlipayConfig())
-        break;
-      case Platform.HUAWEI:
-        adapter = new HuaweiAd(new HuaweiConfig())
-        break;
-      default:
-        adapter = new JsAd()
-        break
+    try {
+      
+      switch (name) {
+        case Platform.TT:
+          this.addInterceptor(name, new TTInterceptor())
+          break
+        case Platform.KS:
+          this.addInterceptor(name, new TTInterceptor())
+          break
+        default:
+          break
+      }
+      const module = await adapters[name]()
+      const config = this.getConfig(name)
+      this._adapter = new module.default(config)
+      this._adapter && this._adapter.init()
+      AdSdk.log(`适配器[${name}]初始化成功`)
+    } catch (e) {
+      AdSdk.log(`获取适配器失败: ${e}`)
     }
+  }
 
-    return adapter
+  private getConfig(name: string): IAdConfig | undefined {
+    name = name.toLowerCase() + 'config'
+    // 遍历 AdConfig 类的静态属性
+    for (const prop in AdConfig) {
+      if (AdConfig.hasOwnProperty(prop) && prop.toLowerCase() === name) {
+        return new AdConfig[prop]()
+      }
+    }
   }
 
   private invoke(method: string, ...args: any[]): Promise<AdInvokeResult> {
     if (this._whitePackage) {
-      return Promise.resolve( {session: null, rewardPromise: Promise.resolve()})
+      const res: AdInvokeResult = {rewardPromise: Promise.resolve()}
+      return Promise.resolve( res )
     }
     if (this._adapter && this._adapter[method]) {
       AdSdk.log(`${method}被调用`, JSON.stringify(args))
       const interceptors = this._interceptors[this._platform]
       if (interceptors) {
-        const next = (...params: any[]) => this._adapter[method](...params)
+        const next = (...params: any[]) => this._adapter && this._adapter[method](...params)
         // 拦截器调用链
         let rr= this.callInterceptor(method, args, interceptors, next)
         if (rr instanceof Promise) {
@@ -197,8 +195,7 @@ export default class AdSdk implements AdInterface {
 
   public setPlatform(platform: string) {
     this._platform = platform
-    this._adapter = this.getAdapter(this._platform)
-    this._adapter && this._adapter.init()
+    this.getAdapter(this._platform)
   }
 
   showBox(param?: AdParam): Promise<AdInvokeResult> {

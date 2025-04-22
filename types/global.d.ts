@@ -1,9 +1,18 @@
 declare namespace qg {
-  function getSystemInfoSync(): {
+  interface SystemInfo {
     brand: string;
     model: string;
-    // Other system info properties
-  };
+    pixelRatio: number;
+    screenWidth: number;
+    screenHeight: number;
+    windowWidth: number;
+    windowHeight: number;
+    language: string;
+    version: string;
+    platform: string;
+  }
+
+  function getSystemInfoSync(): SystemInfo;
 
   // Add OPPO/Vivo style toast
   function showToast(params: {
@@ -28,7 +37,20 @@ declare namespace qg {
 
 declare namespace my {
   // Alipay specific APIs
-  function getSystemInfoSync(): any;
+  interface SystemInfo {
+    brand: string;
+    model: string;
+    pixelRatio: number;
+    screenWidth: number;
+    screenHeight: number;
+    windowWidth: number;
+    windowHeight: number;
+    language: string;
+    version: string;
+    platform: string;
+  }
+
+  function getSystemInfoSync(): SystemInfo;
   function setEnableDebug(options: {enableDebug: boolean}): void;
   function showToast(options: {content: string, duration?: number}): void;
   function createBannerAd(options: any): any;
