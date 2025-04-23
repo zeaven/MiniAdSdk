@@ -17,28 +17,6 @@ export default class OppoBannerAd extends OppoBaseAd {
       ...this.properties
     })
   }
-
-  protected bindAdListeners(): () => void {
-    if (!this.autoUnbindListener && this.unbindAdListeners) {
-      return this.unbindAdListeners
-    }
-    // Unbind the last listeners First
-    if (this.unbindAdListeners) this.unbindAdListeners()
-    if (!this.ad) return () => {}
-    let onErrorBinder = this.onError.bind(this)
-    let onLoadBinder = this.onLoad.bind(this)
-    let onCloseBinder = this.onClose.bind(this)
-    this.ad.onError && this.ad.onError(onErrorBinder)
-    this.ad.onLoad && this.ad.onLoad(onLoadBinder)
-    this.ad.onClose && this.ad.onClose(onCloseBinder)
-    // this.onLoad(null)
-    return () => {
-      if (!this.ad) return
-      this.ad.offError && this.ad.offError(onErrorBinder)
-      this.ad.offLoad && this.ad.offLoad(onLoadBinder)
-      this.ad.offClose && this.ad.offClose(onCloseBinder)
-    }
-  }
   
   public show(param: AdParam): Promise<AdInvokeResult> {
     let showPromise = super.show(param)

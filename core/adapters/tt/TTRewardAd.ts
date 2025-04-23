@@ -3,24 +3,20 @@
  */
 
 
-import { AdHandler, AdInvokeResult, AdParam } from '../../Types'
-import TTBaseAd from './TTBaseAd'
+import AdRewardBase from '../AdRewardBase'
 import log from "./TTLog"
 
-export default class TTRewardAd extends TTBaseAd {
+export default class TTRewardAd extends AdRewardBase {
   protected get name(): string { return '激励视频' }
-  protected autoUnbindListener: boolean = false
-  private rewardPromise?: Promise<void>
-  private rewardResolve?: (value?: any) => void
-  private rewardReject?: (reason?: any) => void
-  protected createInterval = 1000
-
+  protected log(...msg: any[]): void {
+    log(...msg)
+  }
+  protected checkReward(res: any): boolean {
+    return (res && res.isEnded) || (res && res.count)
+  }
+  
   protected createAd(_id: string): any {
     if (!this.ad) {
-      // tt 没有自动预加载，手动加载
-      setTimeout(() => {
-        this.ad && this.ad.load()
-      }, 1000);
       return globalThis.tt.createRewardedVideoAd({
         adUnitId: _id,
       })
@@ -31,62 +27,5 @@ export default class TTRewardAd extends TTBaseAd {
     }
     return this.ad
   }
-  public show(param: AdParam): Promise<AdInvokeResult> {
-    return super.show(param).then((res) => {
-      if (this.rewardReject) this.rewardReject()
-      this.rewardPromise = new Promise((rewardResolve, rewardReject) => {
-        this.rewardResolve = (...arg) => rewardResolve(...arg)
-        this.rewardReject = (err) => rewardReject(err)
-      })
-      res.rewardPromise = this.rewardPromise
-      return res
-    })
-  }
-  public close(): void {
-    // if (!this.ad || !this.ready) return
-    // 激励视频广告不能手动关闭
-    // this.ad.close()
-  }
-
-  protected reLoad(delay: number): void {
-    if (delay === this.createInterval) {
-      // 关闭后立即重新加载
-      log(this.name + '重新加载')
-      this.loadAd()
-    } else {
-      super.reLoad(delay)
-    }
-  }
-
-  protected noReadyDelayShow(delay: number): Promise<AdInvokeResult> {
-    // 激励视频未加载则直接返回错误，因为奖励物品不一致
-    return Promise.reject(this.name + '加载中')
-  }
-
-  protected onClose(res: any): void {
-    super.onClose(res)
-    this.ready = true
   
-
-    if ((res && res.isEnded) || (res && res.count)) {
-      if (this.rewardResolve) {
-        log(this.name, '派发奖励')
-        this.rewardResolve()
-      }
-    } else {
-      if (this.rewardReject) {
-        log(this.name, '奖励无效')
-        this.rewardReject()
-      }
-    }
-    this.rewardPromise = undefined
-    this.rewardResolve = undefined
-    this.rewardReject = undefined
-  }
-
-  public destroy(): void {
-    // 激励视频是单实例，不用销毁
-    // if (this.isShowed) return
-    // super.destroy()
-  }
 }

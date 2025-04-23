@@ -1,15 +1,15 @@
 import { AdHandler, AdInitConfig, AdInterface, AdInvokeResult, AdParam, IAdConfig } from "../../Types";
 import AliBannerAd from "./AliBannerAd";
-import AliBaseAd from "./AliBaseAd";
 import AliIntersAd from "./AliIntersAd";
 import AliRewardAd from "./AliRewardAd";
 import log from "./AliLog"
+import AdBase from "../AdBase";
 
 export default class AlipayAd implements AdInterface {
   private systemInfo: my.SystemInfo
-  private _banner: AliBaseAd
-  private _inters: AliBaseAd
-  private _reward: AliBaseAd
+  private _banner: AdBase
+  private _inters: AdBase
+  private _reward: AdBase
   config: IAdConfig
 
   constructor (config: IAdConfig) {
