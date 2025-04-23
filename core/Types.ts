@@ -38,6 +38,7 @@ interface IAdConfig {
 type AdParam = {
   type?: number | null // 类型参数，用于区分同一种广告的不区类型，或者同一广告在不同场景展示的样式
   data?: any | null  // 可以是广告样式数据或奖励数据等
+  [extra: string]: any
 }
 /**
  * 广告会话，每次调用广告回调里返回的实例，用于手动关闭或销毁广告

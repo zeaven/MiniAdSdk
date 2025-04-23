@@ -16,6 +16,8 @@ export class RemoteConfigInterceptor implements AdInterceptor {
         // 监听广告事件，上报到后端
         AdEventBus.instance.on(AdEventType.AdShowed, (ad) => {
             log('上报广告事件 ' + AdEventType.AdShowed, ad)
+            // 请在 utils 目录下创建 Service.ts 文件，实现上报逻辑
+            // Service.report(AdEventType.AdShowed, ad, ...otherArgs)
         });
         AdEventBus.instance.on(AdEventType.AdLoaded, (ad) => {
             log('上报广告事件: ' + AdEventType.AdLoaded, ad)
