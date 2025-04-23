@@ -9,19 +9,19 @@ import { Platform, platform } from "./utils/AdPlatform";
 import { AdCallback, AdEvent, AdEventHandler, AdInitConfig, AdInterceptor, AdInterface, AdInvokeResult, AdParam, AdType, IAdConfig } from "./Types";
 import ConfigBinder from "./utils/ConfigBinder";
 import AdConfig from "./AdConfig";
-import { DelayInterceptor, TTInterceptor, RemoteConfigInterceptor } from "./interceptors";
+import { DelayInterceptor, TTInterceptor, RemoteConfigInterceptor } from "./interceptors/index";
 
 // 配置加载器
 const adapters: Record<string, () => Promise<any>> = {
-  [Platform.WEB]: () => import('./adapters/web'),
-  [Platform.ALIPAY]: () => import('./adapters/alipay'),
-  [Platform.BOX4399]: () => import('./adapters/box4399'),
-  [Platform.HUAWEI]: () => import('./adapters/huawei'),
-  [Platform.KS]: () => import('./adapters/ks'),
-  [Platform.M4399]: () => import('./adapters/m4399'),
-  [Platform.OPPO]: () => import('./adapters/oppo'),
-  [Platform.TT]: () => import('./adapters/tt'),
-  [Platform.VIVO]: () => import('./adapters/vivo'),
+  [Platform.WEB]: () => import('./adapters/web/WebAd'),
+  [Platform.ALIPAY]: () => import('./adapters/alipay/AlipayAd'),
+  [Platform.BOX4399]: () => import('./adapters/box4399/Box4399Ad'),
+  [Platform.HUAWEI]: () => import('./adapters/huawei/HuaweiAd'),
+  [Platform.KS]: () => import('./adapters/ks/KsAd'),
+  [Platform.M4399]: () => import('./adapters/m4399/M4399Ad'),
+  [Platform.OPPO]: () => import('./adapters/oppo/OppoAd'),
+  [Platform.TT]: () => import('./adapters/tt/TtAd'),
+  [Platform.VIVO]: () => import('./adapters/vivo/VivoAd'),
 }
 
 @ccclass
@@ -33,7 +33,7 @@ export default class AdSdk implements AdInterface {
   private _adapter?: AdInterface
   
   private _interceptors: { [key:string]: AdInterceptor[] } = {}
-  private _whitePackage: boolean;
+  private _whitePackage: boolean; // 是否是白包
   private _inited = false
   private _config: AdInitConfig;
 
@@ -203,15 +203,14 @@ export default class AdSdk implements AdInterface {
     this._whitePackage = whitePackage
   }
 
-  public setPlatform(platform: string): Promise<AdInterface> {
+  public setPlatform(platform: string, config?: AdInitConfig): Promise<AdInterface> {
     this._platform = platform
-    return this.getAdapter(this._platform).then(adapter => {
+    this._config = config ?? this._config
+    return this.getAdapter(this._platform).then(async adapter => {
       this._adapter = adapter
       if (this._adapter) {
-        const ret = this.invoke('init', this._config) ?? Promise.resolve()
-        ret.then(() => {
-          AdSdk.log(`适配器 [${this._platform}] 初始化完成`)
-        })
+        await this.invoke('init', this._config) ?? Promise.resolve()
+        AdSdk.log(`适配器 [${this._platform}] 初始化完成`)
       }
       return this._adapter
     })

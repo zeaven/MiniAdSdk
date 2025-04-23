@@ -27,14 +27,9 @@ export default class HwNativeAd extends HwBaseAd {
 
   protected createAd(_id: string): any {
     if (!this.ad) {
-      setTimeout(() => {
-        this.ad && this.ad.load()
-      }, 1000);
       return qg.createNativeAd({
         adUnitId: _id,
       })
-    } else {
-      this.ad.load()
     }
     return this.ad
   }

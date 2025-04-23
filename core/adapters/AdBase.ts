@@ -9,7 +9,7 @@ export default abstract class AdBase implements AdHandler {
   protected ids: string[] // 广告id列表
   private idx = 0 // 广告id索引
   protected unbindAdListeners: Runnable
-  protected createInterval = 1000 // 重新加载间隔
+  protected createInterval = 1000 // 重新加载间隔 <=0，并且非立即加载，则为取消重新加载
   protected reloadCount = 0 // 重新加载次数
   protected isShowed: boolean = false // 是否展示
   protected invokeResult: AdInvokeResult // 当前展示的回调
@@ -107,15 +107,23 @@ export default abstract class AdBase implements AdHandler {
     this.invokeResult && this.invokeResult.onClose && this.invokeResult.onClose()
     this.reLoad(true)
   }
+  /**
+   * !!!注意：如果重新加载间隔 createInterval<=0，并且非立即加载，则为取消重新加载
+   * @param immediately 是否立即重新加载
+   */
   protected reLoad(immediately: boolean): void {
     this.log(this.name + '重新加载')
     let delayMilliSeconds = this.createInterval
     if (!immediately) {
-        this.reloadCount++
-        delayMilliSeconds = Math.min(
-          10000,
-          this.createInterval * this.reloadCount
-        )
+      if (this.createInterval <= 0) {
+        this.log(this.name + '取消重新加载')
+        return
+      }
+      this.reloadCount++
+      delayMilliSeconds = Math.min(
+        10000,
+        this.createInterval * this.reloadCount
+      )
     }
     setTimeout(() => this.loadAd(), delayMilliSeconds)
   }

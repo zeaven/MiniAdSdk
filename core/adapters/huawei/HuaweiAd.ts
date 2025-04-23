@@ -3,7 +3,6 @@
  */
 
 import { AdHandler, AdInitConfig, AdInterface, AdInvokeResult, AdParam, IAdConfig } from "../../Types";
-import { LogHandle, get_log } from "../../utils/Log";
 import HwBannerAd from "./HwBannerAd";
 import HwIntersAd from "./HwIntersAd";
 import HwNativeAd from "./HwNativeAd";
@@ -36,10 +35,10 @@ export default class HuaweiAd implements AdInterface {
     this.initAds()
   }
   private initAds(): void {
-		  this._banner = new HwBannerAd(...this.config.BANNER_ID)
-		  this._inters = new HwIntersAd(...this.config.INTERS_ID)
-      this._native = new HwNativeAd(...this.config.NATIVE_ID)
-		  this._reward = new HwRewardAd(...this.config.REWARD_ID)
+    this.config.BANNER_ID.length > 1 && (this._banner = new HwBannerAd(...this.config.BANNER_ID))
+    this.config.INTERS_ID.length > 1 && (this._inters = new HwIntersAd(...this.config.INTERS_ID))
+    this.config.NATIVE_ID.length > 1 && (this._native = new HwNativeAd(...this.config.NATIVE_ID))
+    this.config.REWARD_ID.length > 1 && (this._reward = new HwRewardAd(...this.config.REWARD_ID))
   }
   private showAd(
     adName: string,

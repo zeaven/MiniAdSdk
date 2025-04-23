@@ -71,11 +71,13 @@ class AlipayConfig implements IAdConfig {
 }
 
 class HuaweiConfig implements IAdConfig {
-  BANNER_ID = ['']
+  APP_ID?: string = '113807327'
+  PACKAGE_NAME?: string = 'com.game.kddnd.rg.huawei'
+  BANNER_ID = ['e1zgg0g769']
   INTERS_ID = ['']
-  REWARD_ID = ['']
+  REWARD_ID = ['t0b3b63xwc']
   CUSTOM_ID = ['']
-  NATIVE_ID = ['']
+  NATIVE_ID = ['s0igwux3b8']
   BOX_ID = ['']
   PORTAL_ID = ['']
 }
