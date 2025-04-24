@@ -2,7 +2,7 @@ import log from "./HwLog"
 import AdRewardBase from "../AdRewardBase";
 
 export default class HwRewardAd extends AdRewardBase {
-  protected get name(): string { return '激励视频' }
+  get name(): string { return '激励视频' }
   protected log(...msg: any[]): void {
     log(...msg)
   }

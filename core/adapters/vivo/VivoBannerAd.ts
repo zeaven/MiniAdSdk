@@ -6,7 +6,7 @@ import { AdParam, AdInvokeResult } from "../../Types";
 import VivoBaseAd from "./VivoBaseAd";
 
 export default class VivoBannerAd extends VivoBaseAd {
-  protected get name(): string { return 'banner' }
+  get name(): string { return 'banner' }
   private isHided = false
   protected createAd(_id: string): any {
     this.isHided = false

@@ -7,7 +7,7 @@ import VivoBaseAd from './VivoBaseAd'
 import log from "./VivoLog"
 
 export default class VivoBoxPortalAd extends VivoBaseAd {
-  protected get name(): string { return '盒子九宫格' }
+  get name(): string { return '盒子九宫格' }
   protected createInterval = 1000
   private isDestroyed = false
   protected autoLoad = false

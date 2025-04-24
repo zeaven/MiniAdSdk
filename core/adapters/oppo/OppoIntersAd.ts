@@ -5,7 +5,7 @@
 import OppoBaseAd from "./OppoBaseAd";
 
 export default class OppoIntersAd extends OppoBaseAd {
-  protected get name(): string {
+  get name(): string {
       return '插屏广告'
   }
   protected createAd(_id: string): any {

@@ -7,7 +7,7 @@ import AdRewardBase from '../AdRewardBase'
 import log from "./TTLog"
 
 export default class TTRewardAd extends AdRewardBase {
-  protected get name(): string { return '激励视频' }
+  get name(): string { return '激励视频' }
   protected log(...msg: any[]): void {
     log(...msg)
   }

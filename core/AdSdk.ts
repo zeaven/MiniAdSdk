@@ -86,7 +86,7 @@ export default class AdSdk implements AdInterface {
       const module = await adapters[name]()
       const config = this.getConfig(name)
       const adapter = new module.default(config)
-      AdSdk.log(`适配器 [${name}] 加载完成`)
+      AdSdk.log(`适配器 [${name}] 加载完成`, config)
       return adapter
     } catch (e) {
       AdSdk.log(`获取适配器失败: ${e}`)

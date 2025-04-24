@@ -5,7 +5,7 @@
 import AliBaseAd from "./AliBaseAd";
 
 export default class AliBannerAd extends AliBaseAd {
-  protected get name(): string { return 'Banner' }
+  get name(): string { return 'Banner' }
   protected createAd(_id: string): any {
     return my.createBannerAd({
       adUnitId: _id,

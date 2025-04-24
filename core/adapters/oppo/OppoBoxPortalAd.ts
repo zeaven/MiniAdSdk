@@ -7,7 +7,7 @@ import OppoBaseAd from './OppoBaseAd'
 import log from "./OppoLog"
 
 export default class OppoBoxPortalAd extends OppoBaseAd {
-  protected get name(): string {
+  get name(): string {
       return '盒子九宫格广告'
   }
   protected createInterval = 1000

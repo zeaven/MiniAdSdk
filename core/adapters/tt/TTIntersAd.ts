@@ -6,7 +6,7 @@ import { AdParam, AdInvokeResult } from "../../Types";
 import TTBaseAd from "./TTBaseAd";
 
 export default class TTInsertAd extends TTBaseAd {
-  protected get name(): string { return '插屏' }
+  get name(): string { return '插屏' }
   protected createAd(_id: string): any {
     if (!this.ad) {
       return globalThis.tt.createInterstitialAd({

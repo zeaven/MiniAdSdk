@@ -19,7 +19,7 @@ export default class AlipayAd implements AdInterface {
   init(initConfig: AdInitConfig): void {
     this.systemInfo = my.getSystemInfoSync()
     log('init', JSON.stringify(this.systemInfo))
-    this.config = initConfig.adConfig?? this.config
+    this.config = {...this.config, ...initConfig||{}}
     this.initAds()
   }
   private initAds(): void {

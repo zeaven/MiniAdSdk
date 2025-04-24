@@ -3,7 +3,7 @@ import AdEventBus from "../utils/AdEventBus";
 import { ManualPromise } from "../utils/AdUtils";
 
 export default abstract class AdBase implements AdHandler {
-  protected get name(): string { return 'ad base' }
+  get name(): string { return 'ad base' }
   protected abstract log(...msg: any[]): void
   protected ad: any; // 广告对象
   protected ids: string[] // 广告id列表
@@ -23,9 +23,10 @@ export default abstract class AdBase implements AdHandler {
 
   constructor(...ids: any[]) {
     this.ids = ids.filter((t) => !!t)
-    if (this.ids[this.ids.length-1] === 'object') {
+    if (typeof this.ids[this.ids.length-1] === 'object') {
       this.properties = this.ids.pop()
     }
+    this.log(this.name + '初始化', this.ids, this.properties)
 
     this.adListeners = {
       onLoad: this.onLoad.bind(this),
@@ -160,7 +161,7 @@ export default abstract class AdBase implements AdHandler {
       if (!this.autoLoad) this.loadAd() // 未开启自动加载的，启动加载，即外部要先调用一次，用于创建广告对象需要其他参数等
       this.log(this.name + '加载中')
       try {
-            await this.noReadyDelayShow(1000);
+            await this.noReadyDelayShow(2000);
         } catch (err) {
             this.log(this.name + '展示失败', JSON.stringify(err));
             throw err;

@@ -51,6 +51,7 @@ interface AdSession {
  * 广告处理接口，如banner、插屏、奖励视频等
  */
 interface AdHandler extends AdSession {
+  readonly name: string
   show(param?: AdParam): Promise<AdInvokeResult>
   close(): void
   destroy(): void

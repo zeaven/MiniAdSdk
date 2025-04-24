@@ -7,7 +7,7 @@ export default class BoxRewardAd extends AdRewardBase {
   hasCompleted: boolean
   protected autoDestroy: boolean = true
   
-  protected get name(): string { return '激励视频' }
+  get name(): string { return '激励视频' }
   protected log(...msg: any[]): void {
     log(...msg)
   }

@@ -5,7 +5,7 @@
 import VivoBaseAd from './VivoBaseAd'
 
 export default class VivoCustomAd extends VivoBaseAd {
-  protected get name(): string { return '原生模板' }
+  get name(): string { return '原生模板' }
   protected createInterval = 1000
 
   protected createAd(_id: string): any {

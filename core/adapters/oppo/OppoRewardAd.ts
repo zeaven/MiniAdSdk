@@ -7,7 +7,7 @@ import AdRewardBase from '../AdRewardBase'
 import log from "./OppoLog"
 
 export default class OppoRewardAd extends AdRewardBase {
-  protected get name(): string { return '激励视频' }
+  get name(): string { return '激励视频' }
   protected log(...msg: any[]): void {
     log(...msg)
   }

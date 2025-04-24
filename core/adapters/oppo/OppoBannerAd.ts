@@ -6,7 +6,7 @@ import { AdParam, AdInvokeResult } from "../../Types";
 import OppoBaseAd from "./OppoBaseAd";
 
 export default class OppoBannerAd extends OppoBaseAd {
-  protected get name(): string {
+  get name(): string {
       return 'banner广告'
   }
   private isHided = false

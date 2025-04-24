@@ -28,17 +28,29 @@ export default class HuaweiAd implements AdInterface {
     this.config = config
   }
   
+  /**
+   * systemInfo: {"brand":"HUAWEI","model":"PAR-LX1","pixelRatio":1,"screenWidth":1080,"screenHeight":2340,"windowWidth":1080,"windowHeight":2340,"language":"zh","region":"CN","script":"Hans","coreVersion":"1.1.21","COREVersion":"1.1.21","system":"Android 9","platform":"ANDROIDOS","version":"4.6.1.300","statusBarHeight":88,"platformVersionName":"1.119","platformVersionCode":1119,"safeArea":{"bottom":780,"left":0,"right":360,"top":29.333333333333332,"height":750.6666666666666,"width":360}}
+   * @param initConfig 
+   */
   init(initConfig: AdInitConfig): void {
     this.systemInfo = qg.getSystemInfoSync()
-    log('init', JSON.stringify(this.systemInfo))
-    this.config = initConfig.adConfig
+    log('init', this.systemInfo)
+    this.config = {...this.config, ...initConfig||{}}
     this.initAds()
   }
   private initAds(): void {
-    this.config.BANNER_ID.length > 1 && (this._banner = new HwBannerAd(...this.config.BANNER_ID))
-    this.config.INTERS_ID.length > 1 && (this._inters = new HwIntersAd(...this.config.INTERS_ID))
-    this.config.NATIVE_ID.length > 1 && (this._native = new HwNativeAd(...this.config.NATIVE_ID))
-    this.config.REWARD_ID.length > 1 && (this._reward = new HwRewardAd(...this.config.REWARD_ID))
+    if (this.config.INTERS_ID.length > 0) {
+      this._inters = new HwIntersAd(...this.config.INTERS_ID)
+    }
+    if (this.config.BANNER_ID.length > 0) {
+      this._banner = new HwBannerAd(...this.config.BANNER_ID, this.systemInfo)
+    }
+    if (this.config.REWARD_ID.length > 0) {
+      this._reward = new HwRewardAd(...this.config.REWARD_ID)
+    }
+    if (this.config.NATIVE_ID.length > 0) {
+      this._native = new HwNativeAd(...this.config.NATIVE_ID)
+    }
   }
   private showAd(
     adName: string,

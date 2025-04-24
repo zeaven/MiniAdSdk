@@ -12,7 +12,7 @@ export default class M4399Ad implements AdInterface {
   }
 
   init(initConfig: AdInitConfig): void {
-    this.config = initConfig.adConfig?? this.config
+    this.config = {...this.config, ...initConfig||{}}
     log('init', JSON.stringify(this.config))
     this._reward = new RewardAd4399();
   }

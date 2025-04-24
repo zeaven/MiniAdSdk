@@ -19,13 +19,15 @@ let current_time = function (): string {
 
 let debug_log = function (tag: string, ...msg: any[]) {
   let currentTime = current_time()
-  if (debug_enable) {
+  if (debug_enable && platform === Platform.WEB) {
     console.warn(
-      currentTime, tag, msg.map((t) => t?.toString()).join(' ')
+      currentTime, tag, ...msg
     )
   }
   if (debug_enable && platform !== Platform.WEB) {
-    cc.log(currentTime + ': ' + tag, ...msg)
+    cc.log(
+      currentTime + ': ' + tag, ...msg.map((t) => JSON.stringify(t || ''))
+    )
   }
 }
 

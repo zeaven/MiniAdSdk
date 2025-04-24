@@ -16,7 +16,7 @@ import { AdParam, AdInvokeResult } from "../../Types";
 import HwBaseAd from "./HwBaseAd";
 
 export default class HwNativeAd extends HwBaseAd {
-  protected get name(): string { return '原生广告' }
+  get name(): string { return '原生广告' }
   private adData: any
   private node: cc.Node
 
@@ -37,6 +37,7 @@ export default class HwNativeAd extends HwBaseAd {
   protected onLoad(res: any): void {
     super.onLoad(res)
     this.ready = false
+    this.log('load', res)
     if (res.adList.length > 0) {
       this.adData = res.adList[0]
       cc.assetManager.loadRemote(this.adData.imgUrlList,(err, texture: cc.Texture2D) => {

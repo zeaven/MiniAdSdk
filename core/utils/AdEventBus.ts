@@ -26,7 +26,6 @@ export default class AdEventBus {
   }
 
   public emit(event: string, ...args: any[]): void {
-    AdEventBus.log('emit', event, ...args)
     this.eventTarget.emit(event, ...args)
   }
 

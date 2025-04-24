@@ -5,7 +5,7 @@
 import OppoBaseAd from './OppoBaseAd'
 
 export default class OppoCustomAd extends OppoBaseAd {
-  protected get name(): string {
+  get name(): string {
       return '原生模板广告'
   }
   protected createInterval = 1000
