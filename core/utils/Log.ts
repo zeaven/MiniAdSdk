@@ -35,4 +35,22 @@ let get_log = function (name: string): LogHandle {
   return (...msg: any[]) => debug_log(name, msg)
 }
 
+if (window) {
+  window.onerror = function (message, source, lineno, colno, error) {
+    debug_log('AdSdk', "Global error caught:");
+    debug_log('AdSdk', "Message:", message);
+    debug_log('AdSdk', "Source:", source);
+    debug_log('AdSdk', "Line:", lineno);
+    debug_log('AdSdk', "Column:", colno);
+    debug_log('AdSdk', "Error object:", error);
+  
+    // 你可以选择将错误上报到服务器，或记录到日志系统
+    return false; // 返回 true 表示“吞掉”这个错误，false 表示继续抛出
+  };
+  window.addEventListener("unhandledrejection", function (event) {
+      debug_log('AdSdk', "Unhandled promise rejection:", event.reason);
+      // 可上传日志或做处理
+  });
+}
+
 export { debug_log, set_debug_enable, get_log, LogHandle}

@@ -49,7 +49,7 @@ export default class HuaweiAd implements AdInterface {
       this._reward = new HwRewardAd(...this.config.REWARD_ID)
     }
     if (this.config.NATIVE_ID.length > 0) {
-      this._native = new HwNativeAd(...this.config.NATIVE_ID)
+      this._native = new HwNativeAd(...this.config.NATIVE_ID, this.systemInfo)
     }
   }
   private showAd(

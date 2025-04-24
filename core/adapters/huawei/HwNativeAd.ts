@@ -14,63 +14,92 @@
 
 import { AdParam, AdInvokeResult } from "../../Types";
 import HwBaseAd from "./HwBaseAd";
+import HwNativeLayout, { NativeAdData, NativeAdView } from "./HwNativeLayout";
+
 
 export default class HwNativeAd extends HwBaseAd {
+  private nativeLayout: HwNativeLayout;
+  private adView: NativeAdView;
   get name(): string { return '原生广告' }
-  private adData: any
-  private node: cc.Node
+  private adData: NativeAdData
 
-  constructor(...ids: string[]) {
+  constructor(...ids: any[]) {
     super(...ids)
-    this.node = new cc.Node()
+    this.nativeLayout = new HwNativeLayout()
   }
 
   protected createAd(_id: string): any {
     if (!this.ad) {
-      return qg.createNativeAd({
+      const ad = qg.createNativeAd({
         adUnitId: _id,
       })
+      ad.show = () => {}  // 原生广告没有 ad.show方法，这里补全
+      this.ad = ad
     }
     return this.ad
   }
 
-  protected onLoad(res: any): void {
+  protected onLoad(res: any) {
     super.onLoad(res)
-    this.ready = false
-    this.log('load', res)
-    if (res.adList.length > 0) {
-      this.adData = res.adList[0]
-      cc.assetManager.loadRemote(this.adData.imgUrlList,(err, texture: cc.Texture2D) => {
-        if (texture) {
-          this.node.addComponent(cc.Sprite).spriteFrame = new cc.SpriteFrame(texture)
-          this.node.on(cc.Node.EventType.TOUCH_END, this.onClick, this)
-          this.ready = true
-        }
-      })
+    this.ready = true
+    this.adData = this.convertData(res)
+    if (!this.adData.adId) {
+      return
     }
+    const parentSize = cc.size(this.properties?.safeArea.width || cc.winSize.width * 0.8, this.properties?.safeArea.height || cc.winSize.height * 0.8)
+    this.adData.width = parentSize.width *  (parentSize.height > parentSize.width ? 1: 0.6)
+    this.adData.height =  parentSize.height * (parentSize.height > parentSize.width ? 0.6: 1)
+    this.adView = this.nativeLayout.createLayout(this.adData)
+    this.adView.onClick = this.onClick.bind(this)
+    this.adView.onClose = this.close.bind(this)
+    this.adView.onLink = () => {
+      this.ad.reportAdClick({adId: this.adData.adId})
+      this.ad.startDownload({adId: this.adData.adId})
+    }
+  }
+  /**
+   * 
+   * @param res {"adList":[{"videoUrlList":[],"privacyUrl":"https://h5hosting-drcn.dbankcdn.cn/cch5/PPS/ssp-privacy-url/index.html?src=http%3A%2F%2Fm.pinduoduo.net%2Fprivate_policy.html","videoRatio":[],"imgUrlList":["https://images.pinduoduo.com/marketing_api/2025-02-28/2da6959ef7724cf2ab88e5c049846bef.png","https://images.pinduoduo.com/marketing_api/2025-02-28/b58d9e12-8559-11ef-8f8f-0a580a4c1c74.png","https://images.pinduoduo.com/marketing_api/2025-02-28/89511dd8-8559-11ef-9ea2-0a580a4e244b.png"],"appName":"拼多多","permissionUrl":"https://appgallery.huawei.com/open/permission?packageName=com.xunmeng.pinduoduo&mediaPackageName=com.game.kddnd.rg.huawei","source":"拼多多","appDetailUrl":"https://appgallery.huawei.com/#/app_simple/C10374976","title":"上拼多多领红包，最高100元向您招手！","versionName":"7.56.0","logoUrl":"","adId":"bcccdf09-64c7-4260-9fbc-0cf7c7d9ca9f","creativeType":108,"interactionType":0,"developerName":"上海寻梦信息技术有限公司","clickBtnTxt
+   */
+  convertData(res: any): NativeAdData {
+    const adList = res ? res.adList : []
+    if (!adList || adList.length === 0) {
+      return {} as NativeAdData
+    }
+
+    return adList[0] as NativeAdData
   }
 
   private onClick() {
     this.ad.reportAdClick({adId: this.adData.adId})
     this.ad.startDownload({adId: this.adData.adId})
+    setTimeout(() => this.close(), 500)
   }
 
   show(param: AdParam): Promise<AdInvokeResult> {
     return super.show(param).then(res => {
-      res.node = this.node
+      res.node = this.adView.node
+      // 暴露额外方法，方便外部控制广告
       res.showDownloadButton = () => this.showDownloadButton()
+      res.disableCloseBtn = () => this.adView.disableCloseBtn()
+      this.ad.reportAdShow({adId: this.adData.adId})
       return res
     })
   }
 
   private showDownloadButton() {
-    this.ad.reportAdShow({adId: this.adData.adId})
-
+    this.adView.disableLinkBtn()
+    // 通过 this.node 节点的位置和大小，设置下载按钮位置，位于底部中间
+    const height = this.adData.height
+    const left = ((this.properties?.windowWidth || cc.winSize.width) - 100) * (this.properties?.pixelRatio || 1)
+    const top = ((this.properties?.windowHeight || cc.winSize.height) / 2 + (height / 6)) * (this.properties?.pixelRatio || 1)
+    
+    // 显示下载按钮
     this.ad.showDownloadButton({
         adId : this.adData.adId,
         style : {
-            left:300,
-            top:500,
+            left:left,
+            top:top,
             heightType:'normal',
             width:300,
             minWidth:200,
@@ -100,9 +129,13 @@ export default class HwNativeAd extends HwBaseAd {
       super.close()
       this.ad.hideDownloadButton({adId: this.adData.adId})
 
-      const parent: cc.Node = this.node.getParent()
+      const parent: cc.Node = this.adView.node.getParent()
       if (parent) {
-        parent.removeChild(this.node)
+        parent.removeChild(this.adView.node)
+        this.adView.node.destroy()
+        this.adView = null
       }
+      // 触发 onClose 回调
+      this.onClose(null)
   }
 }

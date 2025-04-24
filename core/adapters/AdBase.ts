@@ -20,13 +20,14 @@ export default abstract class AdBase implements AdHandler {
   protected autoDestroy = true // 是否自动销毁，单例广告设置为false，如：激励视频
   protected isLoading = false // 是否正在加载
   protected adListeners: Record<string, Runnable> = {}  // 广告事件监听
+  protected loadTimeoutor: any;  // 加载超时定时器
 
   constructor(...ids: any[]) {
     this.ids = ids.filter((t) => !!t)
     if (typeof this.ids[this.ids.length-1] === 'object') {
       this.properties = this.ids.pop()
     }
-    this.log(this.name + '初始化', this.ids, this.properties)
+    this.log(this.name + '初始化', this.ids)
 
     this.adListeners = {
       onLoad: this.onLoad.bind(this),
@@ -50,12 +51,24 @@ export default abstract class AdBase implements AdHandler {
       this.log(this.name + '创建失败')
     } else {
       this.log(this.name + '创建成功')
-      if (!this.isLoading && typeof this.ad.load == 'function') {
+      if (!this.isLoading && typeof this.ad.load === 'function') {
+        this.log(this.name + '加载中')
         this.ad.load()
         this.isLoading = true
       }
       this.unbindAdListeners = this.bindAdListeners()
     }
+    // 设置10秒加载超时
+    this.loadTimeoutor && clearInterval(this.loadTimeoutor)
+    this.loadTimeoutor = setTimeout(() => {
+      if (this.ready) {
+        // 已加载，不处理
+        return
+      }
+      // 手动超时不算加载失败
+      this.isLoading = false
+      this.loadAd()
+    }, 10000)
   }
 
   protected bindAdListeners(): Runnable {
@@ -103,8 +116,8 @@ export default abstract class AdBase implements AdHandler {
   protected onClose(res): void {
     this.log(this.name + '关闭')
     this.isShowed = false
-    this.ready = false
     AdEventBus.instance.emit(AdEventType.AdClosed, this)
+    // 外部监听的关闭事件
     this.invokeResult && this.invokeResult.onClose && this.invokeResult.onClose()
     this.reLoad(true)
   }
@@ -114,6 +127,8 @@ export default abstract class AdBase implements AdHandler {
    */
   protected reLoad(immediately: boolean): void {
     this.log(this.name + '重新加载')
+    this.ready = false
+    this.isLoading = false
     let delayMilliSeconds = this.createInterval
     if (!immediately) {
       if (this.createInterval <= 0) {
@@ -122,7 +137,7 @@ export default abstract class AdBase implements AdHandler {
       }
       this.reloadCount++
       delayMilliSeconds = Math.min(
-        10000,
+        30000,
         this.createInterval * this.reloadCount
       )
     }
@@ -139,13 +154,11 @@ export default abstract class AdBase implements AdHandler {
    * @returns
    */
   protected noReadyDelayShow(delay: number): Promise<void> {
-    if (this.onLoadPromise) {
-      this.onLoadPromise.reject && this.onLoadPromise.reject('加载超时')
-      this.onLoadPromise = undefined
-    }
+    this.onLoadPromise && this.onLoadPromise.reject('加载超时')
+    this.onLoadPromise = undefined
     this.onLoadPromise = new ManualPromise<void>();
     setTimeout(() => {
-      this.onLoadPromise.reject('加载超时')
+      this.onLoadPromise && this.onLoadPromise.reject('加载超时')
       this.onLoadPromise = undefined
     }, delay);
     return this.onLoadPromise.promise
