@@ -34,9 +34,9 @@ export class RemoteConfigInterceptor implements AdInterceptor {
                 // // 根据后端返回的配置，设置广告配置，假设是华为广告
                 // param.adConfig = new AdConfig.HuaweiConfig()
                 // param.adConfig.BANNER_ID = ['123456']
-                next(param)
+                const res = next(param)
                 log('调用 init 结束')
-                resolve()
+                resolve(res)
             }, 1000)
         })
     }
