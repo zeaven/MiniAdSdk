@@ -40,8 +40,8 @@ export default class HwNativeLayout {
             disableCloseBtn: null,
             disableLinkBtn: null
         }
-
-        const initializer = container.addComponent(AdContainerInitializer)
+        // 这里可以根据不同的 creativeType 来创建不同的模板
+        const initializer = new NormalTemplate(container)
         initializer.init(data, adView)
 
         return adView
@@ -49,11 +49,13 @@ export default class HwNativeLayout {
 }
 
 
-class AdContainerInitializer extends cc.Component {
+class NormalTemplate {
     container: cc.Node
+    constructor(node: cc.Node) {
+        this.container = node
+    }
     init(data: NativeAdData, adView: NativeAdView) {
-        const container = this.node
-        this.container = container
+        const container = this.container
         const width = data.width
         const height =  data.height
         const infoHeight = height * 0.2
