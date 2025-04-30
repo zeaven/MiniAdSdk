@@ -12,16 +12,18 @@
  * 
  */
 
-import { AdParam, AdInvokeResult } from "../../Types";
-import HwBaseAd from "./HwBaseAd";
-import HwNativeLayout, { NativeAdData, NativeAdView } from "./HwNativeLayout";
+import { AdParam, AdInvokeResult } from "../../Types"
+import HwBaseAd from "./HwBaseAd"
+import HwNativeLayout, { NativeAdData, NativeAdView } from "./HwNativeLayout"
 
 
 export default class HwNativeAd extends HwBaseAd {
-  private nativeLayout: HwNativeLayout;
-  private adView: NativeAdView;
+  private nativeLayout: HwNativeLayout
+  private adView: NativeAdView
   get name(): string { return '原生广告' }
   private adData: NativeAdData
+  private static CACHE_AD_KEY = 'last_native_ad'
+  private static CACHE_AD_EXPIRE = 12 * 60 * 60 * 1000  // 12小时
 
   constructor(...ids: any[]) {
     super(...ids)
@@ -41,21 +43,15 @@ export default class HwNativeAd extends HwBaseAd {
 
   protected onLoad(res: any) {
     super.onLoad(res)
-    this.ready = true
     this.adData = this.convertData(res)
     if (!this.adData.adId) {
       return
     }
+    this.ready = true
+    this.nativeLayout.preLoad(this.adData)
     const parentSize = cc.size(this.properties?.safeArea.width || cc.winSize.width * 0.8, this.properties?.safeArea.height || cc.winSize.height * 0.8)
     this.adData.width = parentSize.width *  (parentSize.height > parentSize.width ? 1: 0.6)
     this.adData.height =  parentSize.height * (parentSize.height > parentSize.width ? 0.6: 1)
-    this.adView = this.nativeLayout.createLayout(this.adData)
-    this.adView.onClick = this.onClick.bind(this)
-    this.adView.onClose = this.close.bind(this)
-    this.adView.onLink = () => {
-      this.ad.reportAdClick({adId: this.adData.adId})
-      this.ad.startDownload({adId: this.adData.adId})
-    }
   }
   /**
    * 
@@ -78,6 +74,10 @@ export default class HwNativeAd extends HwBaseAd {
 
   show(param: AdParam): Promise<AdInvokeResult> {
     return super.show(param).then(res => {
+      if (!this.adData) {
+        return Promise.reject('没有缓存的广告')
+      }
+      this.adView = this.createAdView(this.adData)
       res.node = this.adView.node
       // 暴露额外方法，方便外部控制广告
       res.showDownloadButton = () => this.showDownloadButton()
@@ -86,8 +86,18 @@ export default class HwNativeAd extends HwBaseAd {
       return res
     })
   }
+  protected createAdView(adData: NativeAdData): NativeAdView {
+    const adView = this.nativeLayout.createLayout(adData)
+    adView.onClick = this.onClick.bind(this)
+    adView.onClose = this.close.bind(this)
+    adView.onLink = () => {
+      this.ad.reportAdClick({adId: adData.adId})
+      this.ad.startDownload({adId: adData.adId})
+    }
+    return adView
+  }
 
-  private showDownloadButton() {
+  protected showDownloadButton() {
     this.adView.disableLinkBtn()
     // 通过 this.node 节点的位置和大小，设置下载按钮位置，位于底部中间
     const height = this.adData.height
@@ -139,3 +149,4 @@ export default class HwNativeAd extends HwBaseAd {
       this.onClose(null)
   }
 }
+

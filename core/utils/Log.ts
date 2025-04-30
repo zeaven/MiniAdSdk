@@ -20,7 +20,7 @@ let current_time = function (): string {
 let debug_log = function (tag: string, ...msg: any[]) {
   let currentTime = current_time()
   if (debug_enable && platform === Platform.WEB) {
-    console.warn(
+    console.debug(
       currentTime, tag, ...msg
     )
   }

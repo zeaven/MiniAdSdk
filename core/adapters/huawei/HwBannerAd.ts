@@ -18,4 +18,15 @@ export default class HwBannerAd extends HwBaseAd {
       }
     })
   }
+
+  protected onLoad(res: any): void {
+    // 因为banner广告是通过show拉取的，所以onLoad里面重新执行onShow，保证事件顺序一致
+    super.onLoad(res)
+    super.onShow()
+  }
+
+  protected onShow(): void {
+    // 取消默认的onShow事件，改为加载超时
+    this.setLoadTimeout(10000)
+  }
 }

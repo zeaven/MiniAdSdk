@@ -24,17 +24,50 @@ class ManualPromise<T> {
   }
 }
 
-const saveItem = (key: string, val: any): void => {
-  val = JSON.stringify(val)
+/**
+ * 
+ * @param key 缓存键
+ * @param val 缓存值
+ * @param expire 过期时间，单位ms，0为永不过期，-1为不缓存
+ */
+const saveItem = (key: string, val: any, expire: number = 0): void => {
+  if (typeof val === 'object') {
+    val = JSON.stringify(val)
+  }
+  if (expire > 0) {
+    expire = Date.now() + expire
+  } else if (expire === -1) {
+    return
+  }
   cc.sys.localStorage.setItem(key, val);  
+  cc.sys.localStorage.setItem(key + '_expire', expire.toString())
 }
 
-const getItem = (key: string, defaultVal: any): any => {
+const getItem = (key: string, defaultVal?: any, remove: boolean = false): any => {
+  let expire = cc.sys.localStorage.getItem(key + '_expire')
+  if (expire && Date.now() > parseInt(expire)) {
+    cc.sys.localStorage.removeItem(key)
+    cc.sys.localStorage.removeItem(key + '_expire')
+    return defaultVal
+  } else if (expire === null) {
+    return defaultVal
+  }
   let val = cc.sys.localStorage.getItem(key)
   if (!val) {
     return defaultVal
   }
-  return JSON.parse(val)
+  if (remove) {
+    cc.sys.localStorage.removeItem(key)
+    cc.sys.localStorage.removeItem(key + '_expire')
+  }
+  if (val.startsWith('{') && val.endsWith('}')) {
+    return JSON.parse(val)
+  }
+  return val
+}
+const removeItem = (key: string): void => {
+  cc.sys.localStorage.removeItem(key)
+  cc.sys.localStorage.removeItem(key + '_expire')
 }
 
 class AdHttp {
@@ -80,4 +113,4 @@ class AdHttp {
   }
 }
 
-export { ManualPromise, saveItem, getItem, AdHttp}
+export { ManualPromise, saveItem, getItem, removeItem, AdHttp}

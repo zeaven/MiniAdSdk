@@ -51,13 +51,19 @@ export default abstract class AdBase implements AdHandler {
       this.log(this.name + '创建失败')
     } else {
       this.log(this.name + '创建成功')
-      if (!this.isLoading && typeof this.ad.load === 'function') {
+      if (!this.isLoading && !this.ready && typeof this.ad.load === 'function') {
         this.log(this.name + '加载中')
         this.ad.load()
         this.isLoading = true
       }
       this.unbindAdListeners = this.bindAdListeners()
     }
+    if (this.isLoading) {
+      this.setLoadTimeout(10000)
+    }
+  }
+
+  protected setLoadTimeout(ms: number) {
     // 设置10秒加载超时
     this.loadTimeoutor && clearInterval(this.loadTimeoutor)
     this.loadTimeoutor = setTimeout(() => {
@@ -67,8 +73,9 @@ export default abstract class AdBase implements AdHandler {
       }
       // 手动超时不算加载失败
       this.isLoading = false
+      this.log(this.name + '加载超时')
       this.loadAd()
-    }, 10000)
+    }, ms)
   }
 
   protected bindAdListeners(): Runnable {
@@ -95,7 +102,7 @@ export default abstract class AdBase implements AdHandler {
   protected createAd(_id: string): any {} // _id used to satisfy TypeScript noUnusedParameters
 
   protected onLoad(res): void {
-    this.log(this.name + '加载成功')
+    this.log(this.name + '加载成功', res)
     AdEventBus.instance.emit(AdEventType.AdLoaded, this)
     this.ready = true
     this.isLoading = false

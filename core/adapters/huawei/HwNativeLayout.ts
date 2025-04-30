@@ -19,6 +19,21 @@ export interface NativeAdData {
     height: number //广告高度
 }
 
+function loadRemoteImage(url: string, cb: (sf: cc.SpriteFrame) => void) {
+    if (!url) return
+    if (HwNativeLayout.preloadMaps[url]) {
+        const cache = HwNativeLayout.preloadMaps[url]
+        if (cache) {
+            cb && cb(cache)
+            return
+        }
+    }
+    cc.assetManager.loadRemote(url, (err, tex: cc.Texture2D) => {
+        if (err) return
+        cb && cb(new cc.SpriteFrame(tex))
+    })
+}
+
 export interface NativeAdView {
     node: cc.Node
     onClick: () => void
@@ -29,6 +44,7 @@ export interface NativeAdView {
 }
 
 export default class HwNativeLayout {
+    static preloadMaps = {}
     public createLayout(data: NativeAdData): NativeAdView {
         const container = new cc.Node("AdContainer");
 
@@ -41,21 +57,32 @@ export default class HwNativeLayout {
             disableLinkBtn: null
         }
         // 这里可以根据不同的 creativeType 来创建不同的模板
-        const initializer = new NormalTemplate(container)
-        initializer.init(data, adView)
+        const initializer = new NormalTemplate(adView)
+        initializer.init(data)
 
         return adView
+    }
+    public preLoad(data: NativeAdData) {
+        if (!data) return
+        data.imgUrlList.forEach((url) => {
+            loadRemoteImage(url, (fs) => {
+                HwNativeLayout.preloadMaps[url] = fs
+            })
+        })
+        loadRemoteImage(data.icon, (fs) => {
+            HwNativeLayout.preloadMaps[data.icon] = fs
+        })
     }
 }
 
 
 class NormalTemplate {
-    container: cc.Node
-    constructor(node: cc.Node) {
-        this.container = node
+    adView: NativeAdView
+    constructor(adView: NativeAdView) {
+        this.adView = adView
     }
-    init(data: NativeAdData, adView: NativeAdView) {
-        const container = this.container
+    init(data: NativeAdData) {
+        const container = this.adView.node
         const width = data.width
         const height =  data.height
         const infoHeight = height * 0.2
@@ -93,7 +120,8 @@ class NormalTemplate {
             imgNode.setPosition(currentX + imgWidth / 2 - width / 2, 0)
 
             const sprite = imgNode.addComponent(cc.Sprite)
-            this.loadRemoteImage(url, (sf) => {
+            loadRemoteImage(url, (sf) => {
+                delete HwNativeLayout.preloadMaps[url]
                 sprite.spriteFrame = sf
                 sprite.type = cc.Sprite.Type.SIMPLE
                 sprite.sizeMode = cc.Sprite.SizeMode.CUSTOM
@@ -118,11 +146,11 @@ class NormalTemplate {
         closeBtn.color = cc.Color.GRAY
         closeBtn.on(cc.Node.EventType.TOUCH_END, (event: cc.Event.EventTouch) => {
             event.stopPropagation() // 阻止冒泡到 container
-            adView.onClose?.()
+            this.adView.onClose?.()
         })
         container.addChild(closeBtn, 10)
 
-        adView.disableCloseBtn = () => closeBtn.active = false
+        this.adView.disableCloseBtn = () => closeBtn.active = false
 
         // 视频
         // 判断是否有视频
@@ -167,7 +195,8 @@ class NormalTemplate {
         iconNode.setPosition(10, infoHeight / 2)
         iconNode.setContentSize(80, 80)
         const iconSprite = iconNode.addComponent(cc.Sprite)
-        this.loadRemoteImage(data.icon, (sf) => {
+        loadRemoteImage(data.icon, (sf) => {
+            delete HwNativeLayout.preloadMaps[data.icon]
             iconSprite.spriteFrame = sf
             const size = sf.getOriginalSize()
             iconNode.scaleX = 80 / size.width
@@ -254,23 +283,17 @@ class NormalTemplate {
         // })
         btnArea.on(cc.Node.EventType.TOUCH_END, (event: cc.Event.EventTouch) => {
             event.stopPropagation() // 阻止冒泡到 container
-            adView.onLink?.()
+            this.adView.onLink?.()
         }, null, true)
 
-        adView.disableLinkBtn = () => btnArea.active = false
+        this.adView.disableLinkBtn = () => btnArea.active = false
 
 
         container.on(cc.Node.EventType.TOUCH_END, (event: cc.Event.EventTouch) => {
             event.stopPropagation()
-            adView.onClick?.()
+            this.adView.onClick?.()
         })
 
     }
-    private loadRemoteImage(url: string, cb: (sf: cc.SpriteFrame) => void) {
-        if (!url) return
-        cc.assetManager.loadRemote(url, (err, tex: cc.Texture2D) => {
-            if (err) return
-            cb(new cc.SpriteFrame(tex))
-        })
-    }
+    
 }
