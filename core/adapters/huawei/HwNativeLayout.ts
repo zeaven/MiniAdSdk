@@ -19,18 +19,18 @@ export interface NativeAdData {
     height: number //广告高度
 }
 
-function loadRemoteImage(url: string, cb: (sf: cc.SpriteFrame) => void) {
+function loadRemoteImage(url: string, cb?: (sf: cc.SpriteFrame) => void) {
     if (!url) return
-    if (HwNativeLayout.preloadMaps[url]) {
-        const cache = HwNativeLayout.preloadMaps[url]
-        if (cache) {
-            cb && cb(cache)
-            return
-        }
+    if (!HwNativeLayout.preloadMaps[url]) {
+        HwNativeLayout.preloadMaps[url] = new Promise((resolve, reject) => {
+            cc.assetManager.loadRemote(url, (err, tex: cc.Texture2D) => {
+                if (err) return
+                resolve(new cc.SpriteFrame(tex))
+            })
+        })
     }
-    cc.assetManager.loadRemote(url, (err, tex: cc.Texture2D) => {
-        if (err) return
-        cb && cb(new cc.SpriteFrame(tex))
+    HwNativeLayout.preloadMaps[url].then(res => {
+        cb && cb(res)
     })
 }
 
@@ -46,10 +46,10 @@ export interface NativeAdView {
 export default class HwNativeLayout {
     static preloadMaps = {}
     public createLayout(data: NativeAdData): NativeAdView {
-        const container = new cc.Node("AdContainer");
+        const layer = new cc.Node("AdLayer");
 
         const adView: NativeAdView = {
-            node: container,
+            node: layer,
             onClick: null,
             onClose: null,
             onLink: null,
@@ -64,14 +64,11 @@ export default class HwNativeLayout {
     }
     public preLoad(data: NativeAdData) {
         if (!data) return
+        HwNativeLayout.preloadMaps = {}
         data.imgUrlList.forEach((url) => {
-            loadRemoteImage(url, (fs) => {
-                HwNativeLayout.preloadMaps[url] = fs
-            })
+            loadRemoteImage(url)
         })
-        loadRemoteImage(data.icon, (fs) => {
-            HwNativeLayout.preloadMaps[data.icon] = fs
-        })
+        loadRemoteImage(data.icon)
     }
 }
 
@@ -82,7 +79,12 @@ class NormalTemplate {
         this.adView = adView
     }
     init(data: NativeAdData) {
-        const container = this.adView.node
+        const layer = this.adView.node
+        layer.setAnchorPoint(0.5, 0.5);
+        layer.setPosition(0, 0);
+        layer.setContentSize(cc.winSize.width, cc.winSize.height);
+        layer.addComponent(cc.BlockInputEvents);
+        const container = new cc.Node('AdContainer')
         const width = data.width
         const height =  data.height
         const infoHeight = height * 0.2
@@ -91,6 +93,7 @@ class NormalTemplate {
         container.setPosition(0, 0)
         container.width = width
         container.height = height
+        layer.addChild(container)
 
         const bgSprite = container.addComponent(cc.Sprite)
         bgSprite.type = cc.Sprite.Type.SIMPLE
@@ -109,7 +112,7 @@ class NormalTemplate {
         imageArea.setAnchorPoint(0.5, 0.5)
         imageArea.setPosition(0, 0)
         imageArea.setContentSize(width, height)
-        container.addChild(imageArea, 0) // 最底层
+        container.addChild(imageArea, 1) // 最底层
 
         let currentX = 0
         const imgWidth = width / data.imgUrlList.length
@@ -134,6 +137,28 @@ class NormalTemplate {
             imageArea.addChild(imgNode)
             currentX += imgNode.width
         })
+
+        // 1. 广告标识（左上角）
+        const logoNode = new cc.Node('Logo')
+        logoNode.setAnchorPoint(0, 1)
+        logoNode.setContentSize(35, 35)
+        logoNode.setPosition(-width / 2 + 30, height / 2 - 20) // 左上角偏移 10
+        const logoBg = logoNode.addComponent(cc.Graphics)
+        logoBg.clear()
+        logoBg.fillColor = cc.color(180, 180, 180, 255);  // 灰色背景
+        logoBg.roundRect(-20, -10, 40, 20, 5)
+        logoBg.fill()
+        const logoNode2 = new cc.Node('LabelNode')
+        logoNode2.setParent(logoNode)
+        const logoLabel = logoNode2.addComponent(cc.Label)
+        logoLabel.string = '广告'
+        logoLabel.fontSize = 14
+        logoLabel.lineHeight = 16
+        logoLabel.horizontalAlign = cc.Label.HorizontalAlign.CENTER
+        logoLabel.verticalAlign = cc.Label.VerticalAlign.CENTER
+        logoNode.color = cc.Color.WHITE
+      
+        container.addChild(logoNode, 10)
 
         // 2. 关闭按钮（右上角）
         const closeBtn = new cc.Node('CloseBtn')

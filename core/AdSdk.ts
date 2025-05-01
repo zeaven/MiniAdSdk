@@ -244,3 +244,4 @@ export default class AdSdk implements AdInterface {
     throw new Error('Method not implemented.')
   }
 }
+globalThis.AdSdk = AdSdk

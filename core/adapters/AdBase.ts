@@ -214,6 +214,7 @@ export default abstract class AdBase implements AdHandler {
     this.log(this.name + '销毁')
     this.ready = false
     this.isShowed = false
+    this.isLoading = false
     if (this.unbindAdListeners) {
       this.unbindAdListeners()
       this.unbindAdListeners = undefined

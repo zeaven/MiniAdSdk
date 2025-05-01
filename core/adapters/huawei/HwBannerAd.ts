@@ -4,7 +4,7 @@ export default class HwBannerAd extends HwBaseAd {
   get name(): string { return 'Banner' }
 
   protected createAd(_id: string): any {
-    const bannerTop = this.properties.safeArea.height
+    const bannerTop = this.properties.safeArea.height + this.properties.safeArea.top
     this.ready = true // 华为banner广告通过show拉取，默认是ready状态
     return qg.createBannerAd({
       adUnitId: _id,
