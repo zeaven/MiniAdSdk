@@ -17,7 +17,6 @@ export default class OppoRewardAd extends AdRewardBase {
 
   protected createAd(_id: string): any {
     if (!this.ad) {
-      this.isLoading = true
       return globalThis.qg.createRewardedVideoAd({
         adUnitId: _id,
         ...this.properties

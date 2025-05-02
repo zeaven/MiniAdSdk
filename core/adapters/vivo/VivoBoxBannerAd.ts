@@ -7,9 +7,9 @@ import log from "./VivoLog"
 
 export default class ViviBoxBannerAd extends VivoBaseAd {
   get name(): string { return '盒子横幅' }
-  protected createInterval = 1000
   protected createAd(_id: string): any {
     if (globalThis.qg.createBoxBannerAd) {
+      this.ready = true // 默认加载
       return globalThis.qg.createBoxBannerAd({
         posId: _id,
         ...this.properties

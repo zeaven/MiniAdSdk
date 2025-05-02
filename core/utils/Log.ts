@@ -18,13 +18,17 @@ let current_time = function (): string {
 }
 
 let debug_log = function (tag: string, ...msg: any[]) {
+  if (!debug_enable) return
   let currentTime = current_time()
-  if (debug_enable && platform === Platform.WEB) {
+  if (platform === Platform.WEB) {
     console.debug(
       currentTime, tag, ...msg
     )
-  }
-  if (debug_enable && platform !== Platform.WEB) {
+  } if (platform === Platform.VIVO) {
+    console.warn(
+      currentTime, tag, ...msg
+    )
+  } else if (platform !== Platform.WEB) {
     cc.log(
       currentTime + ': ' + tag, ...msg.map((t) => JSON.stringify(t || ''))
     )

@@ -5,9 +5,6 @@ export default abstract class KsAdBase extends AdBase {
   protected log(...msg: any[]): void {
     log(...msg)
   }
-  loadAd() {
-    super.loadAd()
-    this.onLoad(null)
-  }
+  
 
 }

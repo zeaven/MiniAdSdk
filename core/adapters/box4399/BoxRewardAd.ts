@@ -1,4 +1,4 @@
-import { AdInvokeResult, AdParam } from "../../Types";
+import { AdInvokeResult, AdParam, Runnable } from "../../Types";
 import { ManualPromise } from "../../utils/AdUtils";
 import log from "./BoxLog"
 import AdRewardBase from "../AdRewardBase";
@@ -12,11 +12,10 @@ export default class BoxRewardAd extends AdRewardBase {
     log(...msg)
   }
 
-  constructor() {
-    super()
-
-    this.adListeners['onCompleted'] = this.onCompleted.bind(this)
-    this.ad['onCompleted'] && this.ad['onCompleted'](this.adListeners['onCompleted'])
+  protected getAdListeners(): Record<string, Runnable> {
+    const listeners = super.getAdListeners()
+    listeners['onCompleted'] = this.onCompleted.bind(this)
+    return listeners
   }
 
   protected createAd(attrs?: Object): any {

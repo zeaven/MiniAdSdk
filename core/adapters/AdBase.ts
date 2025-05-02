@@ -29,13 +29,17 @@ export default abstract class AdBase implements AdHandler {
     }
     this.log(this.name + '初始化', this.ids)
 
-    this.adListeners = {
+    this.adListeners = this.getAdListeners()
+
+    this.autoLoad && this.loadAd()
+  }
+  protected getAdListeners(): Record<string, Runnable> {
+    return {
       onLoad: this.onLoad.bind(this),
       onError: this.onError.bind(this),
       onClose: this.onClose.bind(this),
+      onClick: this.onClick.bind(this),
     }
-
-    this.autoLoad && this.loadAd()
   }
   protected loadAd() {
     if (this.ids.length === 0) return
@@ -63,19 +67,23 @@ export default abstract class AdBase implements AdHandler {
     }
   }
 
-  protected setLoadTimeout(ms: number) {
+  protected setLoadTimeout(ms: number): Promise<void> {
     // 设置10秒加载超时
     this.loadTimeoutor && clearInterval(this.loadTimeoutor)
-    this.loadTimeoutor = setTimeout(() => {
-      if (this.ready) {
-        // 已加载，不处理
-        return
-      }
-      // 手动超时不算加载失败
-      this.isLoading = false
-      this.log(this.name + '加载超时')
-      this.loadAd()
-    }, ms)
+    return new Promise<void>((resolve, reject) => {
+      this.loadTimeoutor = setTimeout(() => {
+        if (!this.ready) {
+          // 手动超时不算加载失败
+          this.isLoading = false
+          this.log(this.name + '加载超时')
+          this.loadAd()
+          resolve()
+        } else {
+          // this.log(this.name + '加载超时已经成功')
+          reject('加载成功')
+        }
+      }, ms)
+    })
   }
 
   protected bindAdListeners(): Runnable {
@@ -101,7 +109,7 @@ export default abstract class AdBase implements AdHandler {
 
   protected createAd(_id: string): any {} // _id used to satisfy TypeScript noUnusedParameters
 
-  protected onLoad(res): void {
+  protected onLoad(res?: any): void {
     this.log(this.name + '加载成功', res)
     AdEventBus.instance.emit(AdEventType.AdLoaded, this)
     this.ready = true
@@ -114,13 +122,13 @@ export default abstract class AdBase implements AdHandler {
   }
 
 
-  protected onError(err): void {
-    this.log(this.name + '加载失败', JSON.stringify(err))
+  protected onError(err?: any): void {
+    this.log(this.name + '加载失败', err)
     AdEventBus.instance.emit(AdEventType.AdError, this, err)
     this.reLoad(false)
   }
 
-  protected onClose(res): void {
+  protected onClose(res?: any): void {
     this.log(this.name + '关闭')
     this.isShowed = false
     AdEventBus.instance.emit(AdEventType.AdClosed, this)
@@ -206,9 +214,13 @@ export default abstract class AdBase implements AdHandler {
     if (!this.ad || !this.ready || !this.isShowed) return
     this.log(this.name + '隐藏')
     this.isShowed = false
-    if (typeof this.ad.hide == 'function') {
+    if (typeof this.ad.hide == 'function' && this.ready) {
       this.ad.hide()
     }
+  }
+  protected onClick(res?: any): void {
+    this.log(this.name + '点击')
+    AdEventBus.instance.emit(AdEventType.AdClicked, this)
   }
   destroy(force: boolean = true): void {
     this.log(this.name + '销毁')

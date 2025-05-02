@@ -41,7 +41,7 @@ export default class HwNativeAd extends HwBaseAd {
     return this.ad
   }
 
-  protected onLoad(res: any) {
+  protected onLoad(res?: any) {
     super.onLoad(res)
     this.adData = this.convertData(res)
     if (!this.adData.adId) {
@@ -66,7 +66,8 @@ export default class HwNativeAd extends HwBaseAd {
     return adList[0] as NativeAdData
   }
 
-  private onClick() {
+  protected onClick(res?: any) {
+    super.onClick(res)
     this.ad.reportAdClick({adId: this.adData.adId})
     this.ad.startDownload({adId: this.adData.adId})
     setTimeout(() => this.close(), 500)
@@ -78,6 +79,7 @@ export default class HwNativeAd extends HwBaseAd {
         return Promise.reject('没有缓存的广告')
       }
       this.adView = this.createAdView(this.adData)
+
       res.node = this.adView.node
       // 暴露额外方法，方便外部控制广告
       res.showDownloadButton = () => this.showDownloadButton()

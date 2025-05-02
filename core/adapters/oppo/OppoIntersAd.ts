@@ -8,6 +8,8 @@ export default class OppoIntersAd extends OppoBaseAd {
   get name(): string {
       return '插屏广告'
   }
+  // 可复用
+  protected autoDestroy: boolean = false
   protected createAd(_id: string): any {
     return globalThis.qg.createInterstitialAd({
       adUnitId: _id,

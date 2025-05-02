@@ -30,7 +30,11 @@ declare namespace qg {
   function createNativeAd(options: any): any;
   function createRewardedVideoAd(options: any): any;
   function createBoxBannerAd(options: any): any;
+  function createGameBannerAd(options: any): any;
   function createBoxPortalAd(options: any): any;
+  function createGamePortalAd(options: any): any;
+  function createGameDrawerAd(options: any): any;
+  function createNewNativeAd(options: any): any;
   function createCustomAd(options: any): any;
   function setEnableDebug(options: {enableDebug: boolean}): void;
 }

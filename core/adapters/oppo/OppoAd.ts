@@ -10,6 +10,7 @@ import OppoBoxPortalAd from "./OppoBoxPortalAd";
 import OppoCustomAd from "./OppoCustomAd";
 import OppoIntersAd from "./OppoIntersAd";
 import OppoRewardAd from "./OppoRewardAd";
+import OppoBoxDrawerAd from "./OppoBoxDrawerAd";
 
 
 export default class OppoAd implements AdInterface {
@@ -36,23 +37,20 @@ export default class OppoAd implements AdInterface {
   }
   private initAds(): void {
     if (this.systemInfo.platformVersionCode >= 1051) {
-		  this._banner = new OppoBannerAd(...this.config.BANNER_ID)
+		  this._banner = new OppoBannerAd(...this.config.BANNER_ID, this.systemInfo)
       this._reward = new OppoRewardAd(...this.config.REWARD_ID)
     }
 
     if (this.systemInfo.platformVersionCode >= 1061)
 		  this._inters = new OppoIntersAd(...this.config.INTERS_ID)
     if (this.systemInfo.platformVersionCode >= 1103)
-      this._custom = new OppoCustomAd(...this.config.CUSTOM_ID, {
-        style: {//开发者自行设置
-              top: 0,
-              left: 0,
-              width: this.systemInfo.screenWidth,
-            }
-    })
+      this._custom = new OppoCustomAd(...this.config.CUSTOM_ID, this.systemInfo)
     if (this.systemInfo.platformVersionCode >= 1076) {
 		  this._box_banner = new OppoBoxBannerAd(...this.config.BOX_ID)
 		  this._box_portal = new OppoBoxPortalAd(...this.config.PORTAL_ID)
+    }
+    if (this.systemInfo.platformVersionCode >= 1090) {
+      this._native = new OppoBoxDrawerAd(...this.config.DRAWER_ID, this.systemInfo)
     }
   }
   private showAd(
