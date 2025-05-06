@@ -3,6 +3,7 @@ import { ManualPromise } from "../../utils/AdUtils";
 import log from "./M4399Log"
 
 export default class RewardAd4399 implements AdHandler {
+  get name(): string { return 'reward' }
   show(param: AdParam): Promise<AdInvokeResult> {
     const result = new ManualPromise<AdInvokeResult>()
     const rewardPromise = new ManualPromise<void>()

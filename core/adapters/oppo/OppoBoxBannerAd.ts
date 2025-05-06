@@ -2,7 +2,7 @@
  * 原生模板广告
  */
 
-import { Runnable } from '../../Types'
+import { AdInvokeResult, AdParam, Runnable } from '../../Types'
 import OppoBaseAd from './OppoBaseAd'
 import log from "./OppoLog"
 
@@ -12,11 +12,11 @@ export default class OppoBoxBannerAd extends OppoBaseAd {
   }
   protected getAdListeners(): Record<string, Runnable> {
     const listeners = super.getAdListeners()
-    // 原生模板有onShow事件，去掉自动触发onShow事件，改为onOpen
-    listeners['onShow'] = this.onOpen.bind(this)
+    // TODO: 文档没有 onHide/onClose 事件
     return listeners
   }
   protected createAd(_id: string): any {
+    this.ready = true // oppo 广告通过show方法加载，加载成功会立即展示并触发onLoad事件
     if (globalThis.qg.createGameBannerAd) {
       if (!this.ad) {
         return globalThis.qg.createGameBannerAd({
@@ -32,11 +32,15 @@ export default class OppoBoxBannerAd extends OppoBaseAd {
     }
     log('不支持的盒子广告类型')
   }
-  protected onShow(): void {
-    // 忽略调用show方法触发的onShow事件
-  }
-  protected onOpen(): void {
-    this.log('onOpen')
-    super.onShow()
+  
+  /**
+   * 自动拉取广告，并触发 onLoad 事件和 onShow 事件
+   */
+  show(param: AdParam): Promise<AdInvokeResult> {
+    // 因为广告是通过show拉取的，所以show里面设置加载超时，且超时后要重新调用 show
+    this.setLoadTimeout().then(() => {
+      this.show({})
+    })
+    return super.show(param)
   }
 }

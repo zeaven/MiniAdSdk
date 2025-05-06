@@ -2,7 +2,7 @@
  * 原生模板广告
  */
 
-import { Runnable } from '../../Types'
+import { AdInvokeResult, AdParam, Runnable } from '../../Types'
 import OppoBaseAd from './OppoBaseAd'
 
 export default class OppoCustomAd extends OppoBaseAd {
@@ -11,13 +11,14 @@ export default class OppoCustomAd extends OppoBaseAd {
   }
   protected getAdListeners(): Record<string, Runnable> {
     const listeners = super.getAdListeners()
-    listeners['onHide'] = this.onClose.bind(this)
-    // 原生模板有onShow事件，去掉自动触发onShow事件，改为onOpen
-    listeners['onShow'] = this.onOpen.bind(this)
+    listeners['onHide'] = listeners['onClose']
+    delete listeners['onClose']
     return listeners
   }
   protected createAd(_id: string): any {
+    this.ready = true // 默认加载
     if (globalThis.qg.createCustomAd)
+      this.ready = true // 通过 show 拉取广告
       return globalThis.qg.createCustomAd({
         adUnitId: _id,
         style: {
@@ -27,11 +28,14 @@ export default class OppoCustomAd extends OppoBaseAd {
         }
       })
   }
-  protected onShow(): void {
-    // 忽略调用show方法触发的onShow事件
-  }
-  protected onOpen(): void {
-    this.log('onOpen')
-    super.onShow()
+  /**
+   * 自动拉取广告，并触发 onLoad 事件和 onShow 事件
+   */
+  show(param: AdParam): Promise<AdInvokeResult> {
+    // 因为广告是通过show拉取的，所以show里面设置加载超时，且超时后要重新调用 show
+    this.setLoadTimeout().then(() => {
+      this.show({})
+    })
+    return super.show(param)
   }
 }

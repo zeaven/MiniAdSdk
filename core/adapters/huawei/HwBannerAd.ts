@@ -27,7 +27,7 @@ export default class HwBannerAd extends HwBaseAd {
 
   protected onShow(): void {
     // 取消默认的onShow事件，改为加载超时，且超时后要重新调用 show，因为banner广告是通过show拉取的
-    this.setLoadTimeout(10000).then(() => {
+    this.setLoadTimeout().then(() => {
       this.show({})
     })
   }

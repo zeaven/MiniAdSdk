@@ -13,14 +13,18 @@ export default abstract class AdBase implements AdHandler {
   protected reloadCount = 0 // 重新加载次数
   protected isShowed: boolean = false // 是否展示
   protected invokeResult: AdInvokeResult // 当前展示的回调
-  protected ready: boolean; // 是否准备好
-  private onLoadPromise: ManualPromise<void> // 等待onload回调，加载完成后，立即展示，否则在1s时间后取消
-  protected autoLoad = true // 是否自动加载
-  protected properties?: any // 广告属性
+  protected ready: boolean // 是否准备加载成功
+  protected delayShowWaitTimeout = 2000 // showOnLoadPromise 等待加载完成超时时间
+  // 当调用广告展示时，广告还未加载完成，则等待加载完成后再展示，否则返回加载超时错误
+  private showOnLoadPromise: ManualPromise<void>
+  protected autoLoad = true // 是否自动加载(包括创建广告实例和拉取广告)，默认开启，无特殊情况，一般为true
+  protected properties?: any // 广告属性，构造函数最后一个参数为属性
   protected autoDestroy = true // 是否自动销毁，单例广告设置为false，如：激励视频
   protected isLoading = false // 是否正在加载
   protected adListeners: Record<string, Runnable> = {}  // 广告事件监听
-  protected loadTimeoutor: any;  // 加载超时定时器
+  protected loadTimeout = 10000 // 加载超时时间，单位毫秒
+  private loadTimeoutor: any  // 加载超时定时器
+  protected reloadMaxInterval = 30000 // 重新加载最大间隔，单位毫秒
 
   constructor(...ids: any[]) {
     this.ids = ids.filter((t) => !!t)
@@ -33,14 +37,20 @@ export default abstract class AdBase implements AdHandler {
 
     this.autoLoad && this.loadAd()
   }
+  /**
+   * 广告默认绑定事件
+   * 需要增加绑定事件则重写此方法，如增加 onCompleted 事件
+   */
   protected getAdListeners(): Record<string, Runnable> {
     return {
       onLoad: this.onLoad.bind(this),
       onError: this.onError.bind(this),
       onClose: this.onClose.bind(this),
       onClick: this.onClick.bind(this),
+      onShow: this.onShow.bind(this),
     }
   }
+
   protected loadAd() {
     if (this.ids.length === 0) return
     if (this.idx >= this.ids.length) {
@@ -60,14 +70,18 @@ export default abstract class AdBase implements AdHandler {
         this.ad.load()
         this.isLoading = true
       }
-      this.unbindAdListeners = this.bindAdListeners()
+      this.bindAdListeners()
     }
     if (this.isLoading) {
-      this.setLoadTimeout(10000)
+      this.setLoadTimeout()
     }
   }
 
-  protected setLoadTimeout(ms: number): Promise<void> {
+  /**
+   * 设置加载超时时间
+   * @returns Promise 超时触发Resolve
+   */
+  protected setLoadTimeout(): Promise<void> {
     // 设置10秒加载超时
     this.loadTimeoutor && clearInterval(this.loadTimeoutor)
     return new Promise<void>((resolve, reject) => {
@@ -82,12 +96,11 @@ export default abstract class AdBase implements AdHandler {
           // this.log(this.name + '加载超时已经成功')
           reject('加载成功')
         }
-      }, ms)
+      }, this.loadTimeout)
     })
   }
 
   protected bindAdListeners(): Runnable {
- 
     // Unbind the last listeners First
     if (this.unbindAdListeners) this.unbindAdListeners()
     if (!this.ad) return () => {}
@@ -97,7 +110,7 @@ export default abstract class AdBase implements AdHandler {
       this.ad[key] && this.ad[key](listener)
     }
 
-    return () => {
+    this.unbindAdListeners = () => {
       if (!this.ad) return
       for (let key in this.adListeners) {
         const listener = this.adListeners[key]
@@ -115,9 +128,9 @@ export default abstract class AdBase implements AdHandler {
     this.ready = true
     this.isLoading = false
     this.reloadCount = 0
-    if (this.onLoadPromise) {
-      this.onLoadPromise.resolve && this.onLoadPromise.resolve()
-      this.onLoadPromise = undefined
+    if (this.showOnLoadPromise) {
+      this.showOnLoadPromise.resolve && this.showOnLoadPromise.resolve()
+      this.showOnLoadPromise = undefined
     }
   }
 
@@ -137,7 +150,13 @@ export default abstract class AdBase implements AdHandler {
     this.reLoad(true)
   }
   /**
-   * !!!注意：如果重新加载间隔 createInterval<=0，并且非立即加载，则为取消重新加载
+   * onClose会触发立即加载，立即加载也需要加载间隔（createInterval），因为有些平台两次加载有时间限制
+   * onError会触发非立即加载，通过createInterval和reloadCount计算重新加载间隔，如
+   * createInterval = 1000
+   * reloadCount = 0, delay = 1000
+   * reloadCount = 1, delay = 2000
+   * reloadCount = 2, delay = 3000
+   * 最长加载间隔reloadMaxInterval为30秒
    * @param immediately 是否立即重新加载
    */
   protected reLoad(immediately: boolean): void {
@@ -152,12 +171,13 @@ export default abstract class AdBase implements AdHandler {
       }
       this.reloadCount++
       delayMilliSeconds = Math.min(
-        30000,
+        this.reloadMaxInterval, // 最大加载间隔,
         this.createInterval * this.reloadCount
       )
     }
     setTimeout(() => this.loadAd(), delayMilliSeconds)
   }
+
   protected onShow(): void {
     this.log(this.name, '展示成功')
     this.isShowed = true
@@ -165,18 +185,18 @@ export default abstract class AdBase implements AdHandler {
   }
 
   /**
-   * 等待onload回调，加载完成后，立即展示，否则在1s时间后取消
+   * 等待onload回调，加载完成后，立即展示，否则在指定时间后取消
    * @returns
    */
-  protected noReadyDelayShow(delay: number): Promise<void> {
-    this.onLoadPromise && this.onLoadPromise.reject('加载超时')
-    this.onLoadPromise = undefined
-    this.onLoadPromise = new ManualPromise<void>();
+  protected delayShowWaitLoaded(delay: number): Promise<void> {
+    this.showOnLoadPromise && this.showOnLoadPromise.reject('加载超时')
+    this.showOnLoadPromise = undefined
+    this.showOnLoadPromise = new ManualPromise<void>();
     setTimeout(() => {
-      this.onLoadPromise && this.onLoadPromise.reject('加载超时')
-      this.onLoadPromise = undefined
+      this.showOnLoadPromise && this.showOnLoadPromise.reject('加载超时')
+      this.showOnLoadPromise = undefined
     }, delay);
-    return this.onLoadPromise.promise
+    return this.showOnLoadPromise.promise
   }
 
   async show(param: AdParam): Promise<AdInvokeResult> {
@@ -189,18 +209,21 @@ export default abstract class AdBase implements AdHandler {
       if (!this.autoLoad) this.loadAd() // 未开启自动加载的，启动加载，即外部要先调用一次，用于创建广告对象需要其他参数等
       this.log(this.name + '加载中')
       try {
-            await this.noReadyDelayShow(2000);
-        } catch (err) {
-            this.log(this.name + '展示失败', JSON.stringify(err));
-            throw err;
-        }
-        return await this.show(param);
+          await this.delayShowWaitLoaded(this.delayShowWaitTimeout);
+      } catch (err) {
+          this.log(this.name + '展示失败', JSON.stringify(err));
+          throw err;
+      }
+      return await this.show(param);
     }
     this.log(this.name + '展示')
     return new Promise<AdInvokeResult>((resolve, reject) => {
       const showResult = this.ad.show() ?? Promise.resolve()
       showResult.then(() => {
-          this.onShow()
+          // 如果广告默认有 onShow事件，则无需手动触发onShow事件
+          if (typeof this.ad['onShow'] !== 'function') {
+            this.onShow()
+          }
           this.invokeResult = { session: this }
           resolve(this.invokeResult)
         })

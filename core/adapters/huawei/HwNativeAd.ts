@@ -22,8 +22,6 @@ export default class HwNativeAd extends HwBaseAd {
   private adView: NativeAdView
   get name(): string { return '原生广告' }
   private adData: NativeAdData
-  private static CACHE_AD_KEY = 'last_native_ad'
-  private static CACHE_AD_EXPIRE = 12 * 60 * 60 * 1000  // 12小时
 
   constructor(...ids: any[]) {
     super(...ids)
