@@ -15,23 +15,23 @@ export default class TTAd implements AdInterface {
   private _banner?: AdHandler
   private _inters?: AdHandler
   private _reward?: AdHandler
-  config: IAdConfig;
+  config: AdInitConfig;
 
-  constructor(config: IAdConfig) {
+  constructor(config: AdInitConfig) {
     this.config = config
   }
   
   init(initConfig: AdInitConfig): void {
     this.systemInfo = globalThis.tt.getSystemInfoSync()
     log('init', JSON.stringify(this.systemInfo))
-    this.config = {...this.config, ...initConfig||{}}
+    this.config = initConfig
     this.initAds()
   }
   private initAds(): void {
-		  this._banner = new TTBannerAd(...this.config.BANNER_ID)
-		  this._inters = new TTIntersAd(...this.config.INTERS_ID)
+		  this._banner = new TTBannerAd(...this.config.adConfig.BANNER_ID)
+		  this._inters = new TTIntersAd(...this.config.adConfig.INTERS_ID)
 
-		  this._reward = new TTRewardAd(...this.config.REWARD_ID)
+		  this._reward = new TTRewardAd(...this.config.adConfig.REWARD_ID)
   }
   private showAd(
     adName: string,

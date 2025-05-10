@@ -5,14 +5,14 @@ import RewardAd4399 from "./RewardAd4399";
 export default class M4399Ad implements AdInterface {
   
   private _reward: RewardAd4399;
-  config: IAdConfig;
+  config: AdInitConfig;
 
-  constructor (config: IAdConfig) {
+  constructor (config: AdInitConfig) {
     this.config = config
   }
 
   init(initConfig: AdInitConfig): void {
-    this.config = {...this.config, ...initConfig||{}}
+    this.config = initConfig
     log('init', JSON.stringify(this.config))
     this._reward = new RewardAd4399();
   }

@@ -24,34 +24,34 @@ export default class VivoAd implements AdInterface {
   private _box_banner?: AdHandler
   private _box_portal?: AdHandler
   private _native?: AdHandler
-  config: IAdConfig;
+  config: AdInitConfig;
 
-  constructor(config: IAdConfig) {
+  constructor(config: AdInitConfig) {
     this.config = config
   }
 
   init(initConfig: AdInitConfig): void {
     this.systemInfo = globalThis.qg.getSystemInfoSync()
     log('init', JSON.stringify(this.systemInfo))
-    this.config = {...this.config, ...initConfig||{}}
+    this.config = initConfig
     this.initAds()
   }
   private initAds(): void {
     if (this.systemInfo.platformVersionCode >= 1031) {
-		  this._banner = new VivoBannerAutoShow(...this.config.BANNER_ID, this.systemInfo)
-		  this._inters = new VivoIntersAd(...this.config.INTERS_ID)
+		  this._banner = new VivoBannerAutoShow(...this.config.adConfig.BANNER_ID, this.systemInfo)
+		  this._inters = new VivoIntersAd(...this.config.adConfig.INTERS_ID)
     }
 
     if (this.systemInfo.platformVersionCode >= 1041)
-		  this._reward = new VivoRewardAd(...this.config.REWARD_ID)
+		  this._reward = new VivoRewardAd(...this.config.adConfig.REWARD_ID)
     if (this.systemInfo.platformVersionCode >= 1091)
-      this._custom = new VivoCustomAd(...this.config.CUSTOM_ID)
+      this._custom = new VivoCustomAd(...this.config.adConfig.CUSTOM_ID)
     if (this.systemInfo.platformVersionCode >= 1092) {
-		  this._box_banner = new VivoBoxBannerAd(...this.config.BOX_ID)
-		  this._box_portal = new VivoBoxPortalAd(...this.config.PORTAL_ID)
+		  this._box_banner = new VivoBoxBannerAd(...this.config.adConfig.BOX_ID)
+		  this._box_portal = new VivoBoxPortalAd(...this.config.adConfig.PORTAL_ID)
     }
     if (this.systemInfo.platformVersionCode >= 1100) {
-      this._native = new VivoNativeAd(...this.config.NATIVE_ID)
+      this._native = new VivoNativeAd(...this.config.adConfig.NATIVE_ID)
     }
   }
   private showAd(

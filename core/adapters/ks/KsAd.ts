@@ -10,25 +10,25 @@ export default class KsAd implements AdInterface {
   systemInfo: any;
   private _inters: KsAdInters;
   private _reward: KsAdReward;
-  config: IAdConfig;
+  config: AdInitConfig;
 
   /**
    *
    */
-  constructor(config: IAdConfig) {
+  constructor(config: AdInitConfig) {
     this.config = config
   }
 
   init(initConfig: AdInitConfig): void {
     this.systemInfo = globalThis.ks.getSystemInfoSync()
     log('init', JSON.stringify(this.systemInfo))
-    this.config = {...this.config, ...initConfig||{}}
+    this.config = initConfig
     this.initAds()
     ksLogin()
   }
   initAds() {
-    this._inters = new KsAdInters(this.config.INTERS_ID)
-    this._reward = new KsAdReward(this.config.REWARD_ID)
+    this._inters = new KsAdInters(this.config.adConfig.INTERS_ID)
+    this._reward = new KsAdReward(this.config.adConfig.REWARD_ID)
   }
   private showAd(
     adName: string,

@@ -1,4 +1,4 @@
-import { AdInterceptor, AdType, AdInvokeNext, AdParam, AdInvokeResult } from "../Types";
+import { AdInterceptor, AdType, AdInvokeNext, AdParam, AdInvokeResult, IAdSdk } from "../Types";
 import { retry } from "./support";
 
 /**
@@ -19,7 +19,7 @@ export class RetryInterceptor implements AdInterceptor {
       this.timeoutMs = timeoutMs
       this.adTypes = adTypes
     }
-    attach(): void {
+    attach(sdk: IAdSdk): void {
       
     }
   

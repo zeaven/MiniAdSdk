@@ -67,6 +67,32 @@ interface AdInvokeResult {
   [extra: string]: any
 }
 
+enum LoginCode {
+  SUCCESS = 0,        // 登录成功
+  CANCEL_LOGIN = 1,   // 取消登录
+  CANCEL_REALNAME = 2, // 取消实名
+  FAILED = 3,         // 登录失败
+}
+
+type LoginResult = {
+  code: LoginCode
+  data: any
+}
+/**
+ * 隐私登录接口
+ */
+interface IPrivacyLogin {
+  /**
+   * 登录接口
+   * @returns 是否登录成功
+   */
+  login(): Promise<LoginResult>
+  /**
+   * 显示隐私协议
+   * @returns 是否同意隐私 
+   */
+  showPrivacyDlg(): Promise<boolean>
+}
 /**
  * 广告SDK接口，如vivo、oppo广告接口
  */
@@ -83,6 +109,15 @@ interface AdInterface {
   hideCustom(param?: AdParam): Promise<AdInvokeResult>
   showToast(msg: string, duration: number): void
 }
+interface IAdSdk extends AdInterface {
+  adapter: AdInterface | void
+  platform: string
+  config: Readonly<AdInitConfig>
+  debug: boolean
+  addInterceptor(platform: string, interceptor: AdInterceptor): void
+  on(adEvent: AdEvent | AdType, callback: AdCallback, target: any): void
+  setWhitePackage(whitePackage: boolean): void
+}
 /**
  * 广告类型
  */
@@ -96,7 +131,7 @@ enum AdType {
   Combo
 }
 /**
- * 广告事件
+ * 广告节点事件
  */
 enum AdEvent {
   BannerShow = 'banner:show',
@@ -115,6 +150,9 @@ enum AdEvent {
 
 Enum(AdType)
 
+/**
+ * 广告事件类型
+ */
 enum AdEventType {
   AdLoaded = 'ad:loaded',
   AdClosed = 'ad:closed',
@@ -123,6 +161,10 @@ enum AdEventType {
   AdShowed = 'ad:showed',
   AdHided = 'ad:hided',
   AdClicked = 'ad:clicked',
+  LoginSuccess = 'login:success',
+  LoginCancelLogin = 'login:cancel-login',
+  LoginCancelRealname = 'login:cancel-realname',
+  LoginFailed = 'login:failed',
 }
 
 @ccclass('AdEventHandler')
@@ -149,7 +191,7 @@ type AdInitNext = (config: AdInitConfig) => Promise<void>
  * 拦截器
  */
 interface AdInterceptor {
-  attach(): void
+  attach(sdk: IAdSdk): void
   init?: (next: AdInitNext , param?: AdInitConfig) => any
   showBox?: (next: AdInvokeNext, param?: AdParam) => Promise<AdInvokeResult> | void
   showBanner?: (next: AdInvokeNext, param?: AdParam) => Promise<AdInvokeResult> | void
@@ -164,5 +206,5 @@ interface AdInterceptor {
 export {
   AdParam, AdInvokeResult, AdInterface, AdHandler, Callback, AdType, AdEvent,AdSession, Runnable,
   AdEventHandler, AdContext, AdCallback, AdInterceptor,IAdConfig,AdInitNext,
-  AdEventType, AdInitConfig,AdInvokeNext,
+  AdEventType, AdInitConfig,AdInvokeNext, IAdSdk, IPrivacyLogin,LoginResult, LoginCode
 }

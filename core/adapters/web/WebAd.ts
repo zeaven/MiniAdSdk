@@ -2,6 +2,8 @@ import { AdEventType, AdInitConfig, AdInterface, AdInvokeResult, AdParam } from 
 import AdEventBus from "../../utils/AdEventBus";
 
 export default class WebAd implements AdInterface {
+  constructor(config: AdInitConfig) {
+  }
   init(config?: AdInitConfig): void {
     
     if (!globalThis.$JsBridge) return

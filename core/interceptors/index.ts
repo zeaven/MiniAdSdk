@@ -3,6 +3,7 @@ import { MutexInterceptor } from "./MutexInterceptor";
 import { RemoteConfigInterceptor } from "./RemoteConfigInterceptor";
 import { RetryInterceptor } from "./RetryInterceptor";
 import { TTInterceptor } from "./TTInterceptor";
+import { LoginInterceptor } from "./LoginInterceptor";
 
 /**
  * 拦截器
@@ -48,4 +49,5 @@ export {
     RetryInterceptor,
     TTInterceptor,
     RemoteConfigInterceptor,
+    LoginInterceptor,
 }

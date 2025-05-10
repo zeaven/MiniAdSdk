@@ -10,24 +10,24 @@ export default class AlipayAd implements AdInterface {
   private _banner: AdBase
   private _inters: AdBase
   private _reward: AdBase
-  config: IAdConfig
+  config: AdInitConfig
 
-  constructor (config: IAdConfig) {
+  constructor (config: AdInitConfig) {
     this.config = config
   }
 
   init(initConfig: AdInitConfig): void {
     this.systemInfo = my.getSystemInfoSync()
     log('init', JSON.stringify(this.systemInfo))
-    this.config = {...this.config, ...initConfig||{}}
+    this.config = initConfig
     this.initAds()
   }
   private initAds(): void {
     const pixelRatio = this.systemInfo.pixelRatio;
     my.setEnableDebug({enableDebug: CC_DEBUG})
-    this._inters = new AliIntersAd(...this.config.INTERS_ID)
-    this._reward = new AliRewardAd(...this.config.REWARD_ID)
-    this._banner = new AliBannerAd(...this.config.BANNER_ID)
+    this._inters = new AliIntersAd(...this.config.adConfig.INTERS_ID)
+    this._reward = new AliRewardAd(...this.config.adConfig.REWARD_ID)
+    this._banner = new AliBannerAd(...this.config.adConfig.BANNER_ID)
   }
   private showAd(
     adName: string,

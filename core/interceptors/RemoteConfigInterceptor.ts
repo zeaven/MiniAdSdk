@@ -1,6 +1,5 @@
-import { AdInitConfig, AdInterceptor, AdInitNext, AdEventType, AdHandler } from "../Types";
+import { AdInitConfig, AdInterceptor, AdInitNext, AdEventType, AdHandler, IAdSdk } from "../Types";
 import { get_log } from "../utils/Log";
-import AdConfig from "../AdConfig";
 import AdEventBus from "../utils/AdEventBus";
 
 const log = get_log('RemoteConfigInterceptor')
@@ -11,7 +10,7 @@ const log = get_log('RemoteConfigInterceptor')
  * 实现远程配置拦截器，模拟请求后端接口返回广告配置
  */
 export class RemoteConfigInterceptor implements AdInterceptor {
-    attach(): void {
+    attach(sdk: IAdSdk): void {
         log('attach')
         // 监听广告事件，上报到后端
         AdEventBus.instance.on(AdEventType.AdShowed, (ad: AdHandler) => {
@@ -25,7 +24,7 @@ export class RemoteConfigInterceptor implements AdInterceptor {
     }
 
     init (next: AdInitNext, param?: AdInitConfig): Promise<void> {
-        log('模拟请求后端接口返回广告配置')
+        log('模拟请求后端接口返回广告配置', param)
 
         return new Promise((resolve) => {
             // 模拟1秒后结束，实现请求后端接口返回广告配置

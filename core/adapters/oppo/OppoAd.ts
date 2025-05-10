@@ -23,34 +23,34 @@ export default class OppoAd implements AdInterface {
   private _box_banner?: AdHandler
   private _box_portal?: AdHandler
   private _native?: AdHandler
-  config: IAdConfig;
+  config: AdInitConfig;
 
-  constructor (config: IAdConfig) {
+  constructor (config: AdInitConfig) {
     this.config = config
   }
 
   init(initConfig: AdInitConfig): void {
     this.systemInfo = globalThis.qg.getSystemInfoSync()
     log('init', JSON.stringify(this.systemInfo))
-    this.config = {...this.config, ...initConfig||{}}
+    this.config = initConfig
     this.initAds()
   }
   private initAds(): void {
     if (this.systemInfo.platformVersionCode >= 1051) {
-		  this._banner = new OppoBannerAd(...this.config.BANNER_ID, this.systemInfo)
-      this._reward = new OppoRewardAd(...this.config.REWARD_ID)
+		  this._banner = new OppoBannerAd(...this.config.adConfig.BANNER_ID, this.systemInfo)
+      this._reward = new OppoRewardAd(...this.config.adConfig.REWARD_ID)
     }
 
     if (this.systemInfo.platformVersionCode >= 1061)
-		  this._inters = new OppoIntersAd(...this.config.INTERS_ID)
+		  this._inters = new OppoIntersAd(...this.config.adConfig.INTERS_ID)
     if (this.systemInfo.platformVersionCode >= 1103)
-      this._custom = new OppoCustomAd(...this.config.CUSTOM_ID, this.systemInfo)
+      this._custom = new OppoCustomAd(...this.config.adConfig.CUSTOM_ID, this.systemInfo)
     if (this.systemInfo.platformVersionCode >= 1076) {
-		  this._box_banner = new OppoBoxBannerAd(...this.config.BOX_ID)
-		  this._box_portal = new OppoBoxPortalAd(...this.config.PORTAL_ID)
+		  this._box_banner = new OppoBoxBannerAd(...this.config.adConfig.BOX_ID)
+		  this._box_portal = new OppoBoxPortalAd(...this.config.adConfig.PORTAL_ID)
     }
     if (this.systemInfo.platformVersionCode >= 1090) {
-      this._native = new OppoBoxDrawerAd(...this.config.DRAWER_ID, this.systemInfo)
+      this._native = new OppoBoxDrawerAd(...this.config.adConfig.DRAWER_ID, this.systemInfo)
     }
   }
   private showAd(

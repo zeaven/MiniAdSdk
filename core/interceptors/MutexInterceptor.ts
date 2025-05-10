@@ -1,11 +1,11 @@
-import { AdInterceptor, AdParam, AdInvokeResult, AdInvokeNext } from "../Types"
+import { AdInterceptor, AdParam, AdInvokeResult, AdInvokeNext, IAdSdk } from "../Types"
 import { mutex } from "./support"
 
 /**
  * 防并发广告
  */
 export class MutexInterceptor implements AdInterceptor {
-    attach(): void {
+    attach(sdk: IAdSdk): void {
       const _method = this.showReward.bind(this)
       this.showReward = mutex(_method)
     }

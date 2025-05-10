@@ -9,16 +9,16 @@ export default class Box4399Ad implements AdInterface {
   private _banner: BoxBannerAd;
   private _reward: BoxRewardAd;
   private _inters: BoxIntersAd;
-  config: IAdConfig;
+  config: AdInitConfig;
 
-  constructor (config: IAdConfig) {
+  constructor (config: AdInitConfig) {
     this.config = config
   }
 
   init(initConfig: AdInitConfig): void {
     this.systemInfo = globalThis.gamebox.getSystemInfoSync()
     log('init', JSON.stringify(this.systemInfo))
-    this.config = {...this.config, ...initConfig||{}}
+    this.config = initConfig
     this.initAds()
   }
   private initAds(): void {

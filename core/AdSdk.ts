@@ -6,10 +6,10 @@ const { ccclass } = cc._decorator
 import AdEventBus from "./utils/AdEventBus";
 import { get_log, set_debug_enable } from "./utils/Log";
 import { Platform, platform } from "./utils/AdPlatform";
-import { AdCallback, AdEvent, AdEventHandler, AdInitConfig, AdInterceptor, AdInterface, AdInvokeResult, AdParam, AdType, IAdConfig } from "./Types";
+import { AdCallback, AdEvent, AdEventHandler, AdInitConfig, AdInterceptor, AdInterface, AdInvokeResult, AdParam, AdType, IAdConfig, IAdSdk } from "./Types";
 import ConfigBinder from "./utils/ConfigBinder";
 import AdConfig from "./AdConfig";
-import { DelayInterceptor, TTInterceptor, RemoteConfigInterceptor } from "./interceptors/index";
+import { DelayInterceptor, TTInterceptor, RemoteConfigInterceptor, LoginInterceptor } from "./interceptors/index";
 
 // 配置加载器
 const adapters: Record<string, () => Promise<any>> = {
@@ -25,7 +25,7 @@ const adapters: Record<string, () => Promise<any>> = {
 }
 
 @ccclass
-export default class AdSdk implements AdInterface {
+export default class AdSdk implements IAdSdk {
   private static _instance: AdSdk
   public static log = get_log('AdSdk')
   
@@ -37,8 +37,24 @@ export default class AdSdk implements AdInterface {
   private _inited = false
   private _config: AdInitConfig;
 
-  static get instance(): AdSdk {
-    if (!this._instance) {
+  get adapter(): AdInterface | void {
+    return this._adapter
+  }
+  get platform(): string {
+    return this._platform
+  }
+  get config(): Readonly<AdInitConfig> {
+    return this._config
+  }
+  /**
+   * 是否开启调试模式，默认关闭，开启后会输出日志到控制台，方便调试，发布时请关闭，否则会影响性能，影响游戏体验
+   */
+  get debug(): boolean {
+    return this._config.debug
+  }
+
+  static get instance(): IAdSdk {
+    if (!AdSdk._instance) {
       const sdkProxy = {
         get: function(target: AdSdk, prop: string) {
           if ((prop.startsWith('show') || prop.startsWith('hide')) && typeof target[prop] === 'function') {
@@ -50,47 +66,61 @@ export default class AdSdk implements AdInterface {
           }
         }
       }
-      this._instance = new Proxy(new AdSdk(), sdkProxy)
-      this._instance.init()
+      AdSdk._instance = new Proxy(new AdSdk(), sdkProxy)
+      AdSdk._instance.init()
     }
-    return this._instance
+    return AdSdk._instance
   }
 
   async init(config?: AdInitConfig): Promise<void> {
     if (this._inited) return
     this._inited = true
-    this._config = config
-    set_debug_enable(config?.debug ?? CC_DEBUG ?? false)
-    AdSdk.log('初始化, 平台:' + platform)
-    await this.setPlatform(platform)
-    if (this._adapter) {
+    this._config = config || {}
+    this._config.debug = config?.debug ?? CC_DEBUG ?? false
+    //是否开启调试模式，默认关闭，开启后会输出日志到控制台，方便调试，发布时请关闭，否则会影响性能，影响游戏体验
+    set_debug_enable(this._config.debug)
+    AdSdk.log('初始化, 平台', platform)
+    this.setPlatform(platform).then(() => {
       ConfigBinder.instance.init()
-    }
+    }).catch(e => {
+      this._inited = false
+      AdSdk.log('初始化失败', e)
+    })
   }
 
-  private async getAdapter(name: string): Promise<AdInterface>  {
+  private setPlatform(platform: string, config?: AdInitConfig): Promise<void> {
+    this._platform = platform
+    this._config = config ?? this._config ?? {}
+    return this.loadAdapter(this._platform)
+  }
+
+  private async loadAdapter(name: string): Promise<void>  {
+    this.addInterceptor(name, new LoginInterceptor())
     this.addInterceptor(name, new DelayInterceptor())
     this.addInterceptor(name, new RemoteConfigInterceptor())
-    try {
       
-      switch (name) {
-        case Platform.TT:
-          this.addInterceptor(name, new TTInterceptor())
-          break
-        case Platform.KS:
-          this.addInterceptor(name, new TTInterceptor())
-          break
-        default:
-          break
-      }
-      const module = await adapters[name]()
-      const config = this.getConfig(name)
-      const adapter = new module.default(config)
-      AdSdk.log(`适配器 [${name}] 加载完成`, config)
-      return adapter
-    } catch (e) {
-      AdSdk.log(`获取适配器失败: ${e}`)
+    switch (name) {
+      case Platform.TT:
+        this.addInterceptor(name, new TTInterceptor())
+        break
+      case Platform.KS:
+        this.addInterceptor(name, new TTInterceptor())
+        break
+      default:
+        break
     }
+    const module = await adapters[name]()
+    const config = this.getConfig(name)
+    this._config.adConfig = config
+    const adapter = new module.default(this._config)
+    if (adapter) {
+      AdSdk.log(`适配器 [${name}] 加载完成`, config)
+      this._adapter = adapter
+      await this.invoke('init', this._config) ?? Promise.resolve()
+      AdSdk.log(`适配器 [${this._platform}] 加载完成`)
+      return Promise.resolve()
+    }
+    return Promise.reject('适配器加载失败')
   }
 
   private getConfig(name: string): IAdConfig | undefined {
@@ -105,7 +135,7 @@ export default class AdSdk implements AdInterface {
 
   private invoke(method: string, ...args: any[]): Promise<AdInvokeResult> {
     if (this._adapter && this._adapter[method]) {
-      AdSdk.log(`${method}被调用`, JSON.stringify(args))
+      AdSdk.log(`${method}被调用`, args)
       const interceptors = this._interceptors[this._platform]
       if (interceptors) {
         const next = (...params: any[]): Promise<AdInvokeResult> => {
@@ -119,7 +149,7 @@ export default class AdSdk implements AdInterface {
         let rr= this.callInterceptor(method, args, interceptors, next)
         if (rr instanceof Promise) {
           rr = rr.catch(err => {
-            AdSdk.log(`${method}请求失败: ${err}`)
+            AdSdk.log(`${method}请求失败`, err)
             return Promise.reject(err)
           })
         }
@@ -178,7 +208,7 @@ export default class AdSdk implements AdInterface {
       return
     }
     this._interceptors[platform].push(interceptor)
-    interceptor.attach()
+    interceptor.attach(this)
   }
 
   /**
@@ -201,19 +231,6 @@ export default class AdSdk implements AdInterface {
 
   public setWhitePackage(whitePackage: boolean) {
     this._whitePackage = whitePackage
-  }
-
-  public setPlatform(platform: string, config?: AdInitConfig): Promise<AdInterface> {
-    this._platform = platform
-    this._config = config ?? this._config
-    return this.getAdapter(this._platform).then(async adapter => {
-      this._adapter = adapter
-      if (this._adapter) {
-        await this.invoke('init', this._config) ?? Promise.resolve()
-        AdSdk.log(`适配器 [${this._platform}] 初始化完成`)
-      }
-      return this._adapter
-    })
   }
 
   showBox(param?: AdParam): Promise<AdInvokeResult> {
