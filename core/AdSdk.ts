@@ -209,6 +209,7 @@ export default class AdSdk implements IAdSdk {
     }
     this._interceptors[platform].push(interceptor)
     interceptor.attach(this)
+    AdSdk.log(`添加拦截器: ${interceptor.constructor.name}`)
   }
 
   /**

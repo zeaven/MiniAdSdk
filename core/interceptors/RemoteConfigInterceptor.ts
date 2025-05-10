@@ -11,7 +11,6 @@ const log = get_log('RemoteConfigInterceptor')
  */
 export class RemoteConfigInterceptor implements AdInterceptor {
     attach(sdk: IAdSdk): void {
-        log('attach')
         // 监听广告事件，上报到后端
         AdEventBus.instance.on(AdEventType.AdShowed, (ad: AdHandler) => {
             log('上报广告事件 ' + AdEventType.AdShowed, ad.name)
