@@ -1,5 +1,6 @@
 import { AdEventType, AdInitConfig, AdInitNext, AdInterceptor, AdInterface, IAdSdk, IPrivacyLogin, LoginCode, LoginResult } from "../Types";
 import AdEventBus from "../utils/AdEventBus";
+import { isIPrivacyLogin } from "../utils/AdUtils";
 import { get_log } from "../utils/Log";
 
 const log = get_log('LoginInterceptor')
@@ -17,7 +18,7 @@ export class LoginInterceptor implements AdInterceptor {
     }
     init (next: AdInitNext, param?: AdInitConfig): Promise<void>  {
         // 是否实现了登录接口
-        if (this.sdk.adapter && this.isIPrivacyLogin(this.sdk.adapter)) {
+        if (this.sdk.adapter && isIPrivacyLogin(this.sdk.adapter)) {
             const adapter = this.sdk.adapter as unknown as IPrivacyLogin
             log('开启登录')
             // 开启登录
@@ -49,9 +50,4 @@ export class LoginInterceptor implements AdInterceptor {
             return next(param)
         }
     }
-
-    private isIPrivacyLogin(adapter: AdInterface): adapter is AdInterface & IPrivacyLogin {
-        return 'login' in adapter && typeof adapter.login === 'function';
-    }
-      
 }

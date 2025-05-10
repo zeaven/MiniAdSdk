@@ -1,3 +1,5 @@
+import { AdInterface, IPrivacyLogin } from "../Types"
+
 /**
  * 手动控制Promise
  */
@@ -113,4 +115,8 @@ class AdHttp {
   }
 }
 
-export { ManualPromise, saveItem, getItem, removeItem, AdHttp}
+function isIPrivacyLogin(adapter: AdInterface): adapter is AdInterface & IPrivacyLogin {
+  return 'login' in adapter && typeof adapter.login === 'function';
+}
+
+export { ManualPromise, saveItem, getItem, removeItem, AdHttp, isIPrivacyLogin}
