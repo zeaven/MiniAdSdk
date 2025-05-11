@@ -67,7 +67,7 @@ class Store {
       return
     }
     cc.sys.localStorage.setItem(key, val);  
-    cc.sys.localStorage.setItem(key + '_expire', expire.toString())
+    cc.sys.localStorage.setItem(key + '_expire', expire)
   }
   /**
    *  获取数据
@@ -78,7 +78,7 @@ class Store {
    */
   static getItem(key: string, defaultVal?: any, remove: boolean = false): any {
     let expire = cc.sys.localStorage.getItem(key + '_expire')
-    if (expire && Date.now() > parseInt(expire)) {
+    if (expire && parseInt(expire) > 0 && Date.now() > parseInt(expire)) {
       Store.removeItem(key)
       return defaultVal
     } else if (expire === null) {

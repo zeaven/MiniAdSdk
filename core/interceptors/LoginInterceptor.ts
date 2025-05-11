@@ -1,4 +1,4 @@
-import { AdEventType, AdInitConfig, AdInitNext, AdInterceptor, AdInterface, IAdSdk, ILoginable, LoginCode, LoginResult } from "../Types";
+import { AdEventType, AdInitConfig, AdInitNext, AdInterceptor, AdInterface, IAdSdk, ILoginable, LoginCode, LoginResult, PrivacyContext } from "../Types";
 import AdEventBus from "../utils/AdEventBus";
 import { Store } from "../utils/AdUtils";
 import { get_log } from "../utils/Log";
@@ -26,22 +26,36 @@ export class LoginInterceptor implements AdInterceptor {
         if (this.isPrivacyable(param)) {
             log('需要隐私政策')
             return new Promise((resolve) => {
-                param.privacy({
-                    agreePrivacy: () => {
-                        log('同意隐私')
-                        // 监听隐私同意事件
-                        AdEventBus.instance.emit(AdEventType.PrivacyAgreed)
-                        // 同意隐私政策后，继续登录
-                        if (this.isLoginable(this.sdk.adapter)) {
-                            const adapter = this.sdk.adapter as unknown as ILoginable
-                            resolve(this.startLogin(adapter, next, param))
-                        } else {
-                            log('未实现登录接口')
-                            resolve(next(param))
-                        }
+                if (Store.getItem('agreePrivacy')) {
+                    log('已经同意隐私')
+                    // 已经同意隐私政策，继续登录
+                    if (this.isLoginable(this.sdk.adapter)) {
+                        const adapter = this.sdk.adapter as unknown as ILoginable
+                        resolve(this.startLogin(adapter, next, param))
+                    } else {
+                        log('未实现登录接口')
+                        resolve(next(param))
                     }
-                });
-                delete param.privacy
+                } else {
+                    // 没有同意隐私政策，显示隐私政策
+                    param.privacy({
+                        agreePrivacy: () => {
+                            log('同意隐私')
+                            Store.saveItem('agreePrivacy', true)
+                            // 监听隐私同意事件
+                            AdEventBus.instance.emit(AdEventType.PrivacyAgreed)
+                            // 同意隐私政策后，继续登录
+                            if (this.isLoginable(this.sdk.adapter)) {
+                                const adapter = this.sdk.adapter as unknown as ILoginable
+                                resolve(this.startLogin(adapter, next, param))
+                            } else {
+                                log('未实现登录接口')
+                                resolve(next(param))
+                            }
+                        }
+                    });
+                }
+                // delete param.privacy
             })
         } else {
             log('不需要隐私政策')
