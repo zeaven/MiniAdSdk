@@ -37,6 +37,8 @@ declare namespace qg {
   function createNewNativeAd(options: any): any;
   function createCustomAd(options: any): any;
   function setEnableDebug(options: {enableDebug: boolean}): void;
+
+ function gameLoginWithReal(arg0: { forceLogin: number; appid: string; success: (data: any) => void; fail: (data: any, code: any) => void; }): void;
 }
 
 declare namespace my {
