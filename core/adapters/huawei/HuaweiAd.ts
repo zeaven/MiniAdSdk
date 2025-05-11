@@ -2,13 +2,14 @@
  * 华为广告
  */
 
-import { AdHandler, AdInitConfig, AdInterface, AdInvokeResult, AdParam, IAdConfig, IPrivacyLogin, LoginResult } from "../../Types";
+import { AdEventType, AdHandler, AdInitConfig, AdInterface, AdInvokeResult, AdParam, IAdConfig, IPrivacyLogin, LoginResult } from "../../Types";
 import HwBannerAd from "./HwBannerAd";
 import HwIntersAd from "./HwIntersAd";
 import HwNativeAd from "./HwNativeAd";
 import HwRewardAd from "./HwRewardAd";
 import log from "./HwLog"
 import HwLogin from "./HwLogin";
+import AdEventBus from "../../utils/AdEventBus";
 
 export default class HuaweiAd implements AdInterface, IPrivacyLogin {
   
@@ -30,8 +31,8 @@ export default class HuaweiAd implements AdInterface, IPrivacyLogin {
   login(): Promise<LoginResult> {
     return HwLogin.login(this.config)
   }
-  showPrivacyDlg(): Promise<boolean> {
-    throw new Error("Method not implemented.");
+  needPrivacy(): boolean {
+    return true
   }
   
   /**

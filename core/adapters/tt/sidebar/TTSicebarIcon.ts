@@ -2,7 +2,7 @@ import AdEventBus from "../../../utils/AdEventBus";
 import { Runnable } from "../../../Types";
 import TTSidebar from "./TTSidebar";
 import TTSidebarUI from "./TTSidebarUI";
-import { saveItem } from "../../../utils/AdUtils";
+import { Store } from "../../../utils/AdUtils";
 
 const {ccclass, property} = cc._decorator;
 
@@ -91,7 +91,7 @@ export default class TTSidebarIcon extends cc.Component {
   private onRewarded(): void {
     if (this.hasRewarded) return
     this.hasRewarded = true
-    saveItem(TTSidebar._store_key, true)
+    Store.saveItem(TTSidebar._store_key, true)
     this.rewardEvent && this.rewardEvent.emit([this.rewardAmount])
   }
 

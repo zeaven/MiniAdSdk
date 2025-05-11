@@ -6,7 +6,7 @@ const { ccclass } = cc._decorator
 import AdEventBus from "./utils/AdEventBus";
 import { get_log, set_debug_enable } from "./utils/Log";
 import { Platform, platform } from "./utils/AdPlatform";
-import { AdCallback, AdEvent, AdEventHandler, AdInitConfig, AdInterceptor, AdInterface, AdInvokeResult, AdParam, AdType, IAdConfig, IAdSdk } from "./Types";
+import { AdNodeEvent, AdEventType, AdInitConfig, AdInterceptor, AdInterface, AdInvokeResult, AdParam, AdType, IAdConfig, IAdSdk, EventCallback, Runnable } from "./Types";
 import ConfigBinder from "./utils/ConfigBinder";
 import AdConfig from "./AdConfig";
 import { DelayInterceptor, TTInterceptor, RemoteConfigInterceptor, LoginInterceptor } from "./interceptors/index";
@@ -72,6 +72,22 @@ export default class AdSdk implements IAdSdk {
     return AdSdk._instance
   }
 
+  /**
+   * @example
+   * AdSdk.instance.init({debug: true,})
+   * 需要隐私登录的情况下，先监听隐私弹窗事件，再初始化
+   * AdSdk.instance.on(AdEventType.PrivacyShow, (ctx) => {
+   *   // 显示隐私弹窗
+   *   showPrivacyDlg()
+   *   // 如果用户同意隐私，调用 agreePrivacy，会通知Sdk继续初始化
+   *   ctx.agreePrivacy()
+   *   // 隐藏隐私弹窗
+   *   hidePrivacyDlg()
+   * })
+   * AdSdk.instance.init({debug: true,})
+   * @param config 
+   * @returns 
+   */
   async init(config?: AdInitConfig): Promise<void> {
     if (this._inited) return
     this._inited = true
@@ -218,16 +234,14 @@ export default class AdSdk implements IAdSdk {
    * @param callback 监听事件回调
    * @param target 绑定对象
    */
-  public on(adEvent: AdEvent | AdType, callback: AdCallback, target: any) {
+  public on(adEvent: AdNodeEvent | AdType | AdEventType, callback: EventCallback, target?: any): Runnable {
     let event: string
     if (typeof adEvent === 'number') {
       event = AdType[adEvent]
     } else {
       event = adEvent
     }
-    AdEventBus.instance.on(event, (node: cc.Node, data: AdEventHandler[]|string) => {
-      callback({event: event, node: node}, data)
-    }, target)
+    return AdEventBus.instance.on(event, callback, target)
   }
 
   public setWhitePackage(whitePackage: boolean) {

@@ -1,6 +1,6 @@
 import { get_log, set_debug_enable } from "../../../utils/Log";
 import { Callback } from "../../../Types";
-import { ManualPromise, getItem } from "../../../utils/AdUtils";
+import { ManualPromise, Store } from "../../../utils/AdUtils";
 import ApiCallback from "../support/ApiCallback";
 import LoginUtil from "../support/LoginUtil";
 
@@ -42,7 +42,7 @@ export default class TTSidebar {
     } else {
       this.launchPromise.resolve(CC_DEBUG)
     }
-    this.hasRewarded = getItem(TTSidebar._store_key, false)
+    this.hasRewarded = Store.getItem(TTSidebar._store_key, false)
     if (this.hasRewarded) {
       // 已获得入口奖励，禁用侧边栏
       this.avaliablePromise.resolve(false)

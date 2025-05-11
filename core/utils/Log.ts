@@ -30,7 +30,7 @@ let debug_log = function (tag: string, ...msg: any[]) {
     )
   } else if (platform !== Platform.WEB) {
     cc.log(
-      currentTime + ': ' + tag, ...msg.map((t) => JSON.stringify(t || ''))
+      tag, ...msg.map((t) => JSON.stringify(t || ''))
     )
   }
 }

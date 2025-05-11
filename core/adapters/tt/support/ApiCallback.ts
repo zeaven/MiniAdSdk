@@ -1,4 +1,4 @@
-import { AdHttp, getItem, saveItem } from "../../../utils/AdUtils"
+import { AdHttp, Store } from "../../../utils/AdUtils"
 import { get_log } from "../../../utils/Log"
 import { getPlatform } from "../../../utils/AdPlatform"
 
@@ -32,7 +32,7 @@ export default class ApiCallback {
   constructor(clickid: string) {
     log('ApiCallback初始化:' + clickid)
     this.platform = getPlatform()
-    this.info = getItem(ApiCallbackKey, null)
+    this.info = Store.getItem(ApiCallbackKey, null)
     if (!this.info) {
       this.info = {
         clickid,
@@ -75,7 +75,7 @@ export default class ApiCallback {
     }
 
     if (event_type) {
-      AdHttp.post(ApiCallbackURL, {
+      AdHttp.post<ApiResponse>(ApiCallbackURL, {
         event_type, context: {
           ad: {
             callback: this.info.clickid
@@ -84,7 +84,7 @@ export default class ApiCallback {
       }).then((res: ApiResponse) => {
         if (res.code === 0) {
           this.info.updatedAt = timestamp
-          saveItem(ApiCallbackKey, this.info)
+          Store.saveItem(ApiCallbackKey, this.info)
         } else {
           log(res.message)
         }
@@ -99,7 +99,7 @@ export default class ApiCallback {
   report(event_type = 'game_addiction', properties = {}) {
     if (!this.info.clickid) return
     const timestamp = Date.now()
-    AdHttp.post(ApiCallbackURL, {
+    AdHttp.post<ApiResponse>(ApiCallbackURL, {
       event_type, context: { 
         ad: { callback: this.info.clickid },
         device: { platform: this.platform },

@@ -1,6 +1,6 @@
 import { AdEventType, AdInitConfig, AdInitNext, AdInterceptor, AdInterface, IAdSdk, IPrivacyLogin, LoginCode, LoginResult } from "../Types";
 import AdEventBus from "../utils/AdEventBus";
-import { isIPrivacyLogin } from "../utils/AdUtils";
+import { isIPrivacyLogin, Store } from "../utils/AdUtils";
 import { get_log } from "../utils/Log";
 
 const log = get_log('LoginInterceptor')
@@ -20,34 +20,57 @@ export class LoginInterceptor implements AdInterceptor {
         // 是否实现了登录接口
         if (this.sdk.adapter && isIPrivacyLogin(this.sdk.adapter)) {
             const adapter = this.sdk.adapter as unknown as IPrivacyLogin
-            log('开启登录')
-            // 开启登录
-            return adapter.login().then(res => {
-                log('登录成功', res)
-                AdEventBus.instance.emit(AdEventType.LoginSuccess, res.data);
-                // 登录成功后继续初始化广告SDK
-                // 将登录信息添加到初始化参数中
-                param = param || {}
-                param.loginInfo = res.data
-                return next(param)
-            }).catch((err: LoginResult) => {
-                log('登录失败', err)
-                // 登录失败会触发登录取消事件，需要在游戏中处理登录取消事件, 比如返回游戏界面让用户重新登录
-                if (err.code === LoginCode.CANCEL_LOGIN) {
-                    // 返回游戏界面让用户重新登录
-                    AdEventBus.instance.emit(AdEventType.LoginCancelLogin, err);
-                } else if (err.code === LoginCode.CANCEL_REALNAME) {
-                    // 返回游戏界面让用户重新实名
-                    AdEventBus.instance.emit(AdEventType.LoginCancelRealname, err);
-                } else {
-                    // 其他错误
-                    AdEventBus.instance.emit(AdEventType.LoginFailed, err);
-                }
-                return Promise.reject('登录失败')
-            })
+            if (adapter.needPrivacy()) {
+                log('需要隐私政策')
+                
+                return new Promise((resolve, reject) => {
+                    AdEventBus.instance.emit(AdEventType.PrivacyShow, {
+                        agreePrivacy: () => {
+                            log('同意隐私')
+                            // 监听隐私同意事件
+                            AdEventBus.instance.emit(AdEventType.PrivacyAgreed)
+                            // 同意隐私政策，开启登录
+                            resolve(this.startLogin(adapter, next, param))
+                        }
+                    });
+                })
+            } else {
+                log('不需要隐私政策')
+                // 不需要隐私政策，直接登录
+                return this.startLogin(adapter, next, param)
+            }
         } else {
             log('未实现登录接口')
             return next(param)
         }
+    }
+
+    startLogin (adapter: IPrivacyLogin, next: AdInitNext, param?: AdInitConfig): Promise<void> {
+        log('开启登录')
+        // 开启登录
+        return adapter.login().then(res => {
+            log('登录成功', res)
+            AdEventBus.instance.emit(AdEventType.LoginSuccess, res.data);
+            // 登录成功后继续初始化广告SDK
+            // 将登录信息添加到初始化参数中，或者utils增加一个登录信息缓存对象，供其他地方使用
+            param = param || {}
+            param.loginInfo = res.data
+            Store.cache('loginInfo', res.data)
+            return next(param)
+        }).catch((err: LoginResult) => {
+            log('登录失败', err)
+            // 登录失败会触发登录取消事件，需要在游戏中处理登录取消事件, 比如返回游戏界面让用户重新登录
+            if (err.code === LoginCode.CANCEL_LOGIN) {
+                // 返回游戏界面让用户重新登录
+                AdEventBus.instance.emit(AdEventType.LoginCancelLogin, err);
+            } else if (err.code === LoginCode.CANCEL_REALNAME) {
+                // 返回游戏界面让用户重新实名
+                AdEventBus.instance.emit(AdEventType.LoginCancelRealname, err);
+            } else {
+                // 其他错误
+                AdEventBus.instance.emit(AdEventType.LoginFailed, err);
+            }
+            return Promise.reject('登录失败')
+        })
     }
 }

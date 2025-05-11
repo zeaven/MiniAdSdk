@@ -1,6 +1,6 @@
 import AdEventBus from "../utils/AdEventBus"
 import { get_log } from "../utils/Log"
-import { AdEvent, AdEventHandler, AdType } from "../Types"
+import { AdNodeEvent, AdEventHandler, AdType } from "../Types"
 
 const { ccclass, property } = cc._decorator
 
@@ -34,7 +34,7 @@ export default class AdEventConfig extends cc.Component {
   protected onEnable(): void {
     let ads = this.ads.filter(t => t.type !== AdType.None)
     if (this.combo) {
-      AdEventBus.instance.emit(AdEvent.ComboShow, this.node, ads)
+      AdEventBus.instance.emit(AdNodeEvent.ComboShow, this.node, ads)
       return
     }
     for (const event of ads) {
@@ -47,7 +47,7 @@ export default class AdEventConfig extends cc.Component {
   protected onDisable(): void {
     let ads = this.ads.filter(t => t.type !== AdType.None)
     if (this.combo) {
-      AdEventBus.instance.emit(AdEvent.ComboHide, this.node, ads)
+      AdEventBus.instance.emit(AdNodeEvent.ComboHide, this.node, ads)
       return
     }
     for (const event of ads) {

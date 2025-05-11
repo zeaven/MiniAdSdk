@@ -88,10 +88,9 @@ interface IPrivacyLogin {
    */
   login(): Promise<LoginResult>
   /**
-   * 显示隐私协议
-   * @returns 是否同意隐私 
+   * 是否需要隐私协议
    */
-  showPrivacyDlg(): Promise<boolean>
+  needPrivacy(): boolean
 }
 /**
  * 广告SDK接口，如vivo、oppo广告接口
@@ -115,7 +114,7 @@ interface IAdSdk extends AdInterface {
   config: Readonly<AdInitConfig>
   debug: boolean
   addInterceptor(platform: string, interceptor: AdInterceptor): void
-  on(adEvent: AdEvent | AdType, callback: AdCallback, target: any): void
+  on(adEvent: AdNodeEvent | AdType | AdEventType, callback: EventCallback, target?: any): Runnable
   setWhitePackage(whitePackage: boolean): void
 }
 /**
@@ -133,7 +132,7 @@ enum AdType {
 /**
  * 广告节点事件
  */
-enum AdEvent {
+enum AdNodeEvent {
   BannerShow = 'banner:show',
   BannerHide = 'banner:hide',
   InterstitialShow = 'interstitial:show',
@@ -165,6 +164,8 @@ enum AdEventType {
   LoginCancelLogin = 'login:cancel-login',
   LoginCancelRealname = 'login:cancel-realname',
   LoginFailed = 'login:failed',
+  PrivacyShow = 'privacy:show',
+  PrivacyAgreed = 'privacy:agreed',
 }
 
 @ccclass('AdEventHandler')
@@ -174,17 +175,11 @@ class AdEventHandler {
   @property({tooltip: '广告数据, 如: 1、2等,在展示广告时判断展示样式'})
   data: string = ''
 }
-/**
- * 广告事件回调上下文
- */
-type AdContext = {
-  event: string    // 广告事件
-  node: cc.Node     // 触发广告的节点
-}
+
 /**
  * 广告事件回调函数
  */
-type AdCallback = (context: AdContext, data: AdEventHandler[]|string) => void
+type EventCallback = (...args: any[]) => void
 type AdInvokeNext = (param:AdParam) => Promise<AdInvokeResult>
 type AdInitNext = (config: AdInitConfig) => Promise<void>
 /**
@@ -204,7 +199,7 @@ interface AdInterceptor {
 }
 
 export {
-  AdParam, AdInvokeResult, AdInterface, AdHandler, Callback, AdType, AdEvent,AdSession, Runnable,
-  AdEventHandler, AdContext, AdCallback, AdInterceptor,IAdConfig,AdInitNext,
+  AdParam, AdInvokeResult, AdInterface, AdHandler, Callback, AdType, AdNodeEvent, AdSession, Runnable,
+  AdEventHandler, AdInterceptor,IAdConfig,AdInitNext,EventCallback,
   AdEventType, AdInitConfig,AdInvokeNext, IAdSdk, IPrivacyLogin,LoginResult, LoginCode
 }

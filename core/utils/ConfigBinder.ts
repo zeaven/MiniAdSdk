@@ -1,5 +1,5 @@
 import AdSdk from "../AdSdk"
-import { AdContext, AdEvent, AdEventHandler, AdType } from "../Types"
+import { AdNodeEvent, AdEventHandler, AdType } from "../Types"
 
 /**
  * 配置广告绑定逻辑
@@ -14,35 +14,35 @@ export default class ConfigBinder {
   }
 
   init() {
-    AdSdk.instance.on(AdEvent.BannerShow, this.onBannerShow, this)
-    AdSdk.instance.on(AdEvent.BannerHide, this.onBannerHide, this)
+    AdSdk.instance.on(AdNodeEvent.BannerShow, this.onBannerShow, this)
+    AdSdk.instance.on(AdNodeEvent.BannerHide, this.onBannerHide, this)
     AdSdk.instance.on(AdType.Banner,this.onBanner, this)
 
-    AdSdk.instance.on(AdEvent.CustomShow, this.onCustomShow, this)
-    AdSdk.instance.on(AdEvent.CustomHide, this.onCustomHide, this)
+    AdSdk.instance.on(AdNodeEvent.CustomShow, this.onCustomShow, this)
+    AdSdk.instance.on(AdNodeEvent.CustomHide, this.onCustomHide, this)
     AdSdk.instance.on(AdType.Custom,this.onCustom, this)
 
-    AdSdk.instance.on(AdEvent.InterstitialShow, this.onInterstitialShow, this)
+    AdSdk.instance.on(AdNodeEvent.InterstitialShow, this.onInterstitialShow, this)
     AdSdk.instance.on(AdType.Interstitial,this.onInterstitial, this)
 
-    AdSdk.instance.on(AdEvent.NativeShow, this.onNativeShow, this)
+    AdSdk.instance.on(AdNodeEvent.NativeShow, this.onNativeShow, this)
     AdSdk.instance.on(AdType.Native,this.onNative, this)
 
     // combo事件需要用户自行定义怎么处理，一般用于判断配置多种广告类型，应该触发哪种方法
     // 默认实现是优先：原生模板 -> 插屏 -> Banner
-    AdSdk.instance.on(AdEvent.ComboShow, this.onComboShow, this)
-    AdSdk.instance.on(AdEvent.ComboHide, this.onComboHide, this)
+    AdSdk.instance.on(AdNodeEvent.ComboShow, this.onComboShow, this)
+    AdSdk.instance.on(AdNodeEvent.ComboHide, this.onComboHide, this)
     // AdSdk.instance.on(AdType.Combo,this.onCombo, this)
   }
 
 
-  onBannerShow(context: AdContext, data: string): void {
+  onBannerShow(node: cc.Node, data: string): void {
     AdSdk.instance.showBanner()
   }
-  onBannerHide(context: AdContext, data: string): void {
+  onBannerHide(node: cc.Node, data: string): void {
     AdSdk.instance.hideBanner();
   }
-  onBanner(context: AdContext, data: string): void {
+  onBanner(node: cc.Node, data: string): void {
     if (!data) return;
     if (data.includes('show')) {
       AdSdk.instance.showBanner()
@@ -51,13 +51,13 @@ export default class ConfigBinder {
     }
   }
 
-  onCustomShow(context: AdContext, data: string): void {
+  onCustomShow(node: cc.Node, data: string): void {
     AdSdk.instance.showCustom()
   }
-  onCustomHide(context: AdContext, data: string): void {
+  onCustomHide(node: cc.Node, data: string): void {
     AdSdk.instance.hideCustom()
   }
-  onCustom(context: AdContext,data: string): void {
+  onCustom(node: cc.Node,data: string): void {
     if (!data) return;
     if (data.includes('show')) {
       AdSdk.instance.showCustom()
@@ -66,38 +66,38 @@ export default class ConfigBinder {
     }
   }
 
-  onNativeShow(context: AdContext, data: string): void {
+  onNativeShow(node: cc.Node, data: string): void {
     AdSdk.instance.showNative()
   }
-  onNative(context: AdContext,data: string): void {
+  onNative(node: cc.Node,data: string): void {
     if (!data) return;
     if (data.includes('show')) {
       AdSdk.instance.showNative()
     }
   }
 
-  onInterstitialShow(context: AdContext, data: string): void {
+  onInterstitialShow(node: cc.Node, data: string): void {
     AdSdk.instance.showInters()
   }
-  onInterstitial(context: AdContext,data: string): void {
+  onInterstitial(node: cc.Node,data: string): void {
     if (!data) return;
     if (data.includes('show')) {
       AdSdk.instance.showInters()
     }
   }
 
-  onComboShow(context: AdContext, data: AdEventHandler[]): void {
+  onComboShow(node: cc.Node, data: AdEventHandler[]): void {
     const ads = this.adsSort(data)
     if (ads[0]) AdSdk.instance.showCustom()
         .catch(() => { if (ads[1]) return AdSdk.instance.showInters() })
         .catch(() => { if (ads[2]) return AdSdk.instance.showBanner() })
   }
-  onComboHide(context: AdContext, data: AdEventHandler[]): void {
+  onComboHide(node: cc.Node, data: AdEventHandler[]): void {
     const ads = this.adsSort(data)
     ads[0] && AdSdk.instance.hideCustom()
     ads[2] && AdSdk.instance.hideBanner()
   }
-  // onCombo(context: AdContext,data: AdEventHandler[]): void {
+  // onCombo(node: cc.Node,data: AdEventHandler[]): void {
   //   const ads = this.adsSort(data)
   //   if (ads[0]) {
   //     this.onCustom(context, ads[0].data)
