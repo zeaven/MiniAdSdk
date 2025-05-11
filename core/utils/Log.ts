@@ -1,4 +1,4 @@
-import { Platform, platform } from "./AdPlatform";
+import { Platform, curPlatform } from "./AdPlatform";
 
 let debug_enable = CC_DEBUG;
 type LogHandle = (...msg: any[]) => void;
@@ -20,15 +20,15 @@ let current_time = function (): string {
 let debug_log = function (tag: string, ...msg: any[]) {
   if (!debug_enable) return
   let currentTime = current_time()
-  if (platform === Platform.WEB) {
+  if (curPlatform === Platform.WEB) {
     console.debug(
       currentTime, tag, ...msg
     )
-  } if (platform === Platform.VIVO) {
+  } if (curPlatform === Platform.VIVO) {
     console.warn(
       currentTime, tag, ...msg
     )
-  } else if (platform !== Platform.WEB) {
+  } else if (curPlatform !== Platform.WEB) {
     cc.log(
       tag, ...msg.map((t) => JSON.stringify(t || ''))
     )

@@ -13,6 +13,7 @@ const log = get_log('LoginInterceptor')
  */
 export class LoginInterceptor implements AdInterceptor {
     sdk: IAdSdk;
+    private loginCount = 0
     attach(sdk: IAdSdk): void {
         this.sdk = sdk
     }
@@ -49,6 +50,12 @@ export class LoginInterceptor implements AdInterceptor {
     }
 
     startLogin (adapter: ILoginable, next: AdInitNext, param?: AdInitConfig): Promise<void> {
+        this.loginCount++
+        // 测试代码
+        // if (this.loginCount < 3) {
+        //     log('测试登录重试次数', this.loginCount)
+        //     return Promise.reject('登录失败')
+        // }
         log('开启登录')
         // 开启登录
         return adapter.login().then(res => {

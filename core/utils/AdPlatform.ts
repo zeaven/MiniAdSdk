@@ -83,6 +83,6 @@ const getPLATID = (): number => {
     
 }
 
-const platform = getPlatform()
+const curPlatform = getPlatform()
 
-export {platform, getPlatform, getPLATID, Platform}
+export {curPlatform, getPlatform, getPLATID, Platform}

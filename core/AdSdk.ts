@@ -5,7 +5,7 @@
 const { ccclass } = cc._decorator
 import AdEventBus from "./utils/AdEventBus";
 import { get_log, set_debug_enable } from "./utils/Log";
-import { Platform, platform } from "./utils/AdPlatform";
+import { Platform, curPlatform } from "./utils/AdPlatform";
 import { AdNodeEvent, AdEventType, AdInitConfig, AdInterceptor, AdInterface, AdInvokeResult, AdParam, AdType, IAdConfig, IAdSdk, EventCallback, Runnable } from "./Types";
 import ConfigBinder from "./utils/ConfigBinder";
 import AdConfig from "./AdConfig";
@@ -36,6 +36,8 @@ export default class AdSdk implements IAdSdk {
   private _whitePackage: boolean = false // 是否是白包
   private _inited = false
   private _config: AdInitConfig = {};
+  private _interceptorPlatforms: string[] = [];
+  
 
   get adapter(): AdInterface | undefined {
     return this._adapter
@@ -71,6 +73,28 @@ export default class AdSdk implements IAdSdk {
     return AdSdk._instance
   }
 
+  private configInterceptors(platform: string) {
+    // 保证每个平台只添加一次拦截器
+    if (this._interceptorPlatforms.includes(platform)) {
+      return
+    }
+    this._interceptorPlatforms.push(platform)
+    this.addInterceptor(platform, new LoginInterceptor())
+    this.addInterceptor(platform, new DelayInterceptor())
+    this.addInterceptor(platform, new RemoteConfigInterceptor())
+      
+    switch (platform) {
+      case Platform.TT:
+        this.addInterceptor(platform, new TTInterceptor())
+        break
+      case Platform.KS:
+        this.addInterceptor(platform, new TTInterceptor())
+        break
+      default:
+        break
+    }
+  }
+
   /**
    * @example
    * AdSdk.instance.init({debug: true,})
@@ -96,36 +120,24 @@ export default class AdSdk implements IAdSdk {
     this._config.debug = config?.debug ?? CC_DEBUG ?? false
     //是否开启调试模式，默认关闭，开启后会输出日志到控制台，方便调试，发布时请关闭，否则会影响性能，影响游戏体验
     set_debug_enable(this._config.debug)
-    AdSdk.log('初始化, 平台', platform)
-    this.setPlatform(platform).then(() => {
+    AdSdk.log('初始化, 平台', curPlatform)
+    return this.setPlatform(curPlatform).then(() => {
       ConfigBinder.instance.init()
     }).catch(e => {
       this._inited = false
       AdSdk.log('初始化失败', e)
+      return Promise.reject(e)
     })
   }
 
   private setPlatform(platform: string, config?: AdInitConfig): Promise<void> {
     this._platform = platform
     this._config = config ?? this._config ?? {}
+    this.configInterceptors(this._platform)
     return this.loadAdapter(this._platform)
   }
 
   private async loadAdapter(name: string): Promise<void>  {
-    this.addInterceptor(name, new LoginInterceptor())
-    this.addInterceptor(name, new DelayInterceptor())
-    this.addInterceptor(name, new RemoteConfigInterceptor())
-      
-    switch (name) {
-      case Platform.TT:
-        this.addInterceptor(name, new TTInterceptor())
-        break
-      case Platform.KS:
-        this.addInterceptor(name, new TTInterceptor())
-        break
-      default:
-        break
-    }
     const module = await adapters[name]()
     const config = this.getConfig(name)
     this._config.adConfig = config
