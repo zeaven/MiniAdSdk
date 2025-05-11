@@ -1,6 +1,6 @@
-import { AdEventType, AdInitConfig, AdInitNext, AdInterceptor, AdInterface, IAdSdk, IPrivacyLogin, LoginCode, LoginResult } from "../Types";
+import { AdEventType, AdInitConfig, AdInitNext, AdInterceptor, AdInterface, IAdSdk, ILoginable, LoginCode, LoginResult } from "../Types";
 import AdEventBus from "../utils/AdEventBus";
-import { isIPrivacyLogin, Store } from "../utils/AdUtils";
+import { Store } from "../utils/AdUtils";
 import { get_log } from "../utils/Log";
 
 const log = get_log('LoginInterceptor')
@@ -16,36 +16,39 @@ export class LoginInterceptor implements AdInterceptor {
     attach(sdk: IAdSdk): void {
         this.sdk = sdk
     }
-    init (next: AdInitNext, param?: AdInitConfig): Promise<void>  {
-        // 是否实现了登录接口
-        if (this.sdk.adapter && isIPrivacyLogin(this.sdk.adapter)) {
-            const adapter = this.sdk.adapter as unknown as IPrivacyLogin
-            if (adapter.needPrivacy()) {
-                log('需要隐私政策')
-                
-                return new Promise((resolve, reject) => {
-                    AdEventBus.instance.emit(AdEventType.PrivacyShow, {
-                        agreePrivacy: () => {
-                            log('同意隐私')
-                            // 监听隐私同意事件
-                            AdEventBus.instance.emit(AdEventType.PrivacyAgreed)
-                            // 同意隐私政策，开启登录
+    init (next: AdInitNext, param?: AdInitConfig): Promise<void> {
+        if (!this.sdk.adapter) {
+            log('适配器不存在')
+            return next(param)
+        }
+        // 是否需要隐私政策
+        if (this.isPrivacyable(param)) {
+            log('需要隐私政策')
+            return new Promise((resolve) => {
+                param.privacy({
+                    agreePrivacy: () => {
+                        log('同意隐私')
+                        // 监听隐私同意事件
+                        AdEventBus.instance.emit(AdEventType.PrivacyAgreed)
+                        // 同意隐私政策后，继续登录
+                        if (this.isLoginable(this.sdk.adapter)) {
+                            const adapter = this.sdk.adapter as unknown as ILoginable
                             resolve(this.startLogin(adapter, next, param))
+                        } else {
+                            log('未实现登录接口')
+                            resolve(next(param))
                         }
-                    });
-                })
-            } else {
-                log('不需要隐私政策')
-                // 不需要隐私政策，直接登录
-                return this.startLogin(adapter, next, param)
-            }
+                    }
+                });
+                delete param.privacy
+            })
         } else {
-            log('未实现登录接口')
+            log('不需要隐私政策')
             return next(param)
         }
     }
 
-    startLogin (adapter: IPrivacyLogin, next: AdInitNext, param?: AdInitConfig): Promise<void> {
+    startLogin (adapter: ILoginable, next: AdInitNext, param?: AdInitConfig): Promise<void> {
         log('开启登录')
         // 开启登录
         return adapter.login().then(res => {
@@ -72,5 +75,13 @@ export class LoginInterceptor implements AdInterceptor {
             }
             return Promise.reject('登录失败')
         })
+    }
+
+    isLoginable (adapter: AdInterface): boolean {
+        return 'login' in adapter && typeof adapter.login === 'function'
+    }
+
+    isPrivacyable (config: AdInitConfig): boolean {
+        return 'privacy' in config && typeof config.privacy === 'function'
     }
 }

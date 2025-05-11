@@ -33,7 +33,6 @@ export class RemoteConfigInterceptor implements AdInterceptor {
                 // param.adConfig = new AdConfig.HuaweiConfig()
                 // param.adConfig.BANNER_ID = ['123456']
                 const res = next(param)
-                log('调用 init 结束')
                 resolve(res)
             }, 1000)
         })

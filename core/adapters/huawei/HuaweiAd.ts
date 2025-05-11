@@ -2,7 +2,7 @@
  * 华为广告
  */
 
-import { AdEventType, AdHandler, AdInitConfig, AdInterface, AdInvokeResult, AdParam, IAdConfig, IPrivacyLogin, LoginResult } from "../../Types";
+import { AdEventType, AdHandler, AdInitConfig, AdInterface, AdInvokeResult, AdParam, IAdConfig, ILoginable, LoginResult } from "../../Types";
 import HwBannerAd from "./HwBannerAd";
 import HwIntersAd from "./HwIntersAd";
 import HwNativeAd from "./HwNativeAd";
@@ -11,7 +11,7 @@ import log from "./HwLog"
 import HwLogin from "./HwLogin";
 import AdEventBus from "../../utils/AdEventBus";
 
-export default class HuaweiAd implements AdInterface, IPrivacyLogin {
+export default class HuaweiAd implements AdInterface, ILoginable {
   
   private systemInfo!: {
     brand: string;

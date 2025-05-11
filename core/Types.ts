@@ -4,12 +4,19 @@ const { ccclass, property } = cc._decorator
 type Runnable = () => void
 type Callback = (...args: any[]) => void
 
+interface PrivacyContext {
+  agreePrivacy(): void
+}
 /**
  * 广告初始化配置
  */
 interface AdInitConfig{
+  // 是否开启调试模式，默认关闭，开启后会输出日志到控制台，方便调试，发布时请关闭，否则会影响性能，影响游戏体验
   debug?: boolean
+  // 广告配置，无需手动配置，会自动加载
   adConfig?: IAdConfig
+  // 隐私协议，实现此方法即开启隐私弹窗
+  privacy?: (ctx: PrivacyContext) => void
   [extra: string]: any
 }
 
@@ -79,18 +86,14 @@ type LoginResult = {
   data: any
 }
 /**
- * 隐私登录接口
+ * 登录接口
  */
-interface IPrivacyLogin {
+interface ILoginable {
   /**
    * 登录接口
    * @returns 是否登录成功
    */
   login(): Promise<LoginResult>
-  /**
-   * 是否需要隐私协议
-   */
-  needPrivacy(): boolean
 }
 /**
  * 广告SDK接口，如vivo、oppo广告接口
@@ -109,7 +112,7 @@ interface AdInterface {
   showToast(msg: string, duration: number): void
 }
 interface IAdSdk extends AdInterface {
-  adapter: AdInterface | void
+  adapter: AdInterface | undefined
   platform: string
   config: Readonly<AdInitConfig>
   debug: boolean
@@ -164,7 +167,6 @@ enum AdEventType {
   LoginCancelLogin = 'login:cancel-login',
   LoginCancelRealname = 'login:cancel-realname',
   LoginFailed = 'login:failed',
-  PrivacyShow = 'privacy:show',
   PrivacyAgreed = 'privacy:agreed',
 }
 
@@ -200,6 +202,6 @@ interface AdInterceptor {
 
 export {
   AdParam, AdInvokeResult, AdInterface, AdHandler, Callback, AdType, AdNodeEvent, AdSession, Runnable,
-  AdEventHandler, AdInterceptor,IAdConfig,AdInitNext,EventCallback,
-  AdEventType, AdInitConfig,AdInvokeNext, IAdSdk, IPrivacyLogin,LoginResult, LoginCode
+  AdEventHandler, AdInterceptor,IAdConfig,AdInitNext,EventCallback, PrivacyContext,
+  AdEventType, AdInitConfig,AdInvokeNext, IAdSdk, ILoginable,LoginResult, LoginCode
 }

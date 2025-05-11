@@ -33,11 +33,11 @@ export default class AdSdk implements IAdSdk {
   private _adapter?: AdInterface
   
   private _interceptors: { [key:string]: AdInterceptor[] } = {}
-  private _whitePackage: boolean; // 是否是白包
+  private _whitePackage: boolean = false // 是否是白包
   private _inited = false
-  private _config: AdInitConfig;
+  private _config: AdInitConfig = {};
 
-  get adapter(): AdInterface | void {
+  get adapter(): AdInterface | undefined {
     return this._adapter
   }
   get platform(): string {
@@ -67,7 +67,6 @@ export default class AdSdk implements IAdSdk {
         }
       }
       AdSdk._instance = new Proxy(new AdSdk(), sdkProxy)
-      AdSdk._instance.init()
     }
     return AdSdk._instance
   }
@@ -76,15 +75,17 @@ export default class AdSdk implements IAdSdk {
    * @example
    * AdSdk.instance.init({debug: true,})
    * 需要隐私登录的情况下，先监听隐私弹窗事件，再初始化
-   * AdSdk.instance.on(AdEventType.PrivacyShow, (ctx) => {
-   *   // 显示隐私弹窗
-   *   showPrivacyDlg()
-   *   // 如果用户同意隐私，调用 agreePrivacy，会通知Sdk继续初始化
-   *   ctx.agreePrivacy()
-   *   // 隐藏隐私弹窗
-   *   hidePrivacyDlg()
+   * AdSdk.instance.init({
+   *    debug: true,
+   *    privacy: (ctx) => {
+    *     // 显示隐私弹窗
+   *      showPrivacyDlg()
+   *      // 如果用户同意隐私，调用 agreePrivacy，会通知Sdk继续初始化
+   *      ctx.agreePrivacy()
+   *      // 隐藏隐私弹窗
+   *      hidePrivacyDlg()
+   *    }
    * })
-   * AdSdk.instance.init({debug: true,})
    * @param config 
    * @returns 
    */
@@ -130,10 +131,10 @@ export default class AdSdk implements IAdSdk {
     this._config.adConfig = config
     const adapter = new module.default(this._config)
     if (adapter) {
-      AdSdk.log(`适配器 [${name}] 加载完成`, config)
+      AdSdk.log(`加载适配器 [${name}]`, config)
       this._adapter = adapter
       await this.invoke('init', this._config) ?? Promise.resolve()
-      AdSdk.log(`适配器 [${this._platform}] 加载完成`)
+      AdSdk.log(`加载适配器 [${this._platform}] 完成`)
       return Promise.resolve()
     }
     return Promise.reject('适配器加载失败')
@@ -159,6 +160,7 @@ export default class AdSdk implements IAdSdk {
             const res: AdInvokeResult = {rewardPromise: Promise.resolve()}
             return Promise.resolve( res )
           }
+          AdSdk.log(`${this._adapter.constructor.name}.${method}方法被调用`)
           return this._adapter[method](...params)
         }
         // 拦截器调用链
@@ -174,7 +176,7 @@ export default class AdSdk implements IAdSdk {
         const res: AdInvokeResult = {rewardPromise: Promise.resolve()}
         return Promise.resolve( res )
       }
-      
+      AdSdk.log(`${this._adapter.constructor.name}.${method}方法被调用`)
       return this._adapter[method](...args)
     } else {
       return Promise.reject('广告无效')

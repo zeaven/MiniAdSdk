@@ -1,4 +1,4 @@
-import { AdInterface, IPrivacyLogin } from "../Types"
+import { AdInterface, ILoginable } from "../Types"
 
 /**
  * 手动控制Promise
@@ -170,13 +170,4 @@ class AdHttp {
   }
 }
 
-/**
- * 判断是否实现了登录接口
- * @param adapter 广告适配器
- * @returns 
- */
-function isIPrivacyLogin(adapter: AdInterface): adapter is AdInterface & IPrivacyLogin {
-  return 'login' in adapter && typeof adapter.login === 'function';
-}
-
-export { ManualPromise, Store, AdHttp, isIPrivacyLogin}
+export { ManualPromise, Store, AdHttp }
