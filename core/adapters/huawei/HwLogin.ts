@@ -5,7 +5,7 @@ export default class HwLogin {
         return new Promise((resolve, reject) => {
             console.log('HwLogin login', JSON.stringify(config))
             if (config.debug) {
-                resolve({data: {}, code: 0})
+                resolve({data: {}, code: LoginCode.SUCCESS})
                 return
             }
             qg.gameLoginWithReal({
@@ -13,7 +13,7 @@ export default class HwLogin {
                 appid: config.adConfig.APP_ID,
                 success:function(data){ 
                     // 登录成功后，可以存储账号信息。             
-                    resolve({data,code:0})
+                    resolve({data,code: LoginCode.SUCCESS})
                 },
                 fail:function(data,code){
                     // console.log("game login with real fail:" + data + ", code:" + code);
