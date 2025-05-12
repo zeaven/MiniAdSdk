@@ -17,49 +17,40 @@ export class LoginInterceptor implements AdInterceptor {
     attach(sdk: IAdSdk): void {
         this.sdk = sdk
     }
-    init (next: AdInitNext, param?: AdInitConfig): Promise<void> {
+    async init (next: AdInitNext, param?: AdInitConfig): Promise<void> {
         if (!this.sdk.adapter) {
             log('适配器不存在')
             return next(param)
         }
-        // 是否需要隐私政策
-        if (this.isPrivacyable(param)) {
-            log('需要隐私政策')
-            return new Promise((resolve) => {
-                if (Store.getItem('agreePrivacy')) {
-                    log('已经同意隐私')
-                    // 已经同意隐私政策，继续登录
-                    if (this.isLoginable(this.sdk.adapter)) {
-                        const adapter = this.sdk.adapter as unknown as ILoginable
-                        resolve(this.startLogin(adapter, next, param))
-                    } else {
-                        log('未实现登录接口')
-                        resolve(next(param))
-                    }
-                } else {
-                    // 没有同意隐私政策，显示隐私政策
-                    param.privacy({
-                        agreePrivacy: () => {
-                            log('同意隐私')
-                            Store.saveItem('agreePrivacy', true)
-                            // 监听隐私同意事件
-                            AdEventBus.instance.emit(AdEventType.PrivacyAgreed)
-                            // 同意隐私政策后，继续登录
-                            if (this.isLoginable(this.sdk.adapter)) {
-                                const adapter = this.sdk.adapter as unknown as ILoginable
-                                resolve(this.startLogin(adapter, next, param))
-                            } else {
-                                log('未实现登录接口')
-                                resolve(next(param))
-                            }
-                        }
-                    });
-                }
-                // delete param.privacy
-            })
-        } else {
+        const privacyPromise = this.isPrivacyable(param) ? this.startPrivacy() : Promise.resolve().then(() => {
             log('不需要隐私政策')
+        })
+        
+        await privacyPromise
+        // 已经同意隐私政策，继续登录
+        if (this.isLoginable(this.sdk.adapter)) {
+            const adapter = this.sdk.adapter as unknown as ILoginable
+            return this.startLogin(adapter, next, param)
+        } else {
+            log('未实现登录接口')
             return next(param)
+        }
+    }
+
+    startPrivacy(): Promise<void> {
+        if (Store.getItem('agreePrivacy')) {
+            log('已经同意隐私')
+            return Promise.resolve()
+        } else {
+            return new Promise((resolve) => {
+                agreePrivacy: () => {
+                    log('同意隐私')
+                    Store.saveItem('agreePrivacy', true)
+                    // 监听隐私同意事件
+                    AdEventBus.instance.emit(AdEventType.PrivacyAgreed)
+                    resolve()
+                }
+            })
         }
     }
 
