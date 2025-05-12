@@ -22,7 +22,7 @@ export class LoginInterceptor implements AdInterceptor {
             log('适配器不存在')
             return next(param)
         }
-        const privacyPromise = this.isPrivacyable(param) ? this.startPrivacy() : Promise.resolve().then(() => {
+        const privacyPromise = this.isPrivacyable(param) ? this.startPrivacy(param) : Promise.resolve().then(() => {
             log('不需要隐私政策')
         })
         
@@ -37,19 +37,21 @@ export class LoginInterceptor implements AdInterceptor {
         }
     }
 
-    startPrivacy(): Promise<void> {
+    startPrivacy(config?: AdInitConfig): Promise<void> {
         if (Store.getItem('agreePrivacy')) {
             log('已经同意隐私')
             return Promise.resolve()
         } else {
             return new Promise((resolve) => {
-                agreePrivacy: () => {
-                    log('同意隐私')
-                    Store.saveItem('agreePrivacy', true)
-                    // 监听隐私同意事件
-                    AdEventBus.instance.emit(AdEventType.PrivacyAgreed)
-                    resolve()
-                }
+                config.privacy({
+                    agreePrivacy: () => {
+                        log('同意隐私')
+                        Store.saveItem('agreePrivacy', true)
+                        // 监听隐私同意事件
+                        AdEventBus.instance.emit(AdEventType.PrivacyAgreed)
+                        resolve()
+                    }
+                })
             })
         }
     }
