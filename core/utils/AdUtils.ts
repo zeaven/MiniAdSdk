@@ -28,8 +28,18 @@ class ManualPromise<T> {
 
 /**
  * 存储工具类
+ * cache是临时缓存，退出游戏后会清除
+ * saveItem是永久缓存，退出游戏后不会清除
  */
 class Store {
+  /**
+   * 缓存键，可自行定义其他键
+   */
+  static KEY = {
+    LAUNCH_OPTIONS: 'LAUNCH_OPTIONS',
+    PLATFORM_LOGIN_RESULT: 'PLATFORM_LOGIN_RESULT',
+    API_LOGIN_RESULT: 'API_LOGIN_RESULT',
+  } as const
   private static _cache: Record<string, any> = {}
   /**
    * 缓存数据，退出游戏后会清除
@@ -64,6 +74,7 @@ class Store {
     if (expire > 0) {
       expire = Date.now() + expire
     } else if (expire === -1) {
+      this.cache(key, val)
       return
     }
     cc.sys.localStorage.setItem(key, val);  
@@ -82,7 +93,7 @@ class Store {
       Store.removeItem(key)
       return defaultVal
     } else if (expire === null) {
-      return defaultVal
+      return this.cache(key) || defaultVal
     }
     let val = cc.sys.localStorage.getItem(key)
     if (!val) {
@@ -156,10 +167,22 @@ class AdHttp {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
     }
+    let cancelSignal = false
     // 执行请求拦截器
-    let config: AdHttpContext = { url, method: method.toLowerCase(), data, headers: {...defaultHeaders, ...headers} }
+    let config: AdHttpContext = { 
+      url, 
+      method: method.toLowerCase(), 
+      data, 
+      headers: {...defaultHeaders, ...headers},
+      cancel: () => {
+        cancelSignal = true
+      }
+    }
     for (const interceptor of this.requestInterceptors) {
       config = interceptor(config) || config
+      if (cancelSignal) {
+        return Promise.reject()
+      }
     }
 
     // 拼接url

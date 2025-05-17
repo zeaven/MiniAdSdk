@@ -125,6 +125,7 @@ export default class AdSdk implements IAdSdk {
     AdSdk.log('初始化, 平台', curPlatform)
     return this.setPlatform(curPlatform).then(() => {
       ConfigBinder.instance.init()
+      AdEventBus.instance.emit(AdEventType.SdkInited)
     }).catch(e => {
       this._inited = false
       AdSdk.log('初始化失败', e)

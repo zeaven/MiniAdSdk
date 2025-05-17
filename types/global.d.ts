@@ -13,6 +13,11 @@ declare namespace qg {
   }
 
   function getSystemInfoSync(): SystemInfo;
+  function getSystemInfo(object: {
+    success?: (res: SystemInfo) => void;
+    fail?: () => void;
+    complete?: () => void;
+  }): void;
 
   // Add OPPO/Vivo style toast
   function showToast(params: {
@@ -38,7 +43,11 @@ declare namespace qg {
   function createCustomAd(options: any): any;
   function setEnableDebug(options: {enableDebug: boolean}): void;
 
- function gameLoginWithReal(arg0: { forceLogin: number; appid: string; success: (data: any) => void; fail: (data: any, code: any) => void; }): void;
+  function gameLoginWithReal(arg0: { forceLogin: number; appid: string; success: (data: any) => void; fail: (data: any, code: any) => void; }): void;
+
+  function getOAID(arg0: { success: (res: any) => void; fail: (err: any) => void; }): void;
+
+  function getLaunchOptionsSync(): any;
 }
 
 declare namespace my {

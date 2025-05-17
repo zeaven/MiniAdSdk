@@ -1,21 +1,30 @@
+import device from "../../support/Device";
 import { AdInitConfig, LoginCode, LoginResult } from "../../Types";
 import { curPlatform } from "../../utils/AdPlatform";
 import { Store } from "../../utils/AdUtils";
 
 export default class HwLogin {
-    static login(config: AdInitConfig) : Promise<LoginResult> {
+    static async login(config: AdInitConfig) : Promise<LoginResult> {
+        // 存储启动参数
+        const launchOptions = globalThis.qg.getLaunchOptionsSync()
+        Store.cache(Store.KEY.LAUNCH_OPTIONS, launchOptions)
+        // 并发执行获取启动参数和OAID
+        const [oaid, systemInfo] = await Promise.all([
+            HwLogin.getOAID(),
+            HwLogin.getSystemInfo(),
+        ])
+
         return new Promise((resolve, reject) => {
             console.log('HwLogin login', JSON.stringify(config))
-            const systemInfo = qg.getSystemInfoSync()
             if (config.debug) {
-                resolve({data: {
+                return resolve({data: {
                     code: '',
                     scene: '',
-                    clickid: '',
+                    clickid: HwLogin.getClickid(launchOptions),
                     playerId: '',
-                    oaid: '',
+                    oaid: oaid,
                     localId: '',
-                    ot: '',
+                    ot: ''+device.openCount,
                     appVersion: config.adConfig.APP_VERSION,
                     brand: systemInfo.brand,
                     packageName: config.adConfig.PACKAGE_NAME,
@@ -23,21 +32,20 @@ export default class HwLogin {
                     sdkVersion: config.sdkVersion,
                     platform: curPlatform
                 }, code: LoginCode.SUCCESS})
-                return
             }
             qg.gameLoginWithReal({
                 forceLogin:1,
                 appid: config.adConfig.APP_ID,
                 success:function(data){ 
                     // 登录成功后，可以存储账号信息。   
-                    Store.cache('PLATFORM_LOGIN_DATA', data)
-                    // 构建 Api 登录参数
+                    Store.cache(Store.KEY.PLATFORM_LOGIN_RESULT, data)
+                    // 构建 Api 登录参数, 具体参数请自行获取
                     resolve({data: {
                         code: '',
                         scene: '',
                         clickid: '',
-                        playerId: '',
-                        oaid: '',
+                        playerId: data.playerId,
+                        oaid: oaid,
                         localId: '',
                         ot: '',
                         appVersion: config.adConfig.APP_VERSION,
@@ -66,6 +74,47 @@ export default class HwLogin {
                     }
                 }
             });
+        })
+    }
+
+    static getClickid(launchOptions: any): string {
+        if (launchOptions && launchOptions.query) {
+            let query: any = launchOptions.query
+            if (query === 'string') {
+                query = JSON.parse(query)
+            }
+            if (query.clickid) {
+                return query.clickid
+            }
+        }
+        return ''
+    }
+
+    static getOAID(): Promise<string> {
+        return new Promise((resolve, reject) => {
+            globalThis.qg.getOAID({
+                success: function(res) {
+                    // console.log("getOAID success, oaid is " + res.oaid);
+                    resolve(res.oaid)
+                },
+                fail: function(err) {
+                    resolve('')
+                }
+            })
+        })
+    }
+
+    static getSystemInfo(): Promise<any> {
+        return new Promise((resolve, reject) => {
+            globalThis.qg.getSystemInfo({
+                success: function(res) {
+                    // console.log("getSystemInfo success, res is " + JSON.stringify(res));
+                    resolve(res)
+                },
+                fail: function() {
+                    reject()
+                }
+            })
         })
     }
 }

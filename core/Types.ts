@@ -162,6 +162,7 @@ Enum(AdType)
  * 广告事件类型
  */
 enum AdEventType {
+  SdkInited = 'Sdk:inited',
   AdLoaded = 'ad:loaded',
   AdClosed = 'ad:closed',
   AdError = 'ad:error',
@@ -211,6 +212,7 @@ interface AdHttpContext {
   readonly method: string
   data?: any
   headers?: Record<string, any>
+  cancel?: () => void
 }
 
 /**

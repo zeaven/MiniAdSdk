@@ -179,9 +179,11 @@ class ApiService {
   private retryLogin: Function
   private retryReport: Function
   private retryReportGame: Function
+  private debug: boolean
   
-  constructor(baseUrl: string) {
+  constructor(baseUrl: string, debug: boolean = false) {
     this.client = new AdHttp(baseUrl)
+    this.debug = debug
     // 配置请求拦截器
     this.client.addRequestInterceptor((ctx) => {
       // 加密数据
@@ -203,12 +205,18 @@ class ApiService {
   }
 
   login(data: ApiLoginData): Promise<any> {
+    if (this.debug) {
+      return Promise.resolve()
+    }
     return this.retryLogin(data)
   }
   _doReportAd(data: ApiReportData): Promise<any> {
     return this.client.post("rptv2.php?act=udata", data)
   }
   reportAd(data: ApiReportData): Promise<any> {
+    if (this.debug) {
+      return Promise.resolve()
+    }
     const loginData = Store.cache('API_LOGIN_DATA')
     if (loginData) {
       data.ssid = loginData.ssid
@@ -223,6 +231,9 @@ class ApiService {
     return this.client.post("rptv2.php?act=action", data)
   }
   reportGame(data: any): Promise<any> {
+    if (this.debug) {
+      return Promise.resolve()
+    }
     return this.retryReportGame(data)
   }
 }

@@ -4,6 +4,7 @@ import { RemoteConfigInterceptor } from "./RemoteConfigInterceptor";
 import { RetryInterceptor } from "./RetryInterceptor";
 import { TTInterceptor } from "./TTInterceptor";
 import { LoginInterceptor } from "./LoginInterceptor";
+import { HwAdStrategy } from "./HwAdStrategy";
 
 /**
  * 拦截器
@@ -50,4 +51,5 @@ export {
     TTInterceptor,
     RemoteConfigInterceptor,
     LoginInterceptor,
+    HwAdStrategy,
 }
