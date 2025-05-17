@@ -1,5 +1,5 @@
 import { AdInterceptor, AdParam, AdInvokeResult, AdInvokeNext, IAdSdk } from "../Types"
-import { mutex } from "./support"
+import { mutex } from "../utils/AdUtils"
 
 /**
  * 防并发广告

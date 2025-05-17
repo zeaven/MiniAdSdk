@@ -1,19 +1,52 @@
 import { AdInitConfig, LoginCode, LoginResult } from "../../Types";
+import { curPlatform } from "../../utils/AdPlatform";
+import { Store } from "../../utils/AdUtils";
 
 export default class HwLogin {
     static login(config: AdInitConfig) : Promise<LoginResult> {
         return new Promise((resolve, reject) => {
             console.log('HwLogin login', JSON.stringify(config))
+            const systemInfo = qg.getSystemInfoSync()
             if (config.debug) {
-                resolve({data: {}, code: LoginCode.SUCCESS})
+                resolve({data: {
+                    code: '',
+                    scene: '',
+                    clickid: '',
+                    playerId: '',
+                    oaid: '',
+                    localId: '',
+                    ot: '',
+                    appVersion: config.adConfig.APP_VERSION,
+                    brand: systemInfo.brand,
+                    packageName: config.adConfig.PACKAGE_NAME,
+                    appId: config.adConfig.APP_ID,
+                    sdkVersion: config.sdkVersion,
+                    platform: curPlatform
+                }, code: LoginCode.SUCCESS})
                 return
             }
             qg.gameLoginWithReal({
                 forceLogin:1,
                 appid: config.adConfig.APP_ID,
                 success:function(data){ 
-                    // 登录成功后，可以存储账号信息。             
-                    resolve({data,code: LoginCode.SUCCESS})
+                    // 登录成功后，可以存储账号信息。   
+                    Store.cache('PLATFORM_LOGIN_DATA', data)
+                    // 构建 Api 登录参数
+                    resolve({data: {
+                        code: '',
+                        scene: '',
+                        clickid: '',
+                        playerId: '',
+                        oaid: '',
+                        localId: '',
+                        ot: '',
+                        appVersion: config.adConfig.APP_VERSION,
+                        brand: systemInfo.brand,
+                        packageName: config.adConfig.PACKAGE_NAME,
+                        appId: config.adConfig.APP_ID,
+                        sdkVersion: config.sdkVersion,
+                        platform: curPlatform
+                    },code: LoginCode.SUCCESS})
                 },
                 fail:function(data,code){
                     // console.log("game login with real fail:" + data + ", code:" + code);

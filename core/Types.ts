@@ -13,6 +13,7 @@ interface PrivacyContext {
 interface AdInitConfig{
   // 是否开启调试模式，默认关闭，开启后会输出日志到控制台，方便调试，发布时请关闭，否则会影响性能，影响游戏体验
   debug?: boolean
+  sdkVersion?: string
   // 广告配置，无需手动配置，会自动加载
   adConfig?: IAdConfig
   // 隐私协议，实现此方法即开启隐私弹窗
@@ -74,6 +75,8 @@ interface AdInvokeResult {
   [extra: string]: any
 }
 
+/******** 登录 **********/
+
 enum LoginCode {
   SUCCESS = 0,        // 登录成功
   CANCEL_LOGIN = 1,   // 取消登录
@@ -81,10 +84,11 @@ enum LoginCode {
   FAILED = 3,         // 登录失败
 }
 
-type LoginResult = {
+interface LoginResult {
   code: LoginCode
-  data: any
+  data: ApiLoginData
 }
+
 /**
  * 登录接口
  */
@@ -95,6 +99,8 @@ interface ILoginable {
    */
   login(): Promise<LoginResult>
 }
+/********* 登录 end **********/
+
 /**
  * 广告SDK接口，如vivo、oppo广告接口
  */
@@ -200,8 +206,49 @@ interface AdInterceptor {
   hideCustom?: (next: AdInvokeNext, param?: AdParam) => Promise<AdInvokeResult> | void
 }
 
+interface AdHttpContext {
+  url: string
+  readonly method: string
+  data?: any
+  headers?: Record<string, any>
+}
+
+/**
+ * 登录数据
+ */
+interface ApiLoginData {
+  code?: string
+  scene: string
+  clickid?: string
+  oaid?: string
+  playerId?: string
+  localId?: string
+  deviceId?: string
+  appId: string
+  appVersion: string
+  packageName: string
+  brand: string
+  ot: string
+  sdkVersion: string
+  platform: string
+}
+interface ApiReportData {
+  /**
+   * 服务端每次初始化生成的唯一标识，类似 session id
+  */ 
+  ssid?: string
+  /**
+   * 服务端根据oaid、localId、playerId生成的唯一标识，用于区分不同用户
+  */
+  cid?: string
+  adID: string
+  adType: string
+  msg: string
+}
+
 export {
   AdParam, AdInvokeResult, AdInterface, AdHandler, Callback, AdType, AdNodeEvent, AdSession, Runnable,
   AdEventHandler, AdInterceptor,IAdConfig,AdInitNext,EventCallback, PrivacyContext,
-  AdEventType, AdInitConfig,AdInvokeNext, IAdSdk, ILoginable,LoginResult, LoginCode
+  AdEventType, AdInitConfig,AdInvokeNext, IAdSdk, ILoginable,LoginResult, LoginCode,
+  ApiLoginData, AdHttpContext, ApiReportData
 }

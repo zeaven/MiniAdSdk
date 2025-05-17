@@ -86,6 +86,7 @@ export default class HwNativeAd extends HwBaseAd {
       return res
     })
   }
+  
   protected createAdView(adData: NativeAdData): NativeAdView {
     const adView = this.nativeLayout.createLayout(adData)
     adView.onClick = this.onClick.bind(this)

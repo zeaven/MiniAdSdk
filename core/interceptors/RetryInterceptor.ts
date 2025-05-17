@@ -1,5 +1,5 @@
-import { AdInterceptor, AdType, AdInvokeNext, AdParam, AdInvokeResult, IAdSdk } from "../Types";
-import { retry } from "./support";
+import { AdInterceptor, AdType, AdInvokeNext, AdParam, AdInvokeResult, IAdSdk } from "../Types"
+import { retry } from "../utils/AdUtils"
 
 /**
  * 重试广告
@@ -20,14 +20,18 @@ export class RetryInterceptor implements AdInterceptor {
       this.adTypes = adTypes
     }
     attach(sdk: IAdSdk): void {
-      
+      this.retryShow = retry(this.retryShow.bind(this), this.count, 100, this.timeoutMs)
     }
   
     show (next: AdInvokeNext, param: AdParam, adType: AdType): Promise<AdInvokeResult> | void {
       if (!this.adTypes.includes(adType)) {
         return next(param)
       }
-      return retry(() => next(param), this.count, 100, this.timeoutMs)
+      return this.retryShow(next, param)
+    }
+
+    retryShow (next: AdInvokeNext, param: AdParam): Promise<AdInvokeResult> | void {
+      return next(param)
     }
   
     showCustom (next: AdInvokeNext, param: AdParam): Promise<AdInvokeResult> | void {

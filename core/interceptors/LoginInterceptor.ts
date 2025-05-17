@@ -1,4 +1,4 @@
-import { AdEventType, AdInitConfig, AdInitNext, AdInterceptor, AdInterface, IAdSdk, ILoginable, LoginCode, LoginResult, PrivacyContext } from "../Types";
+import { AdEventType, AdInitConfig, AdInitNext, AdInterceptor, AdInterface, IAdSdk, ILoginable, LoginCode, LoginResult } from "../Types";
 import AdEventBus from "../utils/AdEventBus";
 import { Store } from "../utils/AdUtils";
 import { get_log } from "../utils/Log";
@@ -66,13 +66,12 @@ export class LoginInterceptor implements AdInterceptor {
         log('开启登录')
         // 开启登录
         return adapter.login().then(res => {
-            log('登录成功', res)
+            log('平台登录成功', res)
             AdEventBus.instance.emit(AdEventType.LoginSuccess, res.data);
             // 登录成功后继续初始化广告SDK
             // 将登录信息添加到初始化参数中，或者utils增加一个登录信息缓存对象，供其他地方使用
             param = param || {}
-            param.loginInfo = res.data
-            Store.cache('loginInfo', res.data)
+            param.loginData = res.data
             return next(param)
         }).catch((err: LoginResult) => {
             log('登录失败', err)

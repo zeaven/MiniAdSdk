@@ -1,5 +1,5 @@
 import { AdInterceptor, AdInvokeNext, AdParam, AdInvokeResult, IAdSdk } from "../Types"
-import { delay } from "./support"
+import { delay } from "../utils/AdUtils"
 
 /**
  * 激励视频延时1秒展示
