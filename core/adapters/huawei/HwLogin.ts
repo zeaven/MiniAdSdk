@@ -43,11 +43,11 @@ export default class HwLogin {
                     resolve({data: {
                         code: '',
                         scene: '',
-                        clickid: '',
+                        clickid: HwLogin.getClickid(launchOptions),
                         playerId: data.playerId,
                         oaid: oaid,
                         localId: '',
-                        ot: '',
+                        ot: ''+device.openCount,
                         appVersion: config.adConfig.APP_VERSION,
                         brand: systemInfo.brand,
                         packageName: config.adConfig.PACKAGE_NAME,
