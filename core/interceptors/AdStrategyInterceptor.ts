@@ -9,12 +9,11 @@ const log = get_log('AdStrategyInterceptor')
 export class AdStrategyInterceptor implements AdInterceptor {
     sdk: IAdSdk
     remoteAdConfigData: RemoteAdConfigData
-    rewardShowCount: number = 0
-    intersShowCount: number = 0
-    nativeShowCount: number = 0
+    showCountMap = {'reward': 0, 'inters': 0, 'native': 0}
 
     attach(sdk: IAdSdk): void {
         this.sdk = sdk
+
         // 监听广告事件，上报到后端
         sdk.on(AdEventType.AdShowed, (ad: AdHandler) => {
             log('上报广告事件: ' + AdEventType.AdShowed, ad.name)
@@ -45,51 +44,52 @@ export class AdStrategyInterceptor implements AdInterceptor {
 
         /******* 激励视频 ************/
         if (this.remoteAdConfigData.rewardGap) {
-            this.delayRepeatShow(() => this.sdk.showReward(), this.remoteAdConfigData.rewardGap, this.remoteAdConfigData.rewardMaxCount)
+            this.delayRepeatShow(() => this.sdk.showReward(), 'reward', this.remoteAdConfigData.rewardGap, this.remoteAdConfigData.rewardMaxCount)
         }
         if (this.remoteAdConfigData.rewardStart) {
-            this.delayRepeatShow(() => this.sdk.showReward(), this.remoteAdConfigData.rewardStart)
+            this.delayRepeatShow(() => this.sdk.showReward(), 'reward', this.remoteAdConfigData.rewardStart)
         }
 
         /******* 插屏 ************/
         if (this.remoteAdConfigData.interstitialGap) {
-            this.delayRepeatShow(() => this.sdk.showInters(), this.remoteAdConfigData.interstitialGap, this.remoteAdConfigData.interstitialMaxCount)
+            this.delayRepeatShow(() => this.sdk.showInters(), 'inters', this.remoteAdConfigData.interstitialGap, this.remoteAdConfigData.interstitialMaxCount)
         }
         if (this.remoteAdConfigData.interstitialStart) {
-            this.delayRepeatShow(() => this.sdk.showInters(), this.remoteAdConfigData.interstitialStart)
+            this.delayRepeatShow(() => this.sdk.showInters(), 'inters', this.remoteAdConfigData.interstitialStart)
         }
 
         /******* 原生 ************/
         if (this.remoteAdConfigData.nativeGap) {
-            this.delayRepeatShow(() => this.sdk.showNative(), this.remoteAdConfigData.nativeGap, this.remoteAdConfigData.nativeMaxCount)
+            this.delayRepeatShow(() => this.sdk.showNative(), 'native', this.remoteAdConfigData.nativeGap, this.remoteAdConfigData.nativeMaxCount)
         }
         if (this.remoteAdConfigData.nativeStart) {
-            this.delayRepeatShow(() => this.sdk.showNative(), this.remoteAdConfigData.nativeStart)
+            this.delayRepeatShow(() => this.sdk.showNative(), 'native', this.remoteAdConfigData.nativeStart)
         }
     }
 
     /**
      * 
      * @param cb 展示回调
+     * @param type 广告类型
      * @param interval 展示延时时间
      * @param repeat 重复次数，为0时，失败后不会再展示，默认是1
      */
-    delayRepeatShow(cb: Function, interval: number, repeat: number = 1) {
+    delayRepeatShow(cb: Function, type: string, interval: number, repeat: number = 1) {
         // 激励视频关闭后，再次展示
         setTimeout(() => {
             // 自动展示激励视频
             cb().then((res) => {
                 if (repeat) {
                     // 更新展示次数
-                    this.rewardShowCount++
-                    if (this.rewardShowCount >= repeat) {
+                    this.showCountMap[type]++
+                    if (this.showCountMap[type] >= repeat) {
                         // 达到展示次数，不再展示
                         return
                     }
                     // 关闭后重新执行
-                    res.onClose = () => repeat && this.delayRepeatShow(cb, interval, repeat)
+                    res.onClose = () => repeat && this.delayRepeatShow(cb, type, interval, repeat)
                 }
-            }).catch(() => repeat && this.delayRepeatShow(cb, interval, repeat)) // 展示失败重新执行
+            }).catch(() => repeat && this.delayRepeatShow(cb, type, interval, repeat)) // 展示失败重新执行
         }, interval * 1000)
     }
 
