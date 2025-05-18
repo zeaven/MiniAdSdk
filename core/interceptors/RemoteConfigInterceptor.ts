@@ -3,6 +3,7 @@ import { get_log } from "../utils/Log"
 import { Api } from "../utils/Service";
 import { Store } from "../utils/AdUtils";
 import device from "../support/Device";
+import RemoteAdConfigData from "../support/RemoteAdConfigData";
 
 const log = get_log('RemoteConfigInterceptor')
 
@@ -13,15 +14,7 @@ const log = get_log('RemoteConfigInterceptor')
  */
 export class RemoteConfigInterceptor implements AdInterceptor {
     attach(sdk: IAdSdk): void {
-        // 监听广告事件，上报到后端
-        sdk.on(AdEventType.AdShowed, (ad: AdHandler) => {
-            log('上报广告事件 ' + AdEventType.AdShowed, ad.name)
-            // 请在 utils 目录下创建 Service.ts 文件，实现上报逻辑
-            // Service.report(AdEventType.AdShowed, ad, ...otherArgs)
-        });
-        sdk.on(AdEventType.AdLoaded, (ad: AdHandler) => {
-            log('上报广告事件: ' + AdEventType.AdLoaded, ad.name)
-        });
+
     }
 
     async init (next: AdInitNext, param?: AdInitConfig): Promise<void> {
@@ -39,11 +32,13 @@ export class RemoteConfigInterceptor implements AdInterceptor {
         }
 
         log('请求后端接口返回广告配置', res)
-        // 保存接口返回的广告配置
-        param.apiConfigData = res
+        // 解析后台配置
+        const remoteAdConfigData = new RemoteAdConfigData(res)
+        // 通过参数传递给下一个拦截器
+        param.remoteAdConfigData = remoteAdConfigData
         // 不同渠道添加自定义的拦截器，对接口返回的信息进行广告配置，如AdStrategyInterceptor
         await next(param)
-        delete param.apiConfigData
+        delete param.remoteAdConfigData
     }
 
 }

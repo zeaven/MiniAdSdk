@@ -50,7 +50,10 @@ export default class HuaweiAd implements AdInterface, ILoginable {
       this._inters = new HwIntersAd(...this.config.adConfig.INTERS_ID)
     }
     if (this.config.adConfig.BANNER_ID.length > 0) {
-      this._banner = new HwBannerAd(...this.config.adConfig.BANNER_ID, this.systemInfo)
+      this._banner = new HwBannerAd(...this.config.adConfig.BANNER_ID, {
+        systemInfo: this.systemInfo,
+        remoteAdConfigData: this.config.remoteAdConfigData
+      })
     }
     if (this.config.adConfig.REWARD_ID.length > 0) {
       this._reward = new HwRewardAd(...this.config.adConfig.REWARD_ID)

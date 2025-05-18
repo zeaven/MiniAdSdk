@@ -146,7 +146,7 @@ export default abstract class AdBase implements AdHandler {
     this.isShowed = false
     AdEventBus.instance.emit(AdEventType.AdClosed, this)
     // 外部监听的关闭事件
-    this.invokeResult && this.invokeResult.onClose && this.invokeResult.onClose()
+    this.invokeResult?.onClose?.()
     this.reLoad(true)
   }
   /**

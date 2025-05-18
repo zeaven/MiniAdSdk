@@ -69,8 +69,17 @@ interface AdHandler extends AdSession {
  * 广告回调类型
  */
 interface AdInvokeResult {
+  /**
+   * 广告实例
+   */
   session?: AdSession
+  /**
+   * 激励回调
+   */
   rewardPromise?: Promise<void> | null
+  /**
+   * 关闭代理回调
+   */
   onClose?: Runnable,
   [extra: string]: any
 }
