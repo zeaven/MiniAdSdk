@@ -9,7 +9,7 @@ import { Platform, curPlatform } from "./utils/AdPlatform";
 import { AdNodeEvent, AdEventType, AdInitConfig, AdInterceptor, AdInterface, AdInvokeResult, AdParam, AdType, IAdConfig, IAdSdk, EventCallback, Runnable } from "./Types";
 import ConfigBinder from "./utils/ConfigBinder";
 import AdConfig from "./AdConfig";
-import { DelayInterceptor, TTInterceptor, RemoteConfigInterceptor, LoginInterceptor } from "./interceptors/index";
+import { DelayInterceptor, TTInterceptor, RemoteConfigInterceptor, LoginInterceptor, AdStrategyInterceptor } from "./interceptors/index";
 
 // 配置加载器
 const adapters: Record<string, () => Promise<any>> = {
@@ -81,8 +81,9 @@ export default class AdSdk implements IAdSdk {
     }
     this._interceptorPlatforms.push(platform)
     this.addInterceptor(platform, new LoginInterceptor())
-    this.addInterceptor(platform, new DelayInterceptor())
     this.addInterceptor(platform, new RemoteConfigInterceptor())
+    this.addInterceptor(platform, new AdStrategyInterceptor())
+    this.addInterceptor(platform, new DelayInterceptor())
       
     switch (platform) {
       case Platform.TT:

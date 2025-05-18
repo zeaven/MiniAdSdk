@@ -31,9 +31,7 @@ export default class HuaweiAd implements AdInterface, ILoginable {
   login(): Promise<LoginResult> {
     return HwLogin.login(this.config)
   }
-  needPrivacy(): boolean {
-    return true
-  }
+
   
   /**
    * systemInfo: {"brand":"HUAWEI","model":"PAR-LX1","pixelRatio":1,"screenWidth":1080,"screenHeight":2340,"windowWidth":1080,"windowHeight":2340,"language":"zh","region":"CN","script":"Hans","coreVersion":"1.1.21","COREVersion":"1.1.21","system":"Android 9","platform":"ANDROIDOS","version":"4.6.1.300","statusBarHeight":88,"platformVersionName":"1.119","platformVersionCode":1119,"safeArea":{"bottom":780,"left":0,"right":360,"top":29.333333333333332,"height":750.6666666666666,"width":360}}
