@@ -2,6 +2,8 @@ import device from "../../support/Device";
 import { AdInitConfig, LoginCode, LoginResult } from "../../Types";
 import { curPlatform } from "../../utils/AdPlatform";
 import { Store } from "../../utils/AdUtils";
+import HuaweiAd from "./HuaweiAd";
+import log from "./HwLog";
 
 export default class HwLogin {
     static async login(config: AdInitConfig) : Promise<LoginResult> {
@@ -15,28 +17,11 @@ export default class HwLogin {
         ])
 
         return new Promise((resolve, reject) => {
-            console.log('HwLogin login', JSON.stringify(config))
-            if (config.debug) {
-                return resolve({data: {
-                    code: '',
-                    scene: '',
-                    clickid: HwLogin.getClickid(launchOptions),
-                    playerId: '',
-                    oaid: oaid,
-                    localId: '',
-                    ot: ''+device.openCount,
-                    appVersion: config.adConfig.APP_VERSION,
-                    brand: systemInfo.brand,
-                    packageName: config.adConfig.PACKAGE_NAME,
-                    appId: config.adConfig.APP_ID,
-                    sdkVersion: config.sdkVersion,
-                    platform: curPlatform
-                }, code: LoginCode.SUCCESS})
-            }
             qg.gameLoginWithReal({
                 forceLogin:1,
                 appid: config.adConfig.APP_ID,
                 success:function(data){ 
+                    log('平台登录成功', data)
                     // 登录成功后，可以存储账号信息。   
                     Store.cache(Store.KEY.PLATFORM_LOGIN_RESULT, data)
                     // 构建 Api 登录参数, 具体参数请自行获取

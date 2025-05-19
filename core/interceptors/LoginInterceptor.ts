@@ -65,7 +65,7 @@ export class LoginInterceptor implements AdInterceptor {
         // }
         log('开启登录')
         // 开启登录
-        return adapter.login().then(res => {
+        return adapter.login().then((res: LoginResult) => {
             log('平台登录成功', res)
             AdEventBus.instance.emit(AdEventType.LoginSuccess, res.data);
             // 登录成功后继续初始化广告SDK

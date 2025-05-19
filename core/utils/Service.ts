@@ -1,8 +1,10 @@
 import { ApiLoginData, ApiReportData } from "../Types"
 import { AdHttp, retry, Store } from "./AdUtils"
+import { get_log } from "./Log"
 
 
 const defaultHttp = new AdHttp('https://nk.olalay.cn:22001')
+const log = get_log('ApiService')
 
 function login(data: any) {
   console.log(data)
@@ -206,6 +208,7 @@ class ApiService {
 
   login(data: ApiLoginData): Promise<any> {
     if (this.debug) {
+      log('测试模式直接返回: ApiService.login')
       return Promise.resolve()
     }
     return this.retryLogin(data)
@@ -215,6 +218,7 @@ class ApiService {
   }
   reportAd(data: ApiReportData): Promise<any> {
     if (this.debug) {
+      log('测试模式直接返回: ApiService.reportAd')
       return Promise.resolve()
     }
     const loginData = Store.cache('API_LOGIN_DATA')
@@ -232,6 +236,7 @@ class ApiService {
   }
   reportGame(data: any): Promise<any> {
     if (this.debug) {
+      log('测试模式直接返回: ApiService.reportGame')
       return Promise.resolve()
     }
     return this.retryReportGame(data)
