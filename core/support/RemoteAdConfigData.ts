@@ -55,7 +55,7 @@ const defaultConfig: AdConfigData = {
 export default class RemoteAdConfigData implements AdConfigData {
     private config: AdConfigData
     constructor (data?: any) {
-        const valueFormData = Object.entries(data)
+        const valueFormData = Object.entries(data ?? {})
             .filter(([key, value]) => value !== null && value !== undefined)
            .reduce((obj, [key, value]) => {
                obj[key] = value

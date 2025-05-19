@@ -202,6 +202,10 @@ class ApiService {
     this.retryReportGame = retry(this._doReportGame.bind(this), 3, 100, 10000)
   }
 
+  public setDebug(debug: boolean) {
+    this.debug = debug
+  }
+
   private _doLogin(data: ApiLoginData): Promise<any> {
     return this.client.post("optv2.php?act=login", data)
   }

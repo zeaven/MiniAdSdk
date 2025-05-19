@@ -10,6 +10,7 @@ import { AdNodeEvent, AdEventType, AdInitConfig, AdInterceptor, AdInterface, AdI
 import ConfigBinder from "./utils/ConfigBinder";
 import AdConfig from "./AdConfig";
 import { DelayInterceptor, TTInterceptor, RemoteConfigInterceptor, LoginInterceptor, AdStrategyInterceptor } from "./interceptors/index";
+import { Api } from "./utils/Service";
 
 // 配置加载器
 const adapters: Record<string, () => Promise<any>> = {
@@ -121,6 +122,10 @@ export default class AdSdk implements IAdSdk {
     this._config = config || {}
     this._config.debug = config?.debug ?? CC_DEBUG ?? false
     this._config.sdkVersion = this._SDK_VERSION
+    if (curPlatform === Platform.WEB) {
+      // web 平台不请求接口
+      Api.setDebug(this._config.debug)
+    }
     //是否开启调试模式，默认关闭，开启后会输出日志到控制台，方便调试，发布时请关闭，否则会影响性能，影响游戏体验
     set_debug_enable(this._config.debug)
     AdSdk.log('初始化, 平台', curPlatform)
