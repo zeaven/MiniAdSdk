@@ -18,6 +18,8 @@ interface AdInitConfig{
   adConfig?: IAdConfig
   // 隐私协议，实现此方法即开启隐私弹窗
   privacy?: (ctx: PrivacyContext) => void
+  // 是否开启远程配置，默认开启
+  enableRemoteConfig?: boolean
   [extra: string]: any
 }
 

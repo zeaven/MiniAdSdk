@@ -18,6 +18,10 @@ export class RemoteConfigInterceptor implements AdInterceptor {
     }
 
     async init (next: AdInitNext, param?: AdInitConfig): Promise<void> {
+        if (!param.enableRemoteConfig) {
+            log('不开启远程配置')
+            return next(param)
+        }
         log('模拟请求后端接口返回广告配置', param)
         let res
         // 判断有没有登录参数
