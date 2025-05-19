@@ -45,20 +45,36 @@ export interface NativeAdView {
 
 export default class HwNativeLayout {
     static preloadMaps = {}
-    public createLayout(data: NativeAdData): NativeAdView {
+    /**
+     * 
+     * @param data 
+     * @param type 0 为原生广告，1 原生插屏，2 原生banner
+     * @returns 
+     */
+    public createLayout(data: NativeAdData, type: number = 0): NativeAdView {
         const layer = new cc.Node("AdLayer");
 
         const adView: NativeAdView = {
             node: layer,
             onClick: null,
-            onClose: null,
+            onClose: () => adView.node?.destroy(),
             onLink: null,
             disableCloseBtn: null,
             disableLinkBtn: null
         }
-        // 这里可以根据不同的 creativeType 来创建不同的模板
-        const initializer = new NormalTemplate(adView)
-        initializer.init(data)
+        if (type === 1) {
+            // 实现原生插屏广告的初始化和布局
+            // const initializer = new NativeIntersTemplate(adView)
+            // initializer.init(data)
+        } else if (type === 2) {
+            // 实现原生banner广告的初始化和布局
+            // const initializer = new NativeBannerTemplate(adView)
+            // initializer.init(data)
+        } else {
+            // 这里可以根据不同的 creativeType 来创建不同的模板
+            const initializer = new NormalTemplate(adView)
+            initializer.init(data)
+        }
 
         return adView
     }
@@ -164,10 +180,10 @@ class NormalTemplate {
         const closeBtn = new cc.Node('CloseBtn')
         closeBtn.setAnchorPoint(1, 1)
         closeBtn.setContentSize(40, 40)
-        closeBtn.setPosition(width / 2 - 10, height / 2 - 10) // 右上角偏移 10
+        closeBtn.setPosition(width / 2, height / 2 + 25) // 右上角偏移 10
         const closeLabel = closeBtn.addComponent(cc.Label)
         closeLabel.string = 'X'
-        closeLabel.fontSize = 24
+        closeLabel.fontSize = 20
         closeBtn.color = cc.Color.GRAY
         closeBtn.on(cc.Node.EventType.TOUCH_END, (event: cc.Event.EventTouch) => {
             event.stopPropagation() // 阻止冒泡到 container
@@ -177,7 +193,7 @@ class NormalTemplate {
 
         this.adView.disableCloseBtn = () => closeBtn.active = false
 
-        // 视频
+        // 视频  视频区域无法触发点击事件
         // 判断是否有视频
         if (data.videoUrlList && data.videoUrlList.length > 0) {
             // 创建视频播放器节点
@@ -197,7 +213,7 @@ class NormalTemplate {
                 videoPlayer.play();
             });
             
-            container.addChild(videoNode, 9)
+            container.addChild(videoNode, 5)
         }
 
         // 文字区域
