@@ -10,6 +10,7 @@ import HwRewardAd from "./HwRewardAd";
 import log from "./HwLog"
 import HwLogin from "./HwLogin";
 import AdEventBus from "../../utils/AdEventBus";
+import { Store } from "../../utils/AdUtils";
 
 export default class HuaweiAd implements AdInterface, ILoginable {
   
@@ -41,7 +42,23 @@ export default class HuaweiAd implements AdInterface, ILoginable {
     this.systemInfo = qg.getSystemInfoSync()
     log('init', this.systemInfo)
     this.config = initConfig
+    this.install()
     this.initAds()
+  }
+  private install(): void {
+    if (Store.getItem('installed')) {
+      return
+    }
+    Store.saveItem('installed', '1')
+    qg.hasShortcutInstalled({
+      success: (res) => {
+        if (!res) {
+          qg.installShortcut({
+            message: '添加桌面图标'
+          })
+        }
+      },
+    })
   }
   private initAds(): void {
     if (this.config.adConfig.INTERS_ID.length > 0) {

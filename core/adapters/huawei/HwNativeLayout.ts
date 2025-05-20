@@ -15,6 +15,7 @@ export interface NativeAdData {
     appName: string //应用包名
     versionName: string //应用版本号
     appDetailUrl: string //应用介绍页面对应的H5地址，建议通过qg.openDeeplink打开网页。
+    permissionUrl: string //应用安装权限说明页面对应的H5地址，建议通过qg.openDeeplink打开网页。
     width: number //广告宽度
     height: number //广告高度
 }
@@ -41,6 +42,7 @@ export interface NativeAdView {
     onLink: () => void
     disableCloseBtn: () => void
     disableLinkBtn: () => void
+    openApp: () => void
 }
 
 export default class HwNativeLayout {
@@ -54,13 +56,33 @@ export default class HwNativeLayout {
     public createLayout(data: NativeAdData, type: number = 0): NativeAdView {
         const layer = new cc.Node("AdLayer");
 
+        // this.onClick()
+        const match = data.permissionUrl?.match(/packageName=([^&"]+)/);
+        const packageName = match?.[1] ?? null;
+
+
         const adView: NativeAdView = {
             node: layer,
             onClick: null,
-            onClose: () => adView.node?.destroy(),
+            onClose: null,
             onLink: null,
             disableCloseBtn: null,
-            disableLinkBtn: null
+            disableLinkBtn: null,
+            openApp: () => {
+                if (packageName) {
+                    adView.onClose?.()
+                    qg.downloadApp({
+                        packageName: packageName,
+                        success: () => {
+                        },
+                        fail: (err) => {
+                            console.error('打开应用失败', err);
+                        },
+                    });
+                } else {
+                    adView.onClick?.()
+                }
+            }
         }
         if (type === 1) {
             // 实现原生插屏广告的初始化和布局
@@ -103,7 +125,7 @@ class NormalTemplate {
         const container = new cc.Node('AdContainer')
         const width = data.width
         const height =  data.height
-        const infoHeight = height * 0.2
+        const infoHeight = 100
         container.anchorX = 0.5
         container.anchorY = 0.5
         container.setPosition(0, 0)

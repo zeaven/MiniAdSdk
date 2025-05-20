@@ -18,6 +18,8 @@ interface AdInitConfig{
   adConfig?: IAdConfig
   // 隐私协议，实现此方法即开启隐私弹窗
   privacy?: (ctx: PrivacyContext) => void
+  // 是否开启登录，默认开启
+  enableLogin?: boolean
   // 是否开启远程配置，默认开启
   enableRemoteConfig?: boolean
   [extra: string]: any
@@ -46,8 +48,22 @@ interface IAdConfig {
  * 广告参数
  */
 type AdParam = {
-  type?: number | null // 类型参数，用于区分同一种广告的不区类型，或者同一广告在不同场景展示的样式
-  data?: any | null  // 可以是广告样式数据或奖励数据等
+  /**
+   * /类型参数，用于区分同一种广告的不区类型，或者同一广告在不同场景展示的样式
+   */
+  type?: number | null 
+  /**
+   * 可以是广告样式数据或奖励数据等
+   */
+  data?: any | null
+  /**
+   * 原生广告是否显示下载按钮
+   */
+  showDownloadButton?: boolean
+  /**
+   * 
+   */
+  disableCloseBtn?: boolean
   [extra: string]: any
 }
 /**

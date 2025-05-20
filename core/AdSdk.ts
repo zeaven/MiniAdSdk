@@ -122,6 +122,7 @@ export default class AdSdk implements IAdSdk {
     this._config.debug = config?.debug ?? CC_DEBUG ?? false
     this._config.sdkVersion = this._SDK_VERSION
     this._config.enableRemoteConfig = config?.enableRemoteConfig ?? true
+    this._config.enableLogin = config?.enableLogin ?? true
     //是否开启调试模式，默认关闭，开启后会输出日志到控制台，方便调试，发布时请关闭，否则会影响性能，影响游戏体验
     set_debug_enable(this._config.debug)
     AdSdk.log('初始化, 平台', curPlatform)

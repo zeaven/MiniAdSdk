@@ -66,7 +66,7 @@ export default abstract class AdBase implements AdHandler {
     } else {
       this.log(this.name + '创建成功')
       if (!this.isLoading && !this.ready && typeof this.ad.load === 'function') {
-        this.log(this.name + '加载中')
+        this.log(this.name + '开始加载')
         this.ad.load()
         this.isLoading = true
       }
@@ -83,7 +83,7 @@ export default abstract class AdBase implements AdHandler {
    */
   protected setLoadTimeout(): Promise<void> {
     // 设置10秒加载超时
-    this.loadTimeoutor && clearInterval(this.loadTimeoutor)
+    this.loadTimeoutor && clearTimeout(this.loadTimeoutor)
     return new Promise<void>((resolve, reject) => {
       this.loadTimeoutor = setTimeout(() => {
         if (!this.ready) {
@@ -189,6 +189,7 @@ export default abstract class AdBase implements AdHandler {
    * @returns
    */
   protected delayShowWaitLoaded(delay: number): Promise<void> {
+    this.log(this.name + '加载中')
     this.showOnLoadPromise && this.showOnLoadPromise.reject('加载超时')
     this.showOnLoadPromise = undefined
     this.showOnLoadPromise = new ManualPromise<void>();
@@ -207,7 +208,6 @@ export default abstract class AdBase implements AdHandler {
     }
     if (!this.ready) {
       if (!this.autoLoad) this.loadAd() // 未开启自动加载的，启动加载，即外部要先调用一次，用于创建广告对象需要其他参数等
-      this.log(this.name + '加载中')
       try {
           await this.delayShowWaitLoaded(this.delayShowWaitTimeout);
       } catch (err) {

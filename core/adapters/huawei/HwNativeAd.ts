@@ -12,7 +12,7 @@
  * 
  */
 
-import { AdParam, AdInvokeResult } from "../../Types"
+import { AdParam, AdInvokeResult, Runnable } from "../../Types"
 import HwBaseAd from "./HwBaseAd"
 import HwNativeLayout, { NativeAdData, NativeAdView } from "./HwNativeLayout"
 
@@ -26,6 +26,21 @@ export default class HwNativeAd extends HwBaseAd {
   constructor(...ids: any[]) {
     super(...ids)
     this.nativeLayout = new HwNativeLayout()
+  }
+
+  protected getAdListeners(): Record<string, Runnable> {
+    const listener = super.getAdListeners()
+    listener['onStatusChanged'] = this.onStatusChanged.bind(this)
+    listener['onDownloadProgress'] = this.onDownloadProgress.bind(this)
+    return listener
+  }
+
+  private onStatusChanged(res: any) {
+    this.log("onStatusChanged", res)
+   
+  }
+  private onDownloadProgress(res: any) {
+    this.log("onDownloadProgress", res)
   }
 
   protected createAd(_id: string): any {
@@ -47,9 +62,7 @@ export default class HwNativeAd extends HwBaseAd {
     }
     this.ready = true
     this.nativeLayout.preLoad(this.adData)
-    const parentSize = cc.size(this.properties?.safeArea.width || cc.winSize.width * 0.8, this.properties?.safeArea.height || cc.winSize.height * 0.8)
-    this.adData.width = parentSize.width *  (parentSize.height > parentSize.width ? 1: 0.6)
-    this.adData.height =  parentSize.height * (parentSize.height > parentSize.width ? 0.6: 1)
+    
   }
   /**
    * 
@@ -67,6 +80,7 @@ export default class HwNativeAd extends HwBaseAd {
   protected onClick(res?: any) {
     super.onClick(res)
     this.ad.reportAdClick({adId: this.adData.adId})
+    // 跳转落地页
     this.ad.startDownload({adId: this.adData.adId})
     setTimeout(() => this.close(), 500)
   }
@@ -76,34 +90,40 @@ export default class HwNativeAd extends HwBaseAd {
       if (!this.adData) {
         return Promise.reject('没有缓存的广告')
       }
-      this.adView = this.createAdView(this.adData)
+      this.adView = this.createAdView(this.adData, param)
 
       res.node = this.adView.node
       // 暴露额外方法，方便外部控制广告
-      res.showDownloadButton = () => this.showDownloadButton()
-      res.disableCloseBtn = () => this.adView.disableCloseBtn()
+      if (param.showDownloadButton) {
+        this.showDownloadButton()
+      }
+      if (param.disableCloseBtn) {
+        this.adView.disableCloseBtn()
+      }
       this.ad.reportAdShow({adId: this.adData.adId})
       return res
     })
   }
   
-  protected createAdView(adData: NativeAdData): NativeAdView {
-    const adView = this.nativeLayout.createLayout(adData)
+  protected createAdView(adData: NativeAdData, param: AdParam): NativeAdView {
+    const parentSize = cc.size(this.properties?.safeArea.width || cc.winSize.width * 0.8, this.properties?.safeArea.height || cc.winSize.height * 0.8)
+    this.adData.width = parentSize.width *  (parentSize.height > parentSize.width ? 1: 0.6)
+    this.adData.height =  parentSize.height * (parentSize.height > parentSize.width ? 0.4: 1)
+    const adView = this.nativeLayout.createLayout(adData, param.type)
     adView.onClick = this.onClick.bind(this)
     adView.onClose = this.close.bind(this)
-    adView.onLink = () => {
-      this.ad.reportAdClick({adId: adData.adId})
-      this.ad.startDownload({adId: adData.adId})
-    }
+    // 打开应用市场详情页
+    adView.onLink = adView.openApp
     return adView
   }
 
   protected showDownloadButton() {
-    this.adView.disableLinkBtn()
+    // this.adView.disableLinkBtn()
     // 通过 this.node 节点的位置和大小，设置下载按钮位置，位于底部中间
+    const width = cc.winSize.width
     const height = this.adData.height
-    const left = ((this.properties?.windowWidth || cc.winSize.width) - 100) * (this.properties?.pixelRatio || 1)
-    const top = ((this.properties?.windowHeight || cc.winSize.height) / 2 + (height / 6)) * (this.properties?.pixelRatio || 1)
+    const left = ((this.properties?.windowWidth || cc.winSize.width) * 0.5 - 50) * (this.properties?.pixelRatio || 1)
+    const top = ((this.properties?.windowHeight || cc.winSize.height) / 2) * (this.properties?.pixelRatio || 1)
     
     // 显示下载按钮
     this.ad.showDownloadButton({
@@ -112,26 +132,27 @@ export default class HwNativeAd extends HwBaseAd {
             left:left,
             top:top,
             heightType:'normal',
-            width:300,
-            minWidth:200,
-            maxWidth:500,
-            textSize:50,
-            horizontalPadding:50,
-            cornerRadius:22,
-            normalTextColor:'#FFFFFF',
-            normalBackground:'#5291FF',
-            pressedColor:'#0A59F7',
+            width:width,
+            fixedWidth: true,
+            minWidth:599,
+            maxWidth:width,
+            textSize:1,
+            horizontalPadding:0,
+            cornerRadius:0,
+            normalTextColor:'#FFFFFFFF',
+            normalBackground:'#FFFFFFFF',
+            pressedColor:'#FFFFFFFF',
             normalStroke:5,
-            normalStrokeCorlor:'#FF000000',
-            processingTextColor:'#5291FF',
-            processingBackground:'#0F000000',
-            processingColor:'#000000',
+            normalStrokeCorlor:'#EEEEEEFF',
+            processingTextColor:'#EEEEEEFFF',
+            processingBackground:'#EEEEEEFF',
+            processingColor:'#EEEEEEFF',
             processingStroke:10,
-            processingStrokeCorlor:'#0A59F7',
-            installingTextColor:'#000000',
-            installingBackground:'#FFFFFF',
+            processingStrokeCorlor:'#EEEEEEFF',
+            installingTextColor:'#EEEEEEFF',
+            installingBackground:'#EEEEEEFF',
             installingStroke:15,
-            installingStrokeCorlor:'#5291FF'
+            installingStrokeCorlor:'#EEEEEEFF'
         }
     })
   }

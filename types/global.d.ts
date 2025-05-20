@@ -48,6 +48,18 @@ declare namespace qg {
   function getOAID(arg0: { success: (res: any) => void; fail: (err: any) => void; }): void;
 
   function getLaunchOptionsSync(): any;
+
+  function downloadApp(arg0: { packageName: string; success: () => void; fail: (err: any) => void; }) {
+      throw new Error("Function not implemented.");
+  }
+
+  function installShortcut(arg0: { message: string; }) {
+    throw new Error("Function not implemented.");
+  }
+
+  function hasShortcutInstalled(arg0: { success: (res: any) => void; }) {
+    throw new Error("Function not implemented.");
+  }
 }
 
 declare namespace my {

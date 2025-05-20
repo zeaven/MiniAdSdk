@@ -63,7 +63,11 @@ export class LoginInterceptor implements AdInterceptor {
         //     log('测试登录重试次数', this.loginCount)
         //     return Promise.reject('登录失败')
         // }
-        log('开启登录')
+        if (param.enableLogin === false) {
+            log('不开启登录')
+            return next(param)
+        }
+        log('开始登录')
         // 开启登录
         return adapter.login().then((res: LoginResult) => {
             log('平台登录成功', res)
