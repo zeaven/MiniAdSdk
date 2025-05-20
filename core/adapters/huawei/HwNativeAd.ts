@@ -106,9 +106,10 @@ export default class HwNativeAd extends HwBaseAd {
   }
   
   protected createAdView(adData: NativeAdData, param: AdParam): NativeAdView {
-    const parentSize = cc.size(this.properties?.safeArea.width || cc.winSize.width * 0.8, this.properties?.safeArea.height || cc.winSize.height * 0.8)
-    this.adData.width = parentSize.width *  (parentSize.height > parentSize.width ? 1: 0.6)
-    this.adData.height =  parentSize.height * (parentSize.height > parentSize.width ? 0.4: 1)
+    // 把屏幕大小传入
+    this.adData.width = this.properties?.safeArea.width || cc.winSize.width
+    this.adData.height = this.properties?.safeArea.height || cc.winSize.height 
+
     const adView = this.nativeLayout.createLayout(adData, param.type)
     adView.onClick = this.onClick.bind(this)
     adView.onClose = this.close.bind(this)
