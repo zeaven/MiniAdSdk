@@ -91,13 +91,14 @@ export default class HwNativeLayout {
             // const initializer = new NativeIntersTemplate(adView)
             // initializer.init(data)
         } else if (type === 2) {
-            data.height = 80
+            data.width *= data.height > data.width? 1 : 0.5
+            data.height = 100
             // 实现原生banner广告的初始化和布局
             // const initializer = new NativeBannerTemplate(adView)
             // initializer.init(data)
         } else if (type === 3) {
-            data.width = 80
-            data.height = 80
+            data.width = 100
+            data.height = 100
         } else {
             data.width *= data.height > data.width ? 0.85 : 0.4
             data.height *= data.height > data.width? 0.4 : 0.85
