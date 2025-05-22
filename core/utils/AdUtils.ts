@@ -124,7 +124,18 @@ class AdHttp {
   private requestInterceptors: Array<(ctx: AdHttpContext) => AdHttpContext> = []
   private responseInterceptors: Array<(response: string) => any> = []
   private errorInterceptors: Array<(error: Error) => any> = []
-  
+  private static _instance: AdHttp
+  /**
+   * 获取AdHttp实例
+   * @param baseUrl 基础url
+   * @returns
+   */
+  static get default() {
+    if (!this._instance) {
+      this._instance = new AdHttp(cc.sys.localStorage.getItem('baseUrl') || '')
+    }
+    return this._instance
+  }
   constructor(baseUrl: string) {
     // 添加baseUrl末尾的/
     this.baseUrl = baseUrl.endsWith('/')? baseUrl: baseUrl + '/'

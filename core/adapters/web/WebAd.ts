@@ -1,12 +1,10 @@
 import { AdEventType, AdInitConfig, AdInterface, AdInvokeResult, AdParam, ILoginable, LoginCode, LoginResult } from "../../Types";
 import AdEventBus from "../../utils/AdEventBus";
 
-export default class WebAd implements AdInterface, ILoginable {
+export default class WebAd implements AdInterface {
   constructor(config: AdInitConfig) {
   }
-  login(): Promise<LoginResult> {
-    return Promise.resolve({code: LoginCode.SUCCESS, data: "登录测试数据"})
-  }
+
   init(config?: AdInitConfig): void {
     
     if (!globalThis.$JsBridge) return

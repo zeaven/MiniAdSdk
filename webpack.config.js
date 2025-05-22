@@ -3,7 +3,7 @@ const TerserPlugin = require('terser-webpack-plugin');
 const JavaScriptObfuscator = require('webpack-obfuscator');
 
 module.exports = {
-  entry: './temp/core/AdSdk.js',
+  entry: './core/AdSdk.ts',
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: 'AdSdk.core.js',
@@ -13,8 +13,20 @@ module.exports = {
     umdNamedDefine: true // 添加命名定义
   },
   mode: 'production',
+  module: {
+    rules: [
+      {
+        test: /\.tsx?$/,       // 匹配 .ts 或 .tsx 文件
+        use: 'ts-loader',
+        exclude: /node_modules/,
+      }
+    ]
+  },
+  resolve: {
+    extensions: ['.tsx', '.ts', '.js'], // 解析这些后缀的文件
+  },
   optimization: {
-    minimize: false,
+    minimize: true,
     minimizer: [
       new TerserPlugin({
         terserOptions: {
@@ -52,41 +64,41 @@ module.exports = {
     ]
   },
   plugins: [
-    new JavaScriptObfuscator({
-      unicodeEscapeSequence: true,
-      rotateStringArray: true,
-      stringArray: true,
-      stringArrayThreshold: 0.75,
-      stringArrayEncoding: ['base64'], 
-      identifierNamesGenerator: 'hexadecimal',
-      transformObjectKeys: true,
-      unicodeEscapeSequence: true,
-      controlFlowFlattening: true,
-      deadCodeInjection: true,
-      selfDefending: false,
-      reservedNames: [ // 保留AdSdk及其所有方法名
-        '^AdSdk$',
-        '^AdSdk\\..*',
-        'AdSdk',
-        'instance',
-        'on',
-        'setWhitePackage',
-        'showBox',
-        'showBanner',
-        'hideBanner',
-        'showInsert',
-        'showReward',
-        'showNative',
-        'showCustom',
-        'hideCustom',
-        'showToast',
-        'short',
-      ],
-      exclude: [
-        '**/AdConfig.js',
-        '**/AdSdk.js',
-        '**/Types.js'
-      ]
-    })
+    // new JavaScriptObfuscator({
+    //   unicodeEscapeSequence: true,
+    //   rotateStringArray: true,
+    //   stringArray: true,
+    //   stringArrayThreshold: 0.75,
+    //   stringArrayEncoding: ['base64'], 
+    //   identifierNamesGenerator: 'hexadecimal',
+    //   transformObjectKeys: true,
+    //   unicodeEscapeSequence: true,
+    //   controlFlowFlattening: true,
+    //   deadCodeInjection: true,
+    //   selfDefending: false,
+    //   reservedNames: [ // 保留AdSdk及其所有方法名
+    //     '^AdSdk$',
+    //     '^AdSdk\\..*',
+    //     'AdSdk',
+    //     'instance',
+    //     'on',
+    //     'setWhitePackage',
+    //     'showBox',
+    //     'showBanner',
+    //     'hideBanner',
+    //     'showInsert',
+    //     'showReward',
+    //     'showNative',
+    //     'showCustom',
+    //     'hideCustom',
+    //     'showToast',
+    //     'short',
+    //   ],
+    //   exclude: [
+    //     '**/AdConfig.js',
+    //     '**/AdSdk.js',
+    //     '**/Types.js'
+    //   ]
+    // })
   ]
 };
