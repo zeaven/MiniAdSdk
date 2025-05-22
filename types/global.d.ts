@@ -105,3 +105,4 @@ declare global {
     }): void;
   }
 }
+declare const BUILD_PLATFORM: string;

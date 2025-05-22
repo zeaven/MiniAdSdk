@@ -9,7 +9,10 @@
     "typeRoots": [
       "./types",
       "./node_modules/@types"
-    ]
+    ],
+    "paths": {
+      "adapter": ["./core/adapters/huawei/HuaweiAd.ts"]
+    }
   },
   "exclude": [
     "node_modules",

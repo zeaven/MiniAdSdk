@@ -10,19 +10,23 @@ import { AdNodeEvent, AdEventType, AdInitConfig, AdInterceptor, AdInterface, AdI
 import ConfigBinder from "./utils/ConfigBinder";
 import AdConfig from "./AdConfig";
 import { DelayInterceptor, TTInterceptor, RemoteConfigInterceptor, LoginInterceptor, AdStrategyInterceptor } from "./interceptors/index";
+import Adapter from 'adapter'
 
 // 配置加载器
-const adapters: Record<string, () => Promise<any>> = {
-  [Platform.WEB]: () => import('./adapters/web/WebAd'),
-  [Platform.ALIPAY]: () => import('./adapters/alipay/AlipayAd'),
-  [Platform.BOX4399]: () => import('./adapters/box4399/Box4399Ad'),
-  [Platform.HUAWEI]: () => import('./adapters/huawei/HuaweiAd'),
-  [Platform.KS]: () => import('./adapters/ks/KsAd'),
-  [Platform.M4399]: () => import('./adapters/m4399/M4399Ad'),
-  [Platform.OPPO]: () => import('./adapters/oppo/OppoAd'),
-  [Platform.TT]: () => import('./adapters/tt/TtAd'),
-  [Platform.VIVO]: () => import('./adapters/vivo/VivoAd'),
-}
+// const adapters: Record<string, () => Promise<any>> = {
+//   [Platform.WEB]: () => import('./adapters/web/WebAd'),
+//   [Platform.ALIPAY]: () => import('./adapters/alipay/AlipayAd'),
+//   [Platform.BOX4399]: () => import('./adapters/box4399/Box4399Ad'),
+//   [Platform.HUAWEI]: () => import('./adapters/huawei/HuaweiAd'),
+//   [Platform.KS]: () => import('./adapters/ks/KsAd'),
+//   [Platform.M4399]: () => import('./adapters/m4399/M4399Ad'),
+//   [Platform.OPPO]: () => import('./adapters/oppo/OppoAd'),
+//   [Platform.TT]: () => import('./adapters/tt/TtAd'),
+//   [Platform.VIVO]: () => import('./adapters/vivo/VivoAd'),
+// }
+
+
+
 
 @ccclass
 export default class AdSdk implements IAdSdk {
@@ -144,10 +148,10 @@ export default class AdSdk implements IAdSdk {
   }
 
   private async loadAdapter(name: string): Promise<void>  {
-    const module = await adapters[name]()
+    const module = await Adapter
     const config = this.getConfig(name)
     this._config.adConfig = config
-    const adapter = new module.default(this._config)
+    const adapter = new module(this._config)
     if (adapter) {
       AdSdk.log(`加载适配器 [${name}]`, config)
       this._adapter = adapter

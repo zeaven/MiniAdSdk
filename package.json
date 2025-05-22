@@ -7,14 +7,12 @@
     "prod": "webpack --config webpack.config.js",
     "full": "npm run build && npm run prod"
   },
-  "dependencies": {
-    "typescript": "^4.0.0"
-  },
   "devDependencies": {
     "@types/node": "^14.0.0",
     "javascript-obfuscator": "^4.1.1",
     "terser-webpack-plugin": "^5.3.14",
-    "typescript": "^4.0.0",
+    "ts-loader": "^9.5.2",
+    "typescript": "^4.9.5",
     "webpack": "^5.99.5",
     "webpack-cli": "^6.0.1",
     "webpack-obfuscator": "^3.5.1"
