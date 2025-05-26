@@ -153,7 +153,7 @@ export default class AdSdk implements IAdSdk {
       this._adapter = adapter
       await this.invoke('init', this._config) ?? Promise.resolve()
       AdSdk.log(`加载适配器 [${this._platform}] 完成`)
-      return Promise.resolve()
+      return
     }
     return Promise.reject('适配器加载失败')
   }
