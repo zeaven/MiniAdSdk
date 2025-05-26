@@ -273,6 +273,7 @@ interface ApiReportData {
   adID: string
   adType: string
   msg: string
+  [extra: string]: any
 }
 
 export {

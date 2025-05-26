@@ -1,6 +1,7 @@
 import RemoteAdConfigData from "../support/RemoteAdConfigData";
-import { AdEventType, AdHandler, AdInitConfig, AdInitNext, AdInterceptor, AdType, IAdSdk } from "../Types";
+import { AdEventType, AdHandler, AdInitConfig, AdInitNext, AdInterceptor, AdType, ApiReportData, IAdSdk } from "../Types";
 import { get_log } from "../utils/Log";
+import { Api } from "../utils/Service";
 
 const log = get_log('AdStrategyInterceptor')
 /**
@@ -10,6 +11,7 @@ export class AdStrategyInterceptor implements AdInterceptor {
     sdk: IAdSdk
     remoteAdConfigData: RemoteAdConfigData
     showCountMap = {'reward': 0, 'inters': 0, 'native': 0}
+    reportDataDefault: ApiReportData;
 
     attach(sdk: IAdSdk): void {
         this.sdk = sdk
@@ -22,6 +24,15 @@ export class AdStrategyInterceptor implements AdInterceptor {
          
             
             // const adType = this.getAdType(ad)
+
+            // NOTICE: 以下为测试代码
+            const reportData: ApiReportData = {...this.reportDataDefault,
+                event: AdEventType.AdShowed,
+                adType: this.getAdType(ad),
+                adID: ad.name,
+                msg: '广告展示成功',
+            }
+            Api.reportAd(reportData)
             
         });
         sdk.on(AdEventType.AdLoaded, (ad: AdHandler) => {
@@ -35,6 +46,17 @@ export class AdStrategyInterceptor implements AdInterceptor {
         // 这里还不能展示广告，因为广告适配器还没有执行init方法，广告类型也没初始化
         // 自行实现，策略数据如 HuaWeiAdData，通过param传递给适配器
         this.remoteAdConfigData = (param.remoteAdConfigData as RemoteAdConfigData) || new RemoteAdConfigData()
+        this.reportDataDefault = {
+            platform: param.loginData?.platform,
+            packageName: param.loginData?.packageName,
+            sdkVersion: param.loginData?.sdkVersion,
+            event: '',
+            adType: '',
+            oaid: param.loginData?.oaid,
+            appid: param.loginData?.appId,
+            msg: '',
+            adID: '',
+        }
 
         await next(param)
 

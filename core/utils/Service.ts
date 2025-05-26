@@ -217,7 +217,7 @@ class ApiService {
     }
     return this.retryLogin(data)
   }
-  _doReportAd(data: ApiReportData): Promise<any> {
+  private _doReportAd(data: ApiReportData): Promise<any> {
     return this.client.post("rptv2.php?act=udata", data)
   }
   reportAd(data: ApiReportData): Promise<any> {
@@ -235,7 +235,7 @@ class ApiService {
     }
     return this.retryReport(data)
   }
-  _doReportGame(data: any): Promise<any> {
+  private _doReportGame(data: any): Promise<any> {
     return this.client.post("rptv2.php?act=action", data)
   }
   reportGame(data: any): Promise<any> {
