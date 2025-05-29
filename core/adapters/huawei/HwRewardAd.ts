@@ -17,5 +17,4 @@ export default class HwRewardAd extends AdRewardBase {
     }
     return this.ad
   }
-  
 }

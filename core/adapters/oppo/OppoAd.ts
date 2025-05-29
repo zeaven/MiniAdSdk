@@ -2,7 +2,7 @@
  * VIVO广告
  */
 
-import { AdHandler, AdInitConfig, AdInterface, AdInvokeResult, AdParam, AdSession, IAdConfig } from "../../Types"
+import { AdHandler, AdInitConfig, AdInterface, AdInvokeResult, AdParam, AdSession, AdType, IAdConfig } from "../../Types"
 import log from "./OppoLog"
 import OppoBannerAd from "./OppoBannerAd";
 import OppoBoxBannerAd from "./OppoBoxBannerAd";
@@ -54,16 +54,16 @@ export default class OppoAd implements AdInterface {
     }
   }
   private showAd(
-    adName: string,
+    adName: AdType,
     ad?: AdHandler,
     param?: AdParam
   ): Promise<AdInvokeResult> {
     if (ad) {
-      log(`广告${adName}被调用`)
+      log(`广告${AdType[adName]}被调用`)
       return ad.show(param)
     } else {
-      log(`广告${adName}未初始化`)
-      return Promise.reject(adName + '无效')
+      log(`广告${AdType[adName]}未初始化`)
+      return Promise.reject(AdType[adName] + '无效')
     }
   }
   showBox(param?: AdParam): Promise<AdInvokeResult> {
@@ -72,30 +72,30 @@ export default class OppoAd implements AdInterface {
       if (param.type === 0) boxAd = this._box_banner
       if (param.type === 1) boxAd = this._box_portal
     }
-    return this.showAd('盒子广告', boxAd, param)
+    return this.showAd(AdType.Box, boxAd, param)
   }
   showBanner(param?: AdParam): Promise<AdInvokeResult> {
-    return this.showAd('banner广告',this._banner, param)
+    return this.showAd(AdType.Banner,this._banner, param)
   }
   hideBanner(param?: AdParam): Promise<void> {
     this._banner && this._banner.close()
     return Promise.resolve()
   }
   showInters(param?: AdParam): Promise<AdInvokeResult> {
-    return this.showAd('插屏广告', this._inters, param)
+    return this.showAd(AdType.Interstitial, this._inters, param)
   }
   showReward(param?: AdParam): Promise<AdInvokeResult> {
-    return this.showAd('激励视频广告广告', this._reward, param)
+    return this.showAd(AdType.Reward, this._reward, param)
   }
   showNative(param?: AdParam): Promise<AdInvokeResult> {
-    return this.showAd( '原生自渲染广告', this._native, param)
+    return this.showAd(AdType.Native, this._native, param)
   }
   hideNative(param?: AdParam): Promise<void> {
     this._native && this._native.close()
     return Promise.resolve()
   }
   showCustom(param?: AdParam): Promise<AdInvokeResult> {
-    return this.showAd( '原生模板广告', this._custom, param)
+    return this.showAd(AdType.Custom, this._custom, param)
   }
   hideCustom(param?: AdParam): Promise<void> {
     this._custom && this._custom.close()

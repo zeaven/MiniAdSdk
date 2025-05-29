@@ -14,8 +14,22 @@
 
 import { AdType } from "../../Types"
 import HwNativeAd from "./HwNativeAd"
+import { NativeAdData, NativeAdView } from "./HwNativeLayout"
 
 
 export default class HwNativeBannerAd extends HwNativeAd {
   protected type: AdType = AdType.NativeBanner
+
+  override createAdView(adData: NativeAdData): NativeAdView {
+    const adView = super.createAdView(adData)
+    const c = adView.node.getChildByName('AdContainer')
+    // 读取 this.properties 中的参数 gravity 来设置广告的位置
+    const gravity = this.properties.gravity || 'bottom'
+    if (gravity === 'bottom') {
+      c.setPosition(0, -cc.winSize.height * 0.5)
+    } else if (gravity === 'top') {
+      c.setPosition(0, cc.winSize.height * 0.5)
+    }
+    return adView
+  }
 }
