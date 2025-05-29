@@ -1,7 +1,8 @@
+import { AdType } from "../../Types";
 import KsAdBase from "./KsAdBase";
 
 export default class KsAdInters extends KsAdBase {
-  get name(): string { return '插屏' }
+  protected type: AdType = AdType.Interstitial
   protected createAd(_id: string) {
     // 快手插屏广告创建后自动加载，且没有加载回调
     this.ready = true

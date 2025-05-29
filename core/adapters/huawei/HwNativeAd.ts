@@ -12,7 +12,7 @@
  * 
  */
 
-import { AdParam, AdInvokeResult, Runnable } from "../../Types"
+import { AdParam, AdInvokeResult, Runnable, AdType } from "../../Types"
 import HwBaseAd from "./HwBaseAd"
 import HwNativeLayout, { NativeAdData, NativeAdView } from "./HwNativeLayout"
 
@@ -20,7 +20,7 @@ import HwNativeLayout, { NativeAdData, NativeAdView } from "./HwNativeLayout"
 export default class HwNativeAd extends HwBaseAd {
   private nativeLayout: HwNativeLayout
   private adView: NativeAdView
-  get name(): string { return '原生广告' }
+  protected type: AdType = AdType.Native
   private adData: NativeAdData
 
   constructor(...ids: any[]) {
@@ -90,7 +90,7 @@ export default class HwNativeAd extends HwBaseAd {
       if (!this.adData) {
         return Promise.reject('没有缓存的广告')
       }
-      this.adView = this.createAdView(this.adData, param)
+      this.adView = this.createAdView(this.adData)
 
       res.node = this.adView.node
       // 暴露额外方法，方便外部控制广告
@@ -105,12 +105,12 @@ export default class HwNativeAd extends HwBaseAd {
     })
   }
   
-  protected createAdView(adData: NativeAdData, param: AdParam): NativeAdView {
+  protected createAdView(adData: NativeAdData): NativeAdView {
     // 把屏幕大小传入
     this.adData.width = this.properties?.safeArea.width || cc.winSize.width
     this.adData.height = this.properties?.safeArea.height || cc.winSize.height 
 
-    const adView = this.nativeLayout.createLayout(adData, param.type)
+    const adView = this.nativeLayout.createLayout(adData, this.type)
     adView.onClick = this.onClick.bind(this)
     adView.onClose = this.close.bind(this)
     // 打开应用市场详情页

@@ -1,8 +1,9 @@
+import { AdType } from "../../Types";
 import BoxBaseAd from "./BoxBaseAd";
 
 export default class BoxIntersAd extends BoxBaseAd {
-  get name(): string { return '插屏' }
-  protected createAd(attrs?: Object) {
+  protected type: AdType = AdType.Interstitial;
+  protected createAd(id: string) {
     return globalThis.gamebox.createInterstitialAd();
   }
 

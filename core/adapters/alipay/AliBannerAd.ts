@@ -2,10 +2,11 @@
  * Banner广告
  */
 
+import { AdType } from "../../Types";
 import AliBaseAd from "./AliBaseAd";
 
 export default class AliBannerAd extends AliBaseAd {
-  get name(): string { return 'Banner' }
+  protected type: AdType = AdType.Banner
   protected createAd(_id: string): any {
     return my.createBannerAd({
       adUnitId: _id,

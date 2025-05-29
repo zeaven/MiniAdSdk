@@ -1,4 +1,4 @@
-import { AdHandler, AdInitConfig, AdInterface, AdInvokeResult, AdParam, IAdConfig } from "../../Types";
+import { AdHandler, AdInitConfig, AdInterface, AdInvokeResult, AdParam, AdType, IAdConfig } from "../../Types";
 import log from "./BoxLog"
 import BoxBannerAd from "./BoxBannerAd";
 import BoxIntersAd from "./BoxIntersAd";
@@ -14,6 +14,7 @@ export default class Box4399Ad implements AdInterface {
   constructor (config: AdInitConfig) {
     this.config = config
   }
+
 
   init(initConfig: AdInitConfig): void {
     this.systemInfo = globalThis.gamebox.getSystemInfoSync()
@@ -32,43 +33,46 @@ export default class Box4399Ad implements AdInterface {
     this._reward = new BoxRewardAd()
   }
   private showAd(
-    adName: string,
+    adName: AdType,
     ad?: AdHandler | null,
     param?: AdParam
   ): Promise<AdInvokeResult> {
     if (ad) {
-      log(`广告${adName}被调用`)
+      log(`广告${AdType[adName]}被调用`)
       return ad.show(param)
     } else {
-      log(`广告${adName}未初始化`)
-      return Promise.reject(adName + '无效')
+      log(`广告${AdType[adName]}未初始化`)
+      return Promise.reject(AdType[adName] + '无效')
     }
   }
   showBox(param?: AdParam): Promise<AdInvokeResult> {
-    return this.showAd('banner广告',null, param)
+    return this.showAd(AdType.Box,null, param)
   }
   showBanner(param?: AdParam): Promise<AdInvokeResult> {
-    return this.showAd('banner广告',this._banner, param)
+    return this.showAd(AdType.Banner,this._banner, param)
   }
-  hideBanner(param?: AdParam): Promise<AdInvokeResult> {
+  hideBanner(param?: AdParam): Promise<void> {
     this._banner && this._banner.close()
-    return Promise.reject(false)
+    return Promise.resolve()
   }
   showInters(param?: AdParam): Promise<AdInvokeResult> {
-    return this.showAd('插屏广告', this._inters, param)
+    return this.showAd(AdType.Interstitial, this._inters, param)
   }
   showReward(param?: AdParam): Promise<AdInvokeResult> {
-    return this.showAd('激励视频广告广告', this._reward, param)
+    return this.showAd(AdType.Reward, this._reward, param)
   }
   showNative(param?: AdParam): Promise<AdInvokeResult> {
-    return this.showAd( '原生自渲染广告', null, param)
+    return this.showAd(AdType.Native, null, param)
+  }
+  hideNative(param?: AdParam): Promise<void> {
+    return Promise.reject('暂不支持')
   }
   showCustom(param?: AdParam): Promise<AdInvokeResult> {
-    return this.showAd( '原生自渲染广告', null, param)
+    return this.showAd(AdType.Custom, null, param)
   }
-  hideCustom(param?: AdParam): Promise<AdInvokeResult> {
+  hideCustom(param?: AdParam): Promise<void> {
     // this._custom && this._custom.close()
-    return Promise.reject(false)
+    return Promise.reject('暂不支持')
   }
   showToast(msg: string, duration: number): void {
     globalThis.gamebox.showToast({

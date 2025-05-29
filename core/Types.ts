@@ -4,9 +4,6 @@ const { ccclass, property } = cc._decorator
 type Runnable = () => void
 type Callback = (...args: any[]) => void
 
-interface PrivacyContext {
-  agreePrivacy(): void
-}
 /**
  * 广告初始化配置
  */
@@ -17,7 +14,7 @@ interface AdInitConfig{
   // 广告配置，无需手动配置，会自动加载
   adConfig?: IAdConfig
   // 隐私协议，实现此方法即开启隐私弹窗
-  privacy?: (ctx: PrivacyContext) => void
+  privacy?: (agree: Runnable) => void
   // 是否开启登录，默认开启
   enableLogin?: boolean
   // 是否开启远程配置，默认开启
@@ -39,6 +36,9 @@ interface IAdConfig {
   REWARD_ID: string[]
   CUSTOM_ID: string[]
   NATIVE_ID: string[]
+  NATIVE_BANNER_ID?: string[]
+  NATIVE_ICON_ID?: string[]
+  NATIVE_INTERSTITIAL_ID?: string[]
   BOX_ID: string[]  // 
   PORTAL_ID: string[]
   [extra: string]: any
@@ -61,7 +61,7 @@ type AdParam = {
    */
   showDownloadButton?: boolean
   /**
-   * 
+   * 原生广告是否显示关闭按钮
    */
   disableCloseBtn?: boolean
   [extra: string]: any
@@ -136,12 +136,13 @@ interface AdInterface {
   
   showBox(param?: AdParam): Promise<AdInvokeResult>
   showBanner(param?: AdParam): Promise<AdInvokeResult>
-  hideBanner(param?: AdParam): Promise<AdInvokeResult>
+  hideBanner(param?: AdParam): Promise<void>
   showInters(param?: AdParam): Promise<AdInvokeResult>
   showReward(param?: AdParam): Promise<AdInvokeResult>
   showNative(param?: AdParam): Promise<AdInvokeResult>
+  hideNative(param?: AdParam): Promise<void>
   showCustom(param?: AdParam): Promise<AdInvokeResult>
-  hideCustom(param?: AdParam): Promise<AdInvokeResult>
+  hideCustom(param?: AdParam): Promise<void>
   showToast(msg: string, duration: number): void
 }
 interface IAdSdk extends AdInterface {
@@ -163,6 +164,11 @@ enum AdType {
   Reward ,
   Custom,
   Native,
+  NativeInterstitial,
+  NativeBanner,
+  NativeIcon,
+  Box,
+  Portal,
   Combo
 }
 /**
@@ -239,7 +245,7 @@ interface AdHttpContext {
   readonly method: string
   data?: any
   headers?: Record<string, any>
-  cancel?: () => void
+  cancel?: Runnable
 }
 
 /**
@@ -278,7 +284,7 @@ interface ApiReportData {
 
 export {
   AdParam, AdInvokeResult, AdInterface, AdHandler, Callback, AdType, AdNodeEvent, AdSession, Runnable,
-  AdEventHandler, AdInterceptor,IAdConfig,AdInitNext,EventCallback, PrivacyContext,
+  AdEventHandler, AdInterceptor,IAdConfig,AdInitNext,EventCallback,
   AdEventType, AdInitConfig,AdInvokeNext, IAdSdk, ILoginable,LoginResult, LoginCode,
   ApiLoginData, AdHttpContext, ApiReportData
 }

@@ -2,13 +2,11 @@
  * 原生模板广告
  */
 
-import { AdInvokeResult, AdParam, Runnable } from '../../Types'
+import { AdInvokeResult, AdParam, AdType, Runnable } from '../../Types'
 import OppoBaseAd from './OppoBaseAd'
 
 export default class OppoCustomAd extends OppoBaseAd {
-  get name(): string {
-      return '原生模板广告'
-  }
+  protected type: AdType = AdType.Custom
   protected getAdListeners(): Record<string, Runnable> {
     const listeners = super.getAdListeners()
     listeners['onHide'] = listeners['onClose']

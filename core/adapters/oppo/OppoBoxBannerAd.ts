@@ -2,14 +2,12 @@
  * 原生模板广告
  */
 
-import { AdInvokeResult, AdParam, Runnable } from '../../Types'
+import { AdInvokeResult, AdParam, AdType, Runnable } from '../../Types'
 import OppoBaseAd from './OppoBaseAd'
 import log from "./OppoLog"
 
 export default class OppoBoxBannerAd extends OppoBaseAd {
-  get name(): string {
-      return '盒子横幅广告'
-  }
+  protected type: AdType = AdType.Box
   protected getAdListeners(): Record<string, Runnable> {
     const listeners = super.getAdListeners()
     // TODO: 文档没有 onHide/onClose 事件

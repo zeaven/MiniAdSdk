@@ -1,13 +1,15 @@
-import { AdEventType, AdHandler, AdInvokeResult, AdParam, Runnable } from "../Types";
+import { AdEventType, AdHandler, AdInvokeResult, AdParam, AdType, Runnable } from "../Types";
 import AdEventBus from "../utils/AdEventBus";
 import { ManualPromise } from "../utils/AdUtils";
 
 export default abstract class AdBase implements AdHandler {
-  get name(): string { return 'ad base' }
+  get name(): string { return this._name }
   protected abstract log(...msg: any[]): void
+  protected type: AdType = AdType.None
   protected ad: any; // 广告对象
   protected ids: string[] // 广告id列表
   private idx = 0 // 广告id索引
+  private _name: string // 广告名称，如 banner广告、插屏广告等
   protected unbindAdListeners: Runnable
   protected createInterval = 1000 // 重新加载间隔 <=0，并且非立即加载，则为取消重新加载
   protected reloadCount = 0 // 重新加载次数
@@ -27,6 +29,7 @@ export default abstract class AdBase implements AdHandler {
   protected reloadMaxInterval = 30000 // 重新加载最大间隔，单位毫秒
 
   constructor(...ids: any[]) {
+    this._name = AdType[this.type]+'广告'
     this.ids = ids.filter((t) => !!t)
     if (typeof this.ids[this.ids.length-1] === 'object') {
       this.properties = this.ids.pop()

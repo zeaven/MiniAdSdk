@@ -7,7 +7,6 @@ import AdRewardBase from '../AdRewardBase'
 import log from "./VivoLog"
 
 export default class VivoRewardAd extends AdRewardBase {
-  get name(): string { return '激励视频' }
   protected log(...msg: any[]): void {
     log(...msg)
   }

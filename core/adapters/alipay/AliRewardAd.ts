@@ -2,11 +2,11 @@
  * 激励视频
  */
 
+import { AdType } from "../../Types";
 import AdRewardBase from "../AdRewardBase";
 import log from "./AliLog";
 
 export default class AliRewardAd extends AdRewardBase   {
-  get name(): string { return '激励视频' }
   protected log(...msg: any[]): void {
     log(...msg)
   }

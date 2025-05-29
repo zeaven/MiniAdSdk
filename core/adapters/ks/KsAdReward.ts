@@ -1,8 +1,8 @@
 import log from "./KsLog"
 import AdRewardBase from "../AdRewardBase";
+import { AdType } from "../../Types";
 
 export default class KsAdReward extends AdRewardBase {
-  get name(): string { return '激励视频' }
   protected log(...msg: any[]): void {
     log(...msg)
   }

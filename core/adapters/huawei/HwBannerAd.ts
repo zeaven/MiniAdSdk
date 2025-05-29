@@ -1,7 +1,8 @@
+import { AdType } from "../../Types";
 import HwBaseAd from "./HwBaseAd";
 
 export default class HwBannerAd extends HwBaseAd {
-  get name(): string { return 'Banner' }
+  protected type: AdType = AdType.Banner
   private bannerTop:number = 57
 
   constructor(...ids: any[]) {

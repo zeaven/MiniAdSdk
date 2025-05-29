@@ -2,14 +2,12 @@
  * 原生模板广告
  */
 
-import { AdHandler, AdInvokeResult, AdParam } from '../../Types'
+import { AdHandler, AdInvokeResult, AdParam, AdType } from '../../Types'
 import OppoBaseAd from './OppoBaseAd'
 import log from "./OppoLog"
 
 export default class OppoBoxPortalAd extends OppoBaseAd {
-  get name(): string {
-      return '盒子九宫格广告'
-  }
+  protected type: AdType = AdType.Portal
   protected createAd(_id: string): any {
     if (globalThis.qg.createGamePortalAd) {
       if (!this.ad) {

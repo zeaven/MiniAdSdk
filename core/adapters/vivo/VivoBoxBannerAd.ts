@@ -2,11 +2,12 @@
  * 原生模板广告
  */
 
+import { AdType } from '../../Types'
 import VivoBaseAd from './VivoBaseAd'
 import log from "./VivoLog"
 
 export default class ViviBoxBannerAd extends VivoBaseAd {
-  get name(): string { return '盒子横幅' }
+  protected type: AdType = AdType.Box
   protected createAd(_id: string): any {
     if (globalThis.qg.createBoxBannerAd) {
       this.ready = true // 默认加载

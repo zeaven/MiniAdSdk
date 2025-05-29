@@ -1,9 +1,9 @@
-import { AdParam, AdInvokeResult, AdEventType } from "../../Types";
+import { AdParam, AdInvokeResult, AdEventType, AdType } from "../../Types";
 import AdEventBus from "../../utils/AdEventBus";
 import VivoBaseAd from "./VivoBaseAd";
 
 export default class VivoNativeAd extends VivoBaseAd {
-  get name(): string { return '原生自渲染' }
+  protected type: AdType = AdType.Native
   private adInfo: any
   protected createAd(_id: string) {
     this.ready = true // 默认加载

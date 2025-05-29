@@ -2,15 +2,17 @@
  * 华为广告
  */
 
-import { AdEventType, AdHandler, AdInitConfig, AdInterface, AdInvokeResult, AdParam, IAdConfig, ILoginable, LoginResult } from "../../Types";
+import { AdHandler, AdInitConfig, AdInterface, AdInvokeResult, AdParam, AdType, ILoginable, LoginResult } from "../../Types";
 import HwBannerAd from "./HwBannerAd";
 import HwIntersAd from "./HwIntersAd";
 import HwNativeAd from "./HwNativeAd";
 import HwRewardAd from "./HwRewardAd";
 import log from "./HwLog"
 import HwLogin from "./HwLogin";
-import AdEventBus from "../../utils/AdEventBus";
 import { Store } from "../../utils/AdUtils";
+import HwNativeIconAd from "./HwNativeIconAd";
+import HwNativeBannerAd from "./HwNativeBannerAd";
+import HwNativeIntersAd from "./HwNativeIntersAd";
 
 export default class HuaweiAd implements AdInterface, ILoginable {
   
@@ -22,6 +24,9 @@ export default class HuaweiAd implements AdInterface, ILoginable {
   private _banner?: AdHandler
   private _inters?: AdHandler
   private _native?: AdHandler
+  private _nativeIcon?: AdHandler
+  private _nativeBanner?: AdHandler
+  private _nativeInters?: AdHandler
   private _reward?: AdHandler
   private _box: AdHandler
   config: AdInitConfig
@@ -76,43 +81,78 @@ export default class HuaweiAd implements AdInterface, ILoginable {
     if (this.config.adConfig.NATIVE_ID.length > 0) {
       this._native = new HwNativeAd(...this.config.adConfig.NATIVE_ID, this.systemInfo)
     }
+    if (this.config.adConfig.NATIVE_BANNER_ID.length > 0) {
+      this._nativeBanner = new HwNativeBannerAd(...this.config.adConfig.NATIVE_BANNER_ID, this.systemInfo)
+    }
+    if (this.config.adConfig.NATIVE_ICON_ID.length > 0) {
+      this._nativeIcon = new HwNativeIconAd(...this.config.adConfig.NATIVE_ICON_ID, this.systemInfo)
+    }
+    if (this.config.adConfig.NATIVE_INTERSTITIAL_ID.length > 0) {
+      this._nativeInters = new HwNativeIntersAd(...this.config.adConfig.NATIVE_INTERSTITIAL_ID, this.systemInfo)
+    }
   }
   private showAd(
-    adName: string,
+    adName: AdType,
     ad?: AdHandler,
     param?: AdParam
   ): Promise<AdInvokeResult> {
     if (ad) {
-      log(`广告${adName}被调用`)
+      log(`广告${AdType[adName]}被调用`)
       return ad.show(param)
     } else {
-      log(`广告${adName}未初始化`)
-      return Promise.reject(adName + '无效')
+      log(`广告${AdType[adName]}未初始化`)
+      return Promise.reject(AdType[adName] + '无效')
     }
   }
   showBox(param?: AdParam): Promise<AdInvokeResult> {
-    return this.showAd('盒子广告',this._box, param)
+    return this.showAd(AdType.Box,this._box, param)
   }
   showBanner(param?: AdParam): Promise<AdInvokeResult> {
-    return this.showAd('banner广告',this._banner, param)
+    return this.showAd(AdType.Banner,this._banner, param)
   }
-  hideBanner(param?: AdParam): Promise<AdInvokeResult> {
+  hideBanner(param?: AdParam): Promise<void> {
     this._banner && this._banner.close()
-    return Promise.reject(false)
+    return Promise.resolve()
   }
   showInters(param?: AdParam): Promise<AdInvokeResult> {
-    return this.showAd('插屏广告', this._inters, param)
+    return this.showAd(AdType.Interstitial, this._inters, param)
   }
   showReward(param?: AdParam): Promise<AdInvokeResult> {
-    return this.showAd('激励视频广告广告', this._reward, param)
+    return this.showAd(AdType.Reward, this._reward, param)
   }
   showNative(param?: AdParam): Promise<AdInvokeResult> {
-    return this.showAd( '原生自渲染广告', this._native, param)
+    switch (param?.type) {
+      case AdType.NativeIcon:
+        return this.showAd(AdType.NativeIcon, this._nativeIcon, param)
+      case AdType.NativeBanner:
+        return this.showAd(AdType.NativeBanner, this._nativeBanner, param)
+      case AdType.NativeInterstitial:
+        return this.showAd(AdType.NativeInterstitial, this._nativeInters, param)
+      default:
+        return this.showAd(AdType.Native, this._native, param)
+    }
+  }
+  hideNative(param?: AdParam): Promise<void> {
+    switch (param?.type) {
+      case AdType.NativeIcon:
+        this._nativeIcon?.close()
+        break
+      case AdType.NativeBanner:
+        this._nativeBanner?.close()
+        break
+      case AdType.NativeInterstitial:
+        this._nativeInters?.close()
+        break
+      default:
+        this._native?.close()
+        break
+    }
+    return Promise.resolve()
   }
   showCustom(param?: AdParam): Promise<AdInvokeResult> {
-    return this.showAd( '原生模板广告', undefined, param)
+    return this.showAd(AdType.Custom, undefined, param)
   }
-  hideCustom(param?: AdParam): Promise<AdInvokeResult> {
+  hideCustom(param?: AdParam): Promise<void> {
     return Promise.reject(false)
   }
   showToast(msg: string, duration: number): void {

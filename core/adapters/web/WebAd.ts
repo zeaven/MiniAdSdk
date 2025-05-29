@@ -27,9 +27,9 @@ export default class WebAd implements AdInterface {
     // throw new Error("Method not implemented.");
     return Promise.resolve({session: null})
   }
-  hideBanner(param?: AdParam): Promise<AdInvokeResult> {
+  hideBanner(param?: AdParam): Promise<void> {
     // throw new Error("Method not implemented.");
-    return Promise.resolve({session: null})
+    return Promise.reject(false)
   }
   showInters(param?: AdParam): Promise<AdInvokeResult> {
     globalThis.JsBridge && globalThis.JsBridge.showInterstitial()
@@ -54,11 +54,14 @@ export default class WebAd implements AdInterface {
     // throw new Error("Method not implemented.");
     return Promise.resolve({session: null})
   }
+  hideNative(param?: AdParam): Promise<void> {
+    return Promise.reject(false)
+  }
   showCustom(param?: AdParam): Promise<AdInvokeResult> {
     return Promise.reject()
   }
-  hideCustom(param?: AdParam): Promise<AdInvokeResult> {
-    return Promise.resolve({session: null})
+  hideCustom(param?: AdParam): Promise<void> {
+    return Promise.reject(false)
   }
   showToast(msg: string, duration: number): void {
     // throw new Error("Method not implemented.");

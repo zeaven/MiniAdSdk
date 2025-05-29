@@ -78,9 +78,9 @@ export default class VivoAd implements AdInterface {
   showBanner(param?: AdParam): Promise<AdInvokeResult> {
     return this.showAd('banner广告',this._banner, param)
   }
-  hideBanner(param?: AdParam): Promise<AdInvokeResult> {
+  hideBanner(param?: AdParam): Promise<void> {
     this._banner && this._banner.close()
-    return Promise.reject(false)
+    return Promise.resolve()
   }
   showInters(param?: AdParam): Promise<AdInvokeResult> {
     return this.showAd('插屏广告', this._inters, param)
@@ -91,12 +91,16 @@ export default class VivoAd implements AdInterface {
   showNative(param?: AdParam): Promise<AdInvokeResult> {
     return this.showAd( '原生自渲染广告', this._native, param)
   }
+  hideNative(param?: AdParam): Promise<void> {
+    this._native && this._native.close()
+    return Promise.resolve()
+  }
   showCustom(param?: AdParam): Promise<AdInvokeResult> {
     return this.showAd( '原生模板广告', this._custom, param)
   }
-  hideCustom(param?: AdParam): Promise<AdInvokeResult> {
+  hideCustom(param?: AdParam): Promise<void> {
     this._custom && this._custom.close()
-    return Promise.reject(false)
+    return Promise.resolve()
   }
   showToast(msg: string, duration: number): void {
       globalThis.qg.showToast({message: msg, duration: 0})

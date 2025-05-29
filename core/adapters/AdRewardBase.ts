@@ -1,9 +1,10 @@
-import { AdEventType, AdHandler, AdInvokeResult, AdParam, Runnable } from "../Types";
+import { AdEventType, AdHandler, AdInvokeResult, AdParam, AdType, Runnable } from "../Types";
 import { ManualPromise } from "../utils/AdUtils";
 import AdBase from "./AdBase";
 
 export default abstract class AdRewardBase extends AdBase {
   private rewardPromise?: ManualPromise<void>
+  protected type: AdType = AdType.Reward
   protected autoDestroy: boolean = false
 
   protected abstract checkReward(res: any): boolean

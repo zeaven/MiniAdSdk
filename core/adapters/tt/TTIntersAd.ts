@@ -2,11 +2,11 @@
  * 插屏广告
  */
 
-import { AdParam, AdInvokeResult } from "../../Types";
+import { AdParam, AdInvokeResult, AdType } from "../../Types";
 import TTBaseAd from "./TTBaseAd";
 
 export default class TTInsertAd extends TTBaseAd {
-  get name(): string { return '插屏' }
+  protected type: AdType = AdType.Interstitial;
   protected createAd(_id: string): any {
     if (!this.ad) {
       return globalThis.tt.createInterstitialAd({

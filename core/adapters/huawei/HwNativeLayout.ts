@@ -1,4 +1,5 @@
 import { Draggable } from "../../support/Draggable"
+import { AdType } from "../../Types"
 
 export interface NativeAdData {
     adId: string
@@ -54,7 +55,7 @@ export default class HwNativeLayout {
      * @param type 0 为原生广告，1 原生插屏，2 原生banner, 3 浮动icon
      * @returns 
      */
-    public createLayout(data: NativeAdData, type: number = 0): NativeAdView {
+    public createLayout(data: NativeAdData, type: AdType = AdType.None): NativeAdView {
         const layer = new cc.Node("AdLayer");
 
         // this.onClick()
@@ -84,19 +85,19 @@ export default class HwNativeLayout {
                 }
             }
         }
-        if (type === 1) {
+        if (type === AdType.NativeInterstitial) {
             data.width *= data.height > data.width ? 0.85 : 0.3
             data.height *= data.height > data.width? 0.3 : 0.8
             // 实现原生插屏广告的初始化和布局
             // const initializer = new NativeIntersTemplate(adView)
             // initializer.init(data)
-        } else if (type === 2) {
+        } else if (type === AdType.NativeBanner) {
             data.width *= data.height > data.width? 1 : 0.5
             data.height = 100
             // 实现原生banner广告的初始化和布局
             // const initializer = new NativeBannerTemplate(adView)
             // initializer.init(data)
-        } else if (type === 3) {
+        } else if (type === AdType.NativeIcon) {
             data.width = 100
             data.height = 100
         } else {

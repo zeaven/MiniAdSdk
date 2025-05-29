@@ -3,11 +3,12 @@
  */
 
 
+import { AdType } from '../../Types'
 import AdRewardBase from '../AdRewardBase'
 import log from "./TTLog"
 
 export default class TTRewardAd extends AdRewardBase {
-  get name(): string { return '激励视频' }
+  protected type: AdType = AdType.Reward
   protected log(...msg: any[]): void {
     log(...msg)
   }

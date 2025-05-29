@@ -2,13 +2,11 @@
  * Banner广告
  */
 
-import { AdParam, AdInvokeResult, Runnable } from "../../Types";
+import { AdParam, AdInvokeResult, Runnable, AdType } from "../../Types";
 import OppoBaseAd from "./OppoBaseAd";
 
 export default class OppoBannerAd extends OppoBaseAd {
-  get name(): string {
-      return 'banner广告'
-  }
+  protected type: AdType = AdType.Banner;
   
   protected getAdListeners(): Record<string, Runnable> {
     const listeners = super.getAdListeners()

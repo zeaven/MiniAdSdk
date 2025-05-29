@@ -1,13 +1,14 @@
+import { AdType } from "../../Types";
 import BoxBaseAd from "./BoxBaseAd";
 
 export default class BoxBannerAd extends BoxBaseAd {
-  get name(): string { return 'banner' }
-  protected createAd(attrs?: any) {
+  protected type: AdType = AdType.Banner
+  protected createAd(id: string) {
     return globalThis.gamebox.createBannerAd({style:{
-      width : attrs.width,
-      height : attrs.height,
-      left : attrs.bannerLeft,
-      top : attrs.bannerTop 
+      width : this.properties?.width,
+      height : this.properties?.height,
+      left : this.properties?.bannerLeft,
+      top : this.properties?.bannerTop 
     }});
   }
 

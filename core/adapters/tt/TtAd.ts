@@ -52,9 +52,9 @@ export default class TTAd implements AdInterface {
   showBanner(param?: AdParam): Promise<AdInvokeResult> {
     return this.showAd('banner广告',this._banner, param)
   }
-  hideBanner(param?: AdParam): Promise<AdInvokeResult> {
+  hideBanner(param?: AdParam): Promise<void> {
     this._banner && this._banner.close()
-    return Promise.reject(false)
+    return Promise.resolve()
   }
   showInters(param?: AdParam): Promise<AdInvokeResult> {
     return this.showAd('插屏广告', this._inters, param)
@@ -65,10 +65,13 @@ export default class TTAd implements AdInterface {
   showNative(param?: AdParam): Promise<AdInvokeResult> {
     return this.showAd( '原生自渲染广告', undefined, param)
   }
+  hideNative(param?: AdParam): Promise<void> {
+    return Promise.reject(false)
+  }
   showCustom(param?: AdParam): Promise<AdInvokeResult> {
     return this.showAd( '原生模板广告', undefined, param)
   }
-  hideCustom(param?: AdParam): Promise<AdInvokeResult> {
+  hideCustom(param?: AdParam): Promise<void> {
     return Promise.reject(false)
   }
   showToast(msg: string, duration: number): void {

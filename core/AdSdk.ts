@@ -274,7 +274,7 @@ export default class AdSdk implements IAdSdk {
   showBanner(param?: AdParam): Promise<AdInvokeResult> {
     throw new Error('Method not implemented.')
   }
-  hideBanner(param?: AdParam): Promise<AdInvokeResult> {
+  hideBanner(param?: AdParam): Promise<void> {
     throw new Error('Method not implemented.')
   }
   showInters(param?: AdParam): Promise<AdInvokeResult> {
@@ -286,10 +286,13 @@ export default class AdSdk implements IAdSdk {
   showNative(param?: AdParam): Promise<AdInvokeResult> {
     throw new Error('Method not implemented.')
   }
+  hideNative(param?: AdParam): Promise<void> {
+    throw new Error('Method not implemented.')
+  }
   showCustom(param?: AdParam): Promise<AdInvokeResult> {
     throw new Error('Method not implemented.')
   }
-  hideCustom(param?: AdParam): Promise<AdInvokeResult> {
+  hideCustom(param?: AdParam): Promise<void> {
     throw new Error('Method not implemented.')
   }
   showToast(msg: string, duration: number): void {

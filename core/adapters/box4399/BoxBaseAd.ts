@@ -1,3 +1,4 @@
+import { AdType } from "../../Types";
 import AdBase from "../AdBase";
 import log from "./BoxLog"
 
