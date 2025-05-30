@@ -3,11 +3,11 @@ import { Platform, curPlatform } from "./AdPlatform";
 let debug_enable = CC_DEBUG;
 type LogHandle = (...msg: any[]) => void;
 
-let set_debug_enable = function (debug: boolean) {
+const set_debug_enable = function (debug: boolean) {
   debug_enable = debug;
 }
 
-let current_time = function (): string {
+const current_time = function (): string {
   let currentTime = new Date()
   let hours = currentTime.getHours().toString().padStart(2, '0')
   let minutes = currentTime.getMinutes().toString().padStart(2, '0')
@@ -17,7 +17,7 @@ let current_time = function (): string {
   return `${hours}:${minutes}:${seconds}.${milliseconds}`
 }
 
-let debug_log = function (tag: string, ...msg: any[]) {
+const debug_log = function (tag: string, ...msg: any[]) {
   if (!debug_enable) return
   let currentTime = current_time()
   if (curPlatform === Platform.WEB) {
@@ -35,7 +35,7 @@ let debug_log = function (tag: string, ...msg: any[]) {
   }
 }
 
-let get_log = function (name: string): LogHandle {
+const get_log = function (name: string): LogHandle {
   return (...msg: any[]) => debug_log(name, msg)
 }
 
