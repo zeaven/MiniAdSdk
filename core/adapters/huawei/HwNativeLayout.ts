@@ -1,5 +1,5 @@
 import { Draggable } from "../../support/Draggable"
-import { AdType } from "../../Types"
+import { AdType, Callback, Runnable } from "../../Types"
 
 export interface NativeAdData {
     adId: string
@@ -39,13 +39,53 @@ function loadRemoteImage(url: string, cb?: (sf: cc.SpriteFrame) => void) {
 
 export interface NativeAdView {
     node: cc.Node
-    onClick: () => void
-    onClose: () => void
-    onLink: () => void
-    disableCloseBtn: () => void
-    disableLinkBtn: () => void
-    openApp: () => void
+    /**
+     * 广告区域被点击时的回调
+     */
+    onClick: Runnable
+    /**
+     * 广告按钮[clickBtnTxt]被点击时的回调，注意不是原生下载按钮
+     */
+    onLink: Runnable
+    /**
+     * 广告关闭按钮被点击时的回调
+     */
+    onClose: Runnable
+    /**
+     * 点击遮罩时的回调
+     */
+    onMaskClick: Runnable
+    /**
+     * 禁用关闭按钮
+     */
+    disableCloseBtn: Runnable
+    /**
+     * 禁用下载按钮
+     */
+    disableLinkBtn: Runnable
+    /**
+     * 打开应用详情页
+     */
+    openApp: Runnable
+    /**
+     * 是否模态框
+     * @param enable true/false
+     * @returns 
+     */
+    modal: (enable: boolean) => void
+    /**
+     * 关闭广告
+     */
+    close: Runnable
+    /**
+     * banner 广告的位置
+     * @param gravity top/bottom
+     * @returns 
+     */
+    gravity: (gravity: 'top' | 'bottom') => void
 }
+
+
 
 export default class HwNativeLayout {
     static preloadMaps = {}
@@ -62,53 +102,75 @@ export default class HwNativeLayout {
         const match = data.permissionUrl?.match(/packageName=([^&"]+)/);
         const packageName = match?.[1] ?? null;
 
+        const adView: NativeAdView = this.getDefaultAdView(layer, packageName)
+
+        if (type === AdType.NativeInterstitial) {
+            data.width *= data.height > data.width ? 0.85 : 0.4
+            data.height *= data.height > data.width? 0.4 : 0.8
+            // 屏蔽点击事件
+            layer.addComponent(cc.BlockInputEvents);
+            layer.on(cc.Node.EventType.TOUCH_END, () => {
+                adView.onMaskClick?.()
+            })
+        } else if (type === AdType.NativeBanner) {
+            data.width *= data.height > data.width? 1 : 0.5
+            data.height = 100
+        } else if (type === AdType.NativeIcon) {
+            data.width = 100
+            data.height = 100
+        } else {
+            data.width *= data.height > data.width ? 0.85 : 0.5
+            data.height *= data.height > data.width? 0.5 : 0.85
+            // 屏蔽点击事件
+            layer.addComponent(cc.BlockInputEvents);
+            layer.on(cc.Node.EventType.TOUCH_END, () => {
+                adView.onMaskClick?.()
+            })
+        }
+        // 这里可以根据不同的 creativeType 来创建不同的模板
+        const initializer = new NormalTemplate(adView)
+        initializer.init(data, type)
+        return adView
+    }
+    private getDefaultAdView(layer: cc.Node, packageName: string): NativeAdView {
         const adView: NativeAdView = {
             node: layer,
-            onClick: () => {},
-            onClose: () => adView.node.destroy(),
-            onLink: () => {},
-            disableCloseBtn: () => {},
-            disableLinkBtn: () => {},
+            onClick: () => { },
+            onClose: () => { },
+            onLink: () => { },
+            onMaskClick: () => { },
+            disableCloseBtn: () => { },
+            disableLinkBtn: () => { },
+            modal: (enable: boolean) => {
+                layer.removeComponent(cc.BlockInputEvents)
+                enable && layer.addComponent(cc.BlockInputEvents)
+            },
             openApp: () => {
                 if (packageName) {
-                    adView.onClose?.()
+                    adView.close()
                     qg.downloadApp({
                         packageName: packageName,
                         success: () => {
                         },
                         fail: (err) => {
-                            console.error('打开应用失败', err);
+                            console.error('打开应用失败', err)
                         },
-                    });
+                    })
                 } else {
                     adView.onClick?.()
                 }
-            }
+            },
+            close: () => {
+                if (adView.node.getParent()) {
+                    adView.onClose?.()
+                    adView.node.destroy()
+                }
+            },
+            gravity: null
         }
-        if (type === AdType.NativeInterstitial) {
-            data.width *= data.height > data.width ? 0.85 : 0.3
-            data.height *= data.height > data.width? 0.3 : 0.8
-            // 实现原生插屏广告的初始化和布局
-            // const initializer = new NativeIntersTemplate(adView)
-            // initializer.init(data)
-        } else if (type === AdType.NativeBanner) {
-            data.width *= data.height > data.width? 1 : 0.5
-            data.height = 100
-            // 实现原生banner广告的初始化和布局
-            // const initializer = new NativeBannerTemplate(adView)
-            // initializer.init(data)
-        } else if (type === AdType.NativeIcon) {
-            data.width = 100
-            data.height = 100
-        } else {
-            data.width *= data.height > data.width ? 0.85 : 0.4
-            data.height *= data.height > data.width? 0.4 : 0.85
-        }
-        // 这里可以根据不同的 creativeType 来创建不同的模板
-        const initializer = new NormalTemplate(adView)
-        initializer.init(data)
         return adView
     }
+
     public preLoad(data: NativeAdData) {
         if (!data) return
         HwNativeLayout.preloadMaps = {}
@@ -125,12 +187,11 @@ class NormalTemplate {
     constructor(adView: NativeAdView) {
         this.adView = adView
     }
-    init(data: NativeAdData) {
+    init(data: NativeAdData, type: AdType) {
         const layer = this.adView.node
         layer.setAnchorPoint(0.5, 0.5);
         layer.setPosition(0, 0);
         layer.setContentSize(cc.winSize.width, cc.winSize.height);
-        layer.addComponent(cc.BlockInputEvents);
         const container = new cc.Node('AdContainer')
         const width = Math.min(data.width, cc.winSize.width)
         const height =  Math.max(60, data.height)
@@ -146,6 +207,15 @@ class NormalTemplate {
         if (width <= 100 && width === height) {
             container.setPosition(cc.winSize.width * 0.5 - width, 0)
             Draggable.enableDrag(container)
+            layer.zIndex = 999
+        }
+
+        this.adView.gravity = (gravity) => {
+            if (gravity === 'top') {
+                container.y = cc.winSize.height / 2 - height / 2
+            } else {
+                container.y = -cc.winSize.height / 2 + height / 2
+            }
         }
 
         if (width > 100) {
@@ -209,13 +279,15 @@ class NormalTemplate {
                     mainImgSprite.type = cc.Sprite.Type.SIMPLE
                     mainImgSprite.sizeMode = cc.Sprite.SizeMode.CUSTOM
                     mainImgNode.scale = scaleY
-                    cc.tween(mainImgNode)
-                        .repeatForever(
-                          cc.tween()
-                            .to(1, { scale: scaleY * 1.03 })
-                            .to(1, { scale: scaleY })
-                        )
-                        .start()
+                    if (type === AdType.Native) {
+                        cc.tween(mainImgNode)
+                            .repeatForever(
+                              cc.tween()
+                                .to(1, { scale: scaleY * 1.03 })
+                                .to(1, { scale: scaleY })
+                            )
+                            .start()
+                    }
                 })
                 container.addChild(mainImgNode, 5)
             }
@@ -263,7 +335,7 @@ class NormalTemplate {
         closeLabel.verticalAlign = cc.Label.VerticalAlign.CENTER
         closeBtn.on(cc.Node.EventType.TOUCH_END, (event: cc.Event.EventTouch) => {
             event.stopPropagation() // 阻止冒泡到 container
-            this.adView.onClose?.()
+            this.adView.close()
         })
         container.addChild(closeBtn, 10)
 
@@ -420,6 +492,7 @@ class NormalTemplate {
 
         container.on(cc.Node.EventType.TOUCH_END, (event: cc.Event.EventTouch) => {
             event.stopPropagation()
+            if (Draggable.wasDragging(container)) return; // 忽略拖动
             this.adView.onClick?.()
         })
 

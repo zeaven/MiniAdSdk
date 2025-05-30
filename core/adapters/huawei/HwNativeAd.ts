@@ -109,7 +109,6 @@ export default class HwNativeAd extends HwBaseAd {
     // 把屏幕大小传入
     this.adData.width = this.properties?.safeArea.width || cc.winSize.width
     this.adData.height = this.properties?.safeArea.height || cc.winSize.height 
-
     const adView = this.nativeLayout.createLayout(adData, this.type)
     adView.onClick = this.onClick.bind(this)
     adView.onClose = this.close.bind(this)
@@ -159,15 +158,10 @@ export default class HwNativeAd extends HwBaseAd {
   }
 
   close(): void {
+    debugger
       super.close()
       this.ad.hideDownloadButton({adId: this.adData.adId})
-
-      const parent: cc.Node = this.adView.node.getParent()
-      if (parent) {
-        parent.removeChild(this.adView.node)
-        this.adView.node.destroy()
-        this.adView = null
-      }
+      this.adView = null
       // 触发 onClose 回调
       this.onClose(null)
   }
