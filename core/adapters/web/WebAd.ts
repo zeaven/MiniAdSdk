@@ -20,7 +20,7 @@ export default class WebAd implements AdInterface {
     }
   }
   showBox(param?: AdParam): Promise<AdInvokeResult> {
-    //throw new Error("Method not implemented.");
+    // throw new Error("Method not implemented.");
     return Promise.resolve({session: null})
   }
   showBanner(param?: AdParam): Promise<AdInvokeResult> {
@@ -51,8 +51,8 @@ export default class WebAd implements AdInterface {
     }
   }
   showNative(param?: AdParam): Promise<AdInvokeResult> {
-    // throw new Error("Method not implemented.");
-    return Promise.resolve({session: null})
+    throw new Error("Method not implemented.");
+    // return Promise.resolve({session: null})
   }
   hideNative(param?: AdParam): Promise<void> {
     return Promise.reject(false)

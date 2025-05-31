@@ -39,6 +39,7 @@ function loadRemoteImage(url: string, cb?: (sf: cc.SpriteFrame) => void) {
 
 export interface NativeAdView {
     node: cc.Node
+    attach: (node: cc.Node) => void
     /**
      * 广告区域被点击时的回调
      */
@@ -52,7 +53,7 @@ export interface NativeAdView {
      */
     onClose: Runnable
     /**
-     * 点击遮罩时的回调
+     * 点击遮罩时的回调，模态框有效
      */
     onMaskClick: Runnable
     /**
@@ -135,6 +136,19 @@ export default class HwNativeLayout {
     private getDefaultAdView(layer: cc.Node, packageName: string): NativeAdView {
         const adView: NativeAdView = {
             node: layer,
+            attach: (parent: cc.Node) => {
+                const parentSize = parent.getContentSize();
+                const parentAnchor = parent.getAnchorPoint();
+
+                const dialogSize = adView.node.getContentSize();
+                const dialogAnchor = adView.node.getAnchorPoint();
+
+                const x = parentSize.width * parentAnchor.x - dialogSize.width * dialogAnchor.x;
+                const y = parentSize.height * parentAnchor.y - dialogSize.height * dialogAnchor.y;
+
+                adView.node.setPosition(x, y);
+                parent.addChild(adView.node);
+            },
             onClick: () => { },
             onClose: () => { },
             onLink: () => { },

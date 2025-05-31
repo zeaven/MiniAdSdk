@@ -92,7 +92,7 @@ export default class HwNativeAd extends HwBaseAd {
       }
       this.adView = this.createAdView(this.adData)
 
-      res.node = this.adView.node
+      res.adView = this.adView
       // 暴露额外方法，方便外部控制广告
       if (param.showDownloadButton) {
         this.showDownloadButton()
