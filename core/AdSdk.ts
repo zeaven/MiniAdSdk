@@ -11,6 +11,7 @@ import ConfigBinder from "./utils/ConfigBinder";
 import AdConfig from "./AdConfig";
 import { DelayInterceptor, TTInterceptor, RemoteConfigInterceptor, LoginInterceptor, AdStrategyInterceptor } from "./interceptors/index";
 import { Api } from "./utils/Service";
+import { mutex } from "./utils/AdUtils";
 
 // 配置加载器
 const adapters: Record<string, () => Promise<any>> = {
@@ -40,6 +41,13 @@ export default class AdSdk implements IAdSdk {
   private _config: AdInitConfig = {};
   private _interceptorPlatforms: string[] = [];
   
+  private invokeMutex: any
+
+  constructor() {
+    this.invokeMutex = mutex((method: string, ...args: any[]) => {
+      return this.invoke(method, ...args)
+    })
+  }
 
   get adapter(): AdInterface | undefined {
     return this._adapter
@@ -61,8 +69,12 @@ export default class AdSdk implements IAdSdk {
     if (!AdSdk._instance) {
       const sdkProxy = {
         get: function(target: AdSdk, prop: string) {
-          if ((prop.startsWith('show') || prop.startsWith('hide')) && typeof target[prop] === 'function') {
-            return function (...args:any[]): any {
+          if (prop === 'showReward') {
+            return function (...args:any[]): Promise<AdInvokeResult>  {
+              return target.invokeMutex('showReward',...args)
+            }
+          } else if ((prop.startsWith('show') || prop.startsWith('hide')) && typeof target[prop] === 'function') {
+            return function (...args:any[]): Promise<AdInvokeResult>  {
               return target.invoke(prop, ...args)
             }
           } else {

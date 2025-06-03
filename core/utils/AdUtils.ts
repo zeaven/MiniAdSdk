@@ -281,7 +281,7 @@ class AdHttp {
 }
 
 /**
- * 延时调用，首次触发，在指定时间后仅执行一次
+ * 延时调用，在指定时间内只触发第一次调用
  * @param func 延时方法
  * @param wait 延时时间(ms)
  * @returns 
@@ -334,7 +334,7 @@ function mutex(func: Function): any {
   
   return async function(...args: any[]): Promise<any> {
     if (isRunning) {
-      return;
+      return Promise.reject('频繁调用.');
     }
     
     try {
