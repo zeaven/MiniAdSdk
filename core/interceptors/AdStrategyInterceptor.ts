@@ -17,7 +17,7 @@ export class AdStrategyInterceptor implements AdInterceptor {
         this.sdk = sdk
 
         // 监听广告事件，上报到后端
-        sdk.on(AdEventType.AdShowed, (ad: AdHandler) => {
+        sdk.on(AdEventType.AdShowed, (ad: AdHandler, options: any) => {
             log('上报广告事件: ' + AdEventType.AdShowed, ad.name)
             // 请在 utils 目录下创建 Service.ts 文件，实现上报逻辑
             // Service.report(AdEventType.AdShowed, ad, ...otherArgs)
@@ -31,6 +31,7 @@ export class AdStrategyInterceptor implements AdInterceptor {
                 adType: this.getAdType(ad),
                 adID: ad.name,
                 msg: '广告展示成功',
+                ...options,
             }
             Api.reportAd(reportData)
             
@@ -50,12 +51,15 @@ export class AdStrategyInterceptor implements AdInterceptor {
             platform: param.loginData?.platform,
             packageName: param.loginData?.packageName,
             sdkVersion: param.loginData?.sdkVersion,
-            event: '',
-            adType: '',
+            appVersion: param.loginData?.appVersion,
             oaid: param.loginData?.oaid,
             appid: param.loginData?.appId,
-            msg: '',
+            playerId: param.loginData?.playerId,
+            localId: param.loginData?.localId,
             adID: '',
+            event: '',
+            adType: '',
+            msg: '',
         }
 
         await next(param)

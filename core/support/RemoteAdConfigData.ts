@@ -1,3 +1,5 @@
+import { IAdConfig } from "../Types"
+
 interface AdConfigData {
     //banner展示位置（1：底部，0顶部）
     readonly bannerGravity : number
@@ -53,6 +55,7 @@ const defaultConfig: AdConfigData = {
 }
 
 export default class RemoteAdConfigData implements AdConfigData {
+   
     private config: AdConfigData
     constructor (data?: any) {
         const valueFormData = Object.entries(data ?? {})
@@ -62,6 +65,13 @@ export default class RemoteAdConfigData implements AdConfigData {
                return obj
            }, {} as Record<string, any>)
         this.config = {...defaultConfig, ...valueFormData}
+    }
+    /**
+     * 返回广告位配置
+     * 如 {BANNER_ID: [], INTERS_ID: []}
+     */
+    getAdConfig(): IAdConfig {
+        throw new Error("Method not implemented.")
     }
     /**
      * 原生展示间隔(单位: 秒)

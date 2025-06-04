@@ -10,7 +10,6 @@ type Callback = (...args: any[]) => void
 interface AdInitConfig{
   // 是否开启调试模式，默认关闭，开启后会输出日志到控制台，方便调试，发布时请关闭，否则会影响性能，影响游戏体验
   debug?: boolean
-  sdkVersion?: string
   // 广告配置，无需手动配置，会自动加载
   adConfig?: IAdConfig
   // 隐私协议，实现此方法即开启隐私弹窗

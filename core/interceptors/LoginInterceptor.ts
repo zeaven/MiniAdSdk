@@ -22,63 +22,62 @@ export class LoginInterceptor implements AdInterceptor {
             log('适配器不存在')
             return next(param)
         }
-        const privacyPromise = this.isPrivacyable(param) ? this.startPrivacy(param) : Promise.resolve().then(() => {
-            log('不需要隐私政策')
-        })
         
-        await privacyPromise
-        // 已经同意隐私政策，继续登录
-        if (this.isLoginable(this.sdk.adapter)) {
-            const adapter = this.sdk.adapter as unknown as ILoginable
-            return this.startLogin(adapter, next, param)
-        } else {
-            log('未实现登录接口')
-            return next(param)
-        }
+        await this.startPrivacy(param)
+        await this.startLogin(next, param)
     }
 
     startPrivacy(config?: AdInitConfig): Promise<void> {
+        if (!this.isPrivacyable(config)) {
+            log('不需要隐私政策')
+            return Promise.resolve()
+        }
         if (Store.getItem('agreePrivacy')) {
             log('已经同意隐私')
             return Promise.resolve()
         } else {
             return new Promise((resolve) => {
-                config.privacy({
-                    agreePrivacy: () => {
-                        log('同意隐私')
-                        Store.saveItem('agreePrivacy', true)
-                        // 监听隐私同意事件
-                        AdEventBus.instance.emit(AdEventType.PrivacyAgreed)
-                        resolve()
-                    }
+                config.privacy(() => {
+                    log('同意隐私')
+                    Store.saveItem('agreePrivacy', true)
+                    // 监听隐私同意事件
+                    AdEventBus.instance.emit(AdEventType.PrivacyAgreed)
+                    resolve()
                 })
             })
         }
     }
 
-    startLogin (adapter: ILoginable, next: AdInitNext, param?: AdInitConfig): Promise<void> {
-        this.loginCount++
-        // 测试代码
-        // if (this.loginCount < 3) {
-        //     log('测试登录重试次数', this.loginCount)
-        //     return Promise.reject('登录失败')
-        // }
+    async startLogin (next: AdInitNext, param?: AdInitConfig): Promise<void> {
         if (param.enableLogin === false) {
             log('不开启登录')
             return next(param)
         }
+        if (!this.isLoginable(this.sdk.adapter)) {
+            log('未实现登录接口')
+            return next(param)
+        }
+        const loginable = this.sdk.adapter as unknown as ILoginable
+        
+        this.loginCount++
+        // 测试代码
+        // if (this.loginCount < 3) {
+            //     log('测试登录重试次数', this.loginCount)
+            //     return Promise.reject('登录失败')
+            // }
+            
         log('开始登录')
-        // 开启登录
-        return adapter.login().then((res: LoginResult) => {
-            log('平台登录成功', res)
+        try {
+            const res = await loginable.login();
+            log('平台登录成功', res);
             AdEventBus.instance.emit(AdEventType.LoginSuccess, res.data);
             // 登录成功后继续初始化广告SDK
             // 将登录信息添加到初始化参数中，或者utils增加一个登录信息缓存对象，供其他地方使用
-            param = param || {}
-            param.loginData = res.data
-            return next(param)
-        }).catch((err: LoginResult) => {
-            log('登录失败', err)
+            param = param || {};
+            param.loginData = res.data;
+            return await next(param);
+        } catch (err) {
+            log('登录失败', err);
             // 登录失败会触发登录取消事件，需要在游戏中处理登录取消事件, 比如返回游戏界面让用户重新登录
             if (err.code === LoginCode.CANCEL_LOGIN) {
                 // 返回游戏界面让用户重新登录
@@ -90,8 +89,8 @@ export class LoginInterceptor implements AdInterceptor {
                 // 其他错误
                 AdEventBus.instance.emit(AdEventType.LoginFailed, err);
             }
-            return Promise.reject('登录失败')
-        })
+            return await Promise.reject('登录失败');
+        }
     }
 
     isLoginable (adapter: AdInterface): boolean {

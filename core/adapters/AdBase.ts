@@ -54,6 +54,15 @@ export default abstract class AdBase implements AdHandler {
     }
   }
 
+  /**
+   * 广告事件额外参数
+   * 如：原生的额外参数：{ creativeType: 'xxx' } 
+   * @returns 广告属性
+   */
+  protected emitOptions(): any {
+    return {}
+  }
+
   protected loadAd() {
     if (this.ids.length === 0) return
     if (this.idx >= this.ids.length) {
@@ -127,7 +136,7 @@ export default abstract class AdBase implements AdHandler {
 
   protected onLoad(res?: any): void {
     this.log(this.name + '加载成功', res)
-    AdEventBus.instance.emit(AdEventType.AdLoaded, this)
+    AdEventBus.instance.emit(AdEventType.AdLoaded, this, this.emitOptions())
     this.ready = true
     this.isLoading = false
     this.reloadCount = 0
@@ -184,7 +193,7 @@ export default abstract class AdBase implements AdHandler {
   protected onShow(): void {
     this.log(this.name, '展示成功')
     this.isShowed = true
-    AdEventBus.instance.emit(AdEventType.AdShowed, this)
+    AdEventBus.instance.emit(AdEventType.AdShowed, this, this.emitOptions())
   }
 
   /**

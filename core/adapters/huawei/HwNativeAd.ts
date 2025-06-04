@@ -35,6 +35,15 @@ export default class HwNativeAd extends HwBaseAd {
     return listener
   }
 
+  protected emitOptions() {
+    
+    return this.adData ? {
+      creativeType: this.adData.creativeType,
+      interactionType: this.adData.interactionType,
+      clickBtnTxt: this.adData.clickBtnTxt,
+    } : {}
+  }
+
   private onStatusChanged(res: any) {
     this.log("onStatusChanged", res)
    
@@ -55,8 +64,9 @@ export default class HwNativeAd extends HwBaseAd {
   }
 
   protected onLoad(res?: any) {
-    super.onLoad(res)
+    // 先处理参数，需要上报后台
     this.adData = this.convertData(res)
+    super.onLoad(res)
     if (!this.adData.adId) {
       return
     }
@@ -158,10 +168,10 @@ export default class HwNativeAd extends HwBaseAd {
   }
 
   close(): void {
-    debugger
       super.close()
       this.ad.hideDownloadButton({adId: this.adData.adId})
       this.adView = null
+      this.adData = null
       // 触发 onClose 回调
       this.onClose(null)
   }

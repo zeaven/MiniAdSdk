@@ -18,7 +18,7 @@ export class RemoteConfigInterceptor implements AdInterceptor {
     }
 
     async init (next: AdInitNext, param?: AdInitConfig): Promise<void> {
-        if (!param.enableRemoteConfig) {
+        if (param.enableRemoteConfig === false) {
             log('不开启远程配置')
             return next(param)
         }
@@ -26,8 +26,9 @@ export class RemoteConfigInterceptor implements AdInterceptor {
         let res
         // 判断有没有登录参数
         if (param.loginData) {
+            // 上报登录信息
             res = await Api.login(param.loginData)
-            // 更新打开次数
+            // 更新打开次数，修改建议：打开次数应该由后端返回
             device.incOpenCount()
             // 缓存Api登录信息
             Store.cache(Store.KEY.API_LOGIN_RESULT, res)
@@ -40,6 +41,8 @@ export class RemoteConfigInterceptor implements AdInterceptor {
         const remoteAdConfigData = new RemoteAdConfigData(res)
         // 通过参数传递给下一个拦截器
         param.remoteAdConfigData = remoteAdConfigData
+        // 合并后端返回的广告位配置信息
+        param.adConfig = {...param.adConfig, ...remoteAdConfigData.getAdConfig()}
         // 不同渠道添加自定义的拦截器，对接口返回的信息进行广告配置，如AdStrategyInterceptor
         await next(param)
         delete param.remoteAdConfigData

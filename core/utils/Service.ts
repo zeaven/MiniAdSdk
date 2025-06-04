@@ -197,9 +197,9 @@ class ApiService {
       return Encrypt.decrypt(res)
     })
     // 配置请求重试
-    this.retryLogin = retry((this._doLogin.bind(this)), 3, 100, 10000)
-    this.retryReport = retry(this._doReportAd.bind(this), 3, 100, 10000)
-    this.retryReportGame = retry(this._doReportGame.bind(this), 3, 100, 10000)
+    this.retryLogin = retry((this._doLogin.bind(this)), 3, 1000, 5000)
+    this.retryReport = retry(this._doReportAd.bind(this), 3, 1000, 5000)
+    this.retryReportGame = retry(this._doReportGame.bind(this), 3, 1000, 5000)
   }
 
   public setDebug(debug: boolean) {
