@@ -1,5 +1,5 @@
 import RemoteAdConfigData from "../support/RemoteAdConfigData";
-import { AdEventType, AdHandler, AdInitConfig, AdInitNext, AdInterceptor, AdType, ApiReportData, IAdSdk } from "../Types";
+import { AdEventType, AdHandler, AdInitConfig, AdInitNext, AdInterceptor, AdInvokeNext, AdInvokeResult, AdParam, AdType, ApiReportData, IAdSdk } from "../Types";
 import { get_log } from "../utils/Log";
 import { Api } from "../utils/Service";
 
@@ -19,12 +19,7 @@ export class AdStrategyInterceptor implements AdInterceptor {
         // 监听广告事件，上报到后端
         sdk.on(AdEventType.AdShowed, (ad: AdHandler, options: any) => {
             log('上报广告事件: ' + AdEventType.AdShowed, ad.name)
-            // 请在 utils 目录下创建 Service.ts 文件，实现上报逻辑
-            // Service.report(AdEventType.AdShowed, ad, ...otherArgs)
-         
-            
-            // const adType = this.getAdType(ad)
-
+        
             // NOTICE: 以下为测试代码
             const reportData: ApiReportData = {...this.reportDataDefault,
                 event: AdEventType.AdShowed,
@@ -128,4 +123,67 @@ export class AdStrategyInterceptor implements AdInterceptor {
         }
         return AdType[0]
     }
+    /********** 以下为策略测试逻辑 **********/
+    /**
+     * 拦截插屏展示
+     * 如果展示插屏失败，自动展示原生
+     * @param next 
+     * @param param 
+     */
+    showInters (next: AdInvokeNext, param?: AdParam): Promise<AdInvokeResult> | void {
+        return next(param).catch(() => {
+            if (param?.auto) {
+                // 已经自动触发，不再自动触发，否则无限循环
+                return
+            }
+            // 增加 auto 标识自动触发
+            param = {...param, auto: true }
+            // 插屏展示失败，自动展示原生
+            return this.sdk.showNative(param)
+        })
+    }
+    /**
+     * 拦截原生展示
+     * 如果展示原生失败，自动展示插屏
+     * @param next 
+     * @param param 
+     * @returns 
+     */
+    showNative (next: AdInvokeNext, param?: AdParam): Promise<AdInvokeResult> | void {
+        return next(param).catch(() => {
+            if (param?.auto) {
+                // 已经自动触发，不再自动触发，否则无限循环
+                return
+            }
+            // 增加 auto 标识自动触发
+            param = {...param, auto: true }
+            // 原生展示失败，自动展示插屏
+            return this.sdk.showInters(param)
+        })  
+    }
+
+    /**
+     * 拦截激励视频展示
+     * 展示完成后随机展示插屏或原生
+     * @param next 
+     * @param param 
+     * @returns 
+     */
+    showReward (next: AdInvokeNext, param?: AdParam): Promise<AdInvokeResult> | void {
+        return next(param).then((res) => {
+            if (Math.random() < 0.7) {
+                // 70%的概率不展示插屏或原生
+                return res
+            }
+            // 展示完成后随机展示插屏或原生
+            if (Math.random() > 0.5) {
+                this.sdk.showInters({auto: true})
+            } else {
+                this.sdk.showNative({auto: true})
+            }
+            
+            return res
+        })
+    }
+    /************** 策略测试结束 ************/
 }
