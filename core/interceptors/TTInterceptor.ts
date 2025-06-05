@@ -10,7 +10,7 @@
 3. 展示过一次激励视频广告后，后续需要展示插屏广告的情况下，需要与激励视频广告的展示间隔60s。
  */
 
-import { AdInterceptor, AdInvokeResult, AdInvokeNext, AdParam, IAdSdk } from "../Types"
+import { AdInterceptor, AdInvokeResultVoid, AdInvokeNext, AdParam, IAdSdk } from "../Types"
 
 /**
  * 抖音拦截器
@@ -24,7 +24,7 @@ export class TTInterceptor implements AdInterceptor {
       this.startTime = Date.now()
     }
   
-    showInters (next: AdInvokeNext, param: AdParam): Promise<AdInvokeResult>| void {
+    showInters (next: AdInvokeNext, param: AdParam): Promise<AdInvokeResultVoid>| void {
       if (this.rule1) {
         this.rule1 = (Date.now() - this.startTime) < 30000
         if (this.rule1) return
@@ -33,14 +33,18 @@ export class TTInterceptor implements AdInterceptor {
       if (passTime < 60000) return
       
       return next(param).then(res => {
-        this.lastShowAt = passTime  // 更新展示时间
+        if (res) {
+          this.lastShowAt = passTime  // 更新展示时间
+        }
         return res
       })
     }
   
-    showReward (next: AdInvokeNext, param: AdParam): Promise<AdInvokeResult>| void {
+    showReward (next: AdInvokeNext, param: AdParam): Promise<AdInvokeResultVoid>| void {
       return next(param).then(res => {
-        this.lastShowAt = Date.now()  // 更新展示时间
+        if (res) {
+          this.lastShowAt = Date.now()  // 更新展示时间
+        }
         return res
       })
     }

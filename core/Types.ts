@@ -228,7 +228,8 @@ class AdEventHandler {
  * 广告事件回调函数
  */
 type EventCallback = (...args: any[]) => void
-type AdInvokeNext = (param:AdParam) => Promise<AdInvokeResult>
+type AdInvokeResultVoid = AdInvokeResult | void
+type AdInvokeNext = (param:AdParam) => Promise<AdInvokeResultVoid>
 type AdInitNext = (config: AdInitConfig) => Promise<void>
 /**
  * 拦截器
@@ -236,14 +237,14 @@ type AdInitNext = (config: AdInitConfig) => Promise<void>
 interface AdInterceptor {
   attach(sdk: IAdSdk): void
   init?: (next: AdInitNext , param?: AdInitConfig) => any
-  showBox?: (next: AdInvokeNext, param?: AdParam) => Promise<AdInvokeResult> | void
-  showBanner?: (next: AdInvokeNext, param?: AdParam) => Promise<AdInvokeResult> | void
-  hideBanner?: (next: AdInvokeNext, param?: AdParam) => Promise<AdInvokeResult> | void
-  showInters?: (next: AdInvokeNext, param?: AdParam) => Promise<AdInvokeResult> | void
-  showReward?: (next: AdInvokeNext, param?: AdParam) => Promise<AdInvokeResult> | void
-  showNative?: (next: AdInvokeNext, param?: AdParam) => Promise<AdInvokeResult> | void
-  showCustom?: (next: AdInvokeNext, param?: AdParam) => Promise<AdInvokeResult> | void
-  hideCustom?: (next: AdInvokeNext, param?: AdParam) => Promise<AdInvokeResult> | void
+  showBox?: (next: AdInvokeNext, param?: AdParam) => Promise<AdInvokeResultVoid> | void
+  showBanner?: (next: AdInvokeNext, param?: AdParam) => Promise<AdInvokeResultVoid> | void
+  hideBanner?: (next: AdInvokeNext, param?: AdParam) => Promise<AdInvokeResultVoid> | void
+  showInters?: (next: AdInvokeNext, param?: AdParam) => Promise<AdInvokeResultVoid> | void
+  showReward?: (next: AdInvokeNext, param?: AdParam) => Promise<AdInvokeResultVoid> | void
+  showNative?: (next: AdInvokeNext, param?: AdParam) => Promise<AdInvokeResultVoid> | void
+  showCustom?: (next: AdInvokeNext, param?: AdParam) => Promise<AdInvokeResultVoid> | void
+  hideCustom?: (next: AdInvokeNext, param?: AdParam) => Promise<AdInvokeResultVoid> | void
 }
 
 interface AdHttpContext {
@@ -290,7 +291,7 @@ interface ApiReportData {
 
 export {
   AdParam, AdInvokeResult, AdInterface, AdHandler, Callback, AdType, AdNodeEvent, AdSession, Runnable,
-  AdEventHandler, AdInterceptor,IAdConfig,AdInitNext,EventCallback,
+  AdEventHandler, AdInterceptor,IAdConfig,AdInitNext,EventCallback,AdInvokeResultVoid,
   AdEventType, AdInitConfig,AdInvokeNext, IAdSdk, ILoginable,LoginResult, LoginCode,
   ApiLoginData, AdHttpContext, ApiReportData, SdkState
 }

@@ -1,5 +1,5 @@
 import RemoteAdConfigData from "../support/RemoteAdConfigData";
-import { AdEventType, AdHandler, AdInitConfig, AdInitNext, AdInterceptor, AdInvokeNext, AdInvokeResult, AdParam, AdType, ApiReportData, IAdSdk } from "../Types";
+import { AdEventType, AdHandler, AdInitConfig, AdInitNext, AdInterceptor, AdInvokeNext, AdInvokeResult, AdInvokeResultVoid, AdParam, AdType, ApiReportData, IAdSdk } from "../Types";
 import { get_log } from "../utils/Log";
 import { Api } from "../utils/Service";
 
@@ -130,7 +130,7 @@ export class AdStrategyInterceptor implements AdInterceptor {
      * @param next 
      * @param param 
      */
-    showInters (next: AdInvokeNext, param?: AdParam): Promise<AdInvokeResult> | void {
+    showInters (next: AdInvokeNext, param?: AdParam): Promise<AdInvokeResultVoid> | void {
         return next(param).catch((err) => {
             if (param?.auto) {
                 // 已经自动触发，不再自动触发，否则无限循环
@@ -149,7 +149,7 @@ export class AdStrategyInterceptor implements AdInterceptor {
      * @param param 
      * @returns 
      */
-    showNative (next: AdInvokeNext, param?: AdParam): Promise<AdInvokeResult> | void {
+    showNative (next: AdInvokeNext, param?: AdParam): Promise<AdInvokeResultVoid> | void {
         return next(param).catch((err) => {
             if (param?.auto) {
                 // 已经自动触发，不再自动触发，否则无限循环
@@ -169,17 +169,22 @@ export class AdStrategyInterceptor implements AdInterceptor {
      * @param param 
      * @returns 
      */
-    showReward (next: AdInvokeNext, param?: AdParam): Promise<AdInvokeResult> | void {
+    showReward (next: AdInvokeNext, param?: AdParam): Promise<AdInvokeResultVoid> | void {
         return next(param).then((res) => {
-            if (Math.random() < 0.7) {
-                // 70%的概率不展示插屏或原生
-                return res
-            }
-            // 展示完成后随机展示插屏或原生
-            if (Math.random() > 0.5) {
-                this.sdk.showInters({auto: true})
-            } else {
-                this.sdk.showNative({auto: true})
+            if (res && res.rewardPromise) {
+                // 未看完激励视频才展示
+                res.rewardPromise.catch((err) => {
+                    if (Math.random() < 0.3) {
+                        // 30%概率展示插屏
+                        // 随机展示插屏或原生
+                        if (Math.random() > 0.5) {
+                            this.sdk.showInters({auto: true})
+                        } else {
+                            this.sdk.showNative({auto: true})
+                        }
+                    }
+                    throw err
+                })
             }
             
             return res

@@ -9,9 +9,8 @@ import { Platform, curPlatform } from "./utils/AdPlatform";
 import { AdNodeEvent, AdEventType, AdInitConfig, AdInterceptor, AdInterface, AdInvokeResult, AdParam, AdType, IAdConfig, IAdSdk, EventCallback, Runnable, SdkState } from "./Types";
 import ConfigBinder from "./utils/ConfigBinder";
 import AdConfig from "./AdConfig";
-import { DelayInterceptor, TTInterceptor, RemoteConfigInterceptor, LoginInterceptor, AdStrategyInterceptor } from "./interceptors/index";
+import { DelayInterceptor, TTInterceptor, RemoteConfigInterceptor, LoginInterceptor, AdStrategyInterceptor, MutexInterceptor } from "./interceptors/index";
 import { Api } from "./utils/Service";
-import { mutex } from "./utils/AdUtils";
 
 // 配置加载器
 const adapters: Record<string, () => Promise<any>> = {
@@ -41,14 +40,6 @@ export default class AdSdk implements IAdSdk {
   private _config: AdInitConfig = {};
   private _interceptorPlatforms: string[] = [];
   
-  private invokeMutex: any
-
-  constructor() {
-    this.invokeMutex = mutex((method: string, ...args: any[]) => {
-      return this.invoke(method, ...args)
-    })
-  }
-
   get state(): SdkState {
     return this._state
   }
@@ -73,11 +64,7 @@ export default class AdSdk implements IAdSdk {
     if (!AdSdk._instance) {
       const sdkProxy = {
         get: function(target: AdSdk, prop: string) {
-          if (prop === 'showReward') {
-            return function (...args:any[]): Promise<AdInvokeResult>  {
-              return target.invokeMutex('showReward',...args)
-            }
-          } else if ((prop.startsWith('show') || prop.startsWith('hide')) && typeof target[prop] === 'function') {
+          if ((prop.startsWith('show') || prop.startsWith('hide')) && typeof target[prop] === 'function') {
             return function (...args:any[]): Promise<AdInvokeResult>  {
               return target.invoke(prop, ...args)
             }
@@ -99,6 +86,8 @@ export default class AdSdk implements IAdSdk {
     this._interceptorPlatforms.push(platform)
     this.addInterceptor(platform, new LoginInterceptor())
     this.addInterceptor(platform, new RemoteConfigInterceptor())
+    // 防并发和延时拦截器必须二选一
+    // this.addInterceptor(platform, new MutexInterceptor())
     this.addInterceptor(platform, new AdStrategyInterceptor())
     this.addInterceptor(platform, new DelayInterceptor())
       

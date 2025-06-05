@@ -1,4 +1,4 @@
-import { AdInterceptor, AdInvokeNext, AdParam, AdInvokeResult, IAdSdk } from "../Types"
+import { AdInterceptor, AdInvokeNext, AdParam, AdInvokeResultVoid, IAdSdk } from "../Types"
 import { delay } from "../utils/AdUtils"
 
 /**
@@ -9,7 +9,7 @@ export class DelayInterceptor implements AdInterceptor {
       const _method = this.showReward.bind(this)
       this.showReward = delay(_method, 1000)
     }
-    showReward (next: AdInvokeNext, param: AdParam): Promise<AdInvokeResult> | void {
+    showReward (next: AdInvokeNext, param: AdParam): Promise<AdInvokeResultVoid> | void {
       return next(param)
     }
   }

@@ -1,4 +1,4 @@
-import { AdInterceptor, AdParam, AdInvokeResult, AdInvokeNext, IAdSdk } from "../Types"
+import { AdInterceptor, AdParam, AdInvokeResultVoid, AdInvokeNext, IAdSdk } from "../Types"
 import { mutex } from "../utils/AdUtils"
 
 /**
@@ -9,7 +9,7 @@ export class MutexInterceptor implements AdInterceptor {
       const _method = this.showReward.bind(this)
       this.showReward = mutex(_method)
     }
-    showReward (next: AdInvokeNext, param: AdParam): Promise<AdInvokeResult> | void {
+    showReward (next: AdInvokeNext, param: AdParam): Promise<AdInvokeResultVoid> | void {
       return next(param)
     }
   }

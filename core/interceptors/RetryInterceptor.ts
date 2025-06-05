@@ -1,4 +1,4 @@
-import { AdInterceptor, AdType, AdInvokeNext, AdParam, AdInvokeResult, IAdSdk } from "../Types"
+import { AdInterceptor, AdType, AdInvokeNext, AdParam, AdInvokeResultVoid, IAdSdk } from "../Types"
 import { retry } from "../utils/AdUtils"
 
 /**
@@ -23,22 +23,22 @@ export class RetryInterceptor implements AdInterceptor {
       this.retryShow = retry(this.retryShow.bind(this), this.count, 100, this.timeoutMs)
     }
   
-    show (next: AdInvokeNext, param: AdParam, adType: AdType): Promise<AdInvokeResult> | void {
+    show (next: AdInvokeNext, param: AdParam, adType: AdType): Promise<AdInvokeResultVoid> | void {
       if (!this.adTypes.includes(adType)) {
         return next(param)
       }
       return this.retryShow(next, param)
     }
 
-    retryShow (next: AdInvokeNext, param: AdParam): Promise<AdInvokeResult> | void {
+    retryShow (next: AdInvokeNext, param: AdParam): Promise<AdInvokeResultVoid> | void {
       return next(param)
     }
   
-    showCustom (next: AdInvokeNext, param: AdParam): Promise<AdInvokeResult> | void {
+    showCustom (next: AdInvokeNext, param: AdParam): Promise<AdInvokeResultVoid> | void {
       return this.show(next, param, AdType.Custom)
     }
   
-    showInters (next: AdInvokeNext, param: AdParam): Promise<AdInvokeResult> | void {
+    showInters (next: AdInvokeNext, param: AdParam): Promise<AdInvokeResultVoid> | void {
       return this.show(next, param, AdType.Interstitial)
     }
   }
