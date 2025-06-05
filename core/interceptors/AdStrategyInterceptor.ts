@@ -41,7 +41,7 @@ export class AdStrategyInterceptor implements AdInterceptor {
     async init(next: AdInitNext, param?: AdInitConfig): Promise<void> {
         // 这里还不能展示广告，因为广告适配器还没有执行init方法，广告类型也没初始化
         // 自行实现，策略数据如 HuaWeiAdData，通过param传递给适配器
-        this.remoteAdConfigData = (param.remoteAdConfigData as RemoteAdConfigData) || new RemoteAdConfigData()
+        this.remoteAdConfigData = (param.remoteAdConfigData ?? new RemoteAdConfigData()) as RemoteAdConfigData
         this.reportDataDefault = {
             platform: param.loginData?.platform,
             packageName: param.loginData?.packageName,
@@ -131,10 +131,10 @@ export class AdStrategyInterceptor implements AdInterceptor {
      * @param param 
      */
     showInters (next: AdInvokeNext, param?: AdParam): Promise<AdInvokeResult> | void {
-        return next(param).catch(() => {
+        return next(param).catch((err) => {
             if (param?.auto) {
                 // 已经自动触发，不再自动触发，否则无限循环
-                return
+                throw err
             }
             // 增加 auto 标识自动触发
             param = {...param, auto: true }
@@ -150,10 +150,10 @@ export class AdStrategyInterceptor implements AdInterceptor {
      * @returns 
      */
     showNative (next: AdInvokeNext, param?: AdParam): Promise<AdInvokeResult> | void {
-        return next(param).catch(() => {
+        return next(param).catch((err) => {
             if (param?.auto) {
                 // 已经自动触发，不再自动触发，否则无限循环
-                return
+                throw err
             }
             // 增加 auto 标识自动触发
             param = {...param, auto: true }

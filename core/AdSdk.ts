@@ -172,7 +172,7 @@ export default class AdSdk implements IAdSdk {
     if (adapter) {
       AdSdk.log(`加载适配器 [${name}]`, config)
       this._adapter = adapter
-      await this.invoke('init', this._config) ?? Promise.resolve()
+      await this.invoke('init', this._config)
       AdSdk.log(`加载适配器 [${this._platform}] 完成`)
       return
     }
@@ -193,27 +193,33 @@ export default class AdSdk implements IAdSdk {
     if (this._adapter && this._adapter[method]) {
       AdSdk.log(`${method}被调用`, args)
       const interceptors = this._interceptors[this._platform]
+      const defaultInvokeResult: AdInvokeResult = {
+        rewardPromise: Promise.resolve(),
+      }
       if (interceptors) {
-        const next = (...params: any[]): Promise<AdInvokeResult> => {
+        const next = async (...params: any[]): Promise<AdInvokeResult> => {
           if (this._whitePackage) {
-            const res: AdInvokeResult = {rewardPromise: Promise.resolve()}
-            return Promise.resolve( res )
+            return defaultInvokeResult
           }
           AdSdk.log(`${this._adapter.constructor.name}.${method}方法被调用`)
           return this._adapter[method](...params)
         }
         // 拦截器调用链
         let rr= this.callInterceptor(method, args, interceptors, next)
-        if (rr instanceof Promise) {
-          rr = rr.catch(err => {
-            AdSdk.log(`${method}请求失败`, err)
-            return Promise.reject(err)
-          })
-        }
+        rr = rr.then(res => {
+          // 除了 showToast，其他展示方法都有返回值，没有返回值则是被拦截器取消
+          if (method.startsWith('show') && method !== 'showToast' && !res) {
+            return Promise.reject('广告被拦截')
+          }
+          AdSdk.log(`${method}请求成功`, res)
+          return res
+        }).catch(err => {
+          AdSdk.log(`${method}请求失败`, err)
+          return Promise.reject(err)
+        })
         return rr
       } else if (this._whitePackage) {
-        const res: AdInvokeResult = {rewardPromise: Promise.resolve()}
-        return Promise.resolve( res )
+        return Promise.resolve( defaultInvokeResult )
       }
       AdSdk.log(`${this._adapter.constructor.name}.${method}方法被调用`)
       return this._adapter[method](...args)
@@ -239,10 +245,9 @@ export default class AdSdk implements IAdSdk {
     const runner = async (...params: any[]): Promise<any> => {
       const invokeMethod = middlewares.shift()
       if (invokeMethod) {
-        const result = invokeMethod(runner, ...params)
-        return result instanceof Promise ? result : Promise.reject('拦截取消')
+        return await invokeMethod(runner, ...params)
       } else {
-        return next(...params)
+        return await next(...params)
       }
     };
 
