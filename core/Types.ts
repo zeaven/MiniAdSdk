@@ -149,9 +149,16 @@ interface IAdSdk extends AdInterface {
   platform: string
   config: Readonly<AdInitConfig>
   debug: boolean
+  state: SdkState
   addInterceptor(platform: string, interceptor: AdInterceptor): void
   on(adEvent: AdNodeEvent | AdType | AdEventType, callback: EventCallback, target?: any): Runnable
   setWhitePackage(whitePackage: boolean): void
+}
+
+enum SdkState {
+  None,
+  Initing,
+  Inited
 }
 /**
  * 广告类型
@@ -285,5 +292,5 @@ export {
   AdParam, AdInvokeResult, AdInterface, AdHandler, Callback, AdType, AdNodeEvent, AdSession, Runnable,
   AdEventHandler, AdInterceptor,IAdConfig,AdInitNext,EventCallback,
   AdEventType, AdInitConfig,AdInvokeNext, IAdSdk, ILoginable,LoginResult, LoginCode,
-  ApiLoginData, AdHttpContext, ApiReportData
+  ApiLoginData, AdHttpContext, ApiReportData, SdkState
 }

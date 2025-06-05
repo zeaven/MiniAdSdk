@@ -6,7 +6,7 @@ const { ccclass } = cc._decorator
 import AdEventBus from "./utils/AdEventBus";
 import { get_log, set_debug_enable } from "./utils/Log";
 import { Platform, curPlatform } from "./utils/AdPlatform";
-import { AdNodeEvent, AdEventType, AdInitConfig, AdInterceptor, AdInterface, AdInvokeResult, AdParam, AdType, IAdConfig, IAdSdk, EventCallback, Runnable } from "./Types";
+import { AdNodeEvent, AdEventType, AdInitConfig, AdInterceptor, AdInterface, AdInvokeResult, AdParam, AdType, IAdConfig, IAdSdk, EventCallback, Runnable, SdkState } from "./Types";
 import ConfigBinder from "./utils/ConfigBinder";
 import AdConfig from "./AdConfig";
 import { DelayInterceptor, TTInterceptor, RemoteConfigInterceptor, LoginInterceptor, AdStrategyInterceptor } from "./interceptors/index";
@@ -37,7 +37,7 @@ export default class AdSdk implements IAdSdk {
   
   private _interceptors: { [key:string]: AdInterceptor[] } = {}
   private _whitePackage: boolean = false // 是否是白包
-  private _inited = false
+  private _state: SdkState = SdkState.None
   private _config: AdInitConfig = {};
   private _interceptorPlatforms: string[] = [];
   
@@ -47,6 +47,10 @@ export default class AdSdk implements IAdSdk {
     this.invokeMutex = mutex((method: string, ...args: any[]) => {
       return this.invoke(method, ...args)
     })
+  }
+
+  get state(): SdkState {
+    return this._state
   }
 
   get adapter(): AdInterface | undefined {
@@ -129,8 +133,8 @@ export default class AdSdk implements IAdSdk {
    * @returns 
    */
   async init(config?: AdInitConfig): Promise<void> {
-    if (this._inited) return
-    this._inited = true
+    if (this._state != SdkState.None) return
+    this._state = SdkState.Initing
     this._config = {
       sdkVersion: this._SDK_VERSION,
       debug: CC_DEBUG ?? false,
@@ -144,9 +148,10 @@ export default class AdSdk implements IAdSdk {
     AdSdk.log('初始化, 平台', curPlatform)
     return this.setPlatform(curPlatform).then(() => {
       ConfigBinder.instance.init()
+      this._state = SdkState.Inited
       AdEventBus.instance.emit(AdEventType.SdkInited)
     }).catch(e => {
-      this._inited = false
+      this._state = SdkState.None
       AdSdk.log('初始化失败', e)
       return Promise.reject(e)
     })
