@@ -35,11 +35,11 @@ export class RemoteConfigInterceptor implements AdInterceptor {
             delete param.loginData
             log('请求后端接口返回广告配置', res)
             // 解析后台配置
-            const remoteAdConfigData = new RemoteAdConfigData(res)
+            const remoteAdConfigData = new RemoteAdConfigData(res, param.adConfig)
             // 通过参数传递给下一个拦截器
             param.remoteAdConfigData = remoteAdConfigData
             // 合并后端返回的广告位配置信息
-            param.adConfig = {...param.adConfig, ...remoteAdConfigData.getAdConfig()}
+            param.adConfig = remoteAdConfigData.getAdConfig()
             // 不同渠道添加自定义的拦截器，对接口返回的信息进行广告配置，如AdStrategyInterceptor
         }
 
