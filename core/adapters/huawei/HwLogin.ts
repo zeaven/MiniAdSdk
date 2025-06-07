@@ -2,19 +2,15 @@ import device from "../../support/Device";
 import { AdInitConfig, LoginCode, LoginResult } from "../../Types";
 import { curPlatform } from "../../utils/AdPlatform";
 import { Store } from "../../utils/AdUtils";
-import HuaweiAd from "./HuaweiAd";
 import log from "./HwLog";
 
 export default class HwLogin {
-    static async login(config: AdInitConfig) : Promise<LoginResult> {
+    static async login(config: AdInitConfig, systemInfo: { brand: string; model: string; }) : Promise<LoginResult> {
         // 存储启动参数
         const launchOptions = globalThis.qg.getLaunchOptionsSync()
         Store.cache(Store.KEY.LAUNCH_OPTIONS, launchOptions)
-        // 并发执行获取启动参数和OAID
-        const [oaid, systemInfo] = await Promise.all([
-            HwLogin.getOAID(),
-            HwLogin.getSystemInfo(),
-        ])
+        // OAID
+        const oaid = await HwLogin.getOAID()
 
         return new Promise((resolve, reject) => {
             qg.gameLoginWithReal({
@@ -84,20 +80,6 @@ export default class HwLogin {
                 },
                 fail: function(err) {
                     resolve('')
-                }
-            })
-        })
-    }
-
-    static getSystemInfo(): Promise<any> {
-        return new Promise((resolve, reject) => {
-            globalThis.qg.getSystemInfo({
-                success: function(res) {
-                    // console.log("getSystemInfo success, res is " + JSON.stringify(res));
-                    resolve(res)
-                },
-                fail: function() {
-                    reject()
                 }
             })
         })

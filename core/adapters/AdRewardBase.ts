@@ -4,8 +4,11 @@ import AdBase from "./AdBase";
 
 export default abstract class AdRewardBase extends AdBase {
   private rewardPromise?: ManualPromise<void>
-  protected type: AdType = AdType.Reward
   protected autoDestroy: boolean = false
+
+  constructor(...ids: any[]) {
+    super(AdType.Reward, ...ids)
+  }
 
   protected abstract checkReward(res: any): boolean
 

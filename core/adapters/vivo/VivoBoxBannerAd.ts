@@ -7,7 +7,9 @@ import VivoBaseAd from './VivoBaseAd'
 import log from "./VivoLog"
 
 export default class ViviBoxBannerAd extends VivoBaseAd {
-  protected type: AdType = AdType.Box
+  constructor(...ids: any[]) {
+    super(AdType.Box,...ids)
+  }
   protected createAd(_id: string): any {
     if (globalThis.qg.createBoxBannerAd) {
       this.ready = true // 默认加载

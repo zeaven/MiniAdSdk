@@ -6,7 +6,9 @@ import { AdParam, AdInvokeResult, Runnable, AdType } from "../../Types";
 import OppoBaseAd from "./OppoBaseAd";
 
 export default class OppoBannerAd extends OppoBaseAd {
-  protected type: AdType = AdType.Banner;
+  constructor(...ids: any[]) {
+    super(AdType.Banner, ...ids)
+  }
   
   protected getAdListeners(): Record<string, Runnable> {
     const listeners = super.getAdListeners()

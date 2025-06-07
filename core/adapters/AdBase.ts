@@ -1,11 +1,11 @@
-import { AdEventType, AdHandler, AdInvokeResult, AdParam, AdType, Runnable } from "../Types";
+import { AdEventType, AdHandler, AdInvokeResult, AdParam, AdSession, AdType, Runnable } from "../Types";
 import AdEventBus from "../utils/AdEventBus";
 import { ManualPromise } from "../utils/AdUtils";
 
 export default abstract class AdBase implements AdHandler {
   get name(): string { return this._name }
   protected abstract log(...msg: any[]): void
-  protected type: AdType = AdType.None
+  protected type: AdType
   protected ad: any; // 广告对象
   protected ids: string[] // 广告id列表
   private idx = 0 // 广告id索引
@@ -28,7 +28,8 @@ export default abstract class AdBase implements AdHandler {
   private loadTimeoutor: any  // 加载超时定时器
   protected reloadMaxInterval = 30000 // 重新加载最大间隔，单位毫秒
 
-  constructor(...ids: any[]) {
+  constructor(type: AdType, ...ids: any[]) {
+    this.type = type
     this._name = AdType[this.type]+'广告'
     this.ids = ids.filter((t) => !!t)
     if (typeof this.ids[this.ids.length-1] === 'object') {
@@ -216,7 +217,7 @@ export default abstract class AdBase implements AdHandler {
     if (!this.ad) return Promise.reject(this.name + '无效')
     if (this.isShowed) {
       this.log(this.name + '已展示')
-      return Promise.resolve({ session: this })
+      return Promise.resolve(this.getInvokeResult())
     }
     if (!this.ready) {
       if (!this.autoLoad) this.loadAd() // 未开启自动加载的，启动加载，即外部要先调用一次，用于创建广告对象需要其他参数等
@@ -236,7 +237,7 @@ export default abstract class AdBase implements AdHandler {
           if (typeof this.ad['onShow'] !== 'function') {
             this.onShow()
           }
-          this.invokeResult = { session: this }
+          this.invokeResult = this.getInvokeResult()
           resolve(this.invokeResult)
         })
         .catch((err) => {
@@ -274,4 +275,14 @@ export default abstract class AdBase implements AdHandler {
     }
   }
 
+  private getInvokeResult(): AdInvokeResult {
+    const that = this as AdSession
+    return {
+      session: {
+        close: () => that.close(),
+        destroy: () => that.destroy(),
+        attach: (node) => that.attach?.(node)
+      },
+    }
+  }
 }

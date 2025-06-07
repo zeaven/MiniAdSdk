@@ -33,9 +33,10 @@ export default class HuaweiAd implements AdInterface, ILoginable {
 
   constructor(config: AdInitConfig) {
     this.config = config
+    this.systemInfo = qg.getSystemInfoSync()
   }
   login(): Promise<LoginResult> {
-    return HwLogin.login(this.config)
+    return HwLogin.login(this.config, this.systemInfo)
   }
 
   
@@ -44,7 +45,6 @@ export default class HuaweiAd implements AdInterface, ILoginable {
    * @param initConfig 
    */
   init(initConfig: AdInitConfig): void {
-    this.systemInfo = qg.getSystemInfoSync()
     log('init', this.systemInfo)
     this.config = initConfig
     this.install()
@@ -72,23 +72,26 @@ export default class HuaweiAd implements AdInterface, ILoginable {
     if (this.config.adConfig.BANNER_ID.length > 0) {
       this._banner = new HwBannerAd(...this.config.adConfig.BANNER_ID, {
         systemInfo: this.systemInfo,
-        remoteAdConfigData: this.config.remoteAdConfigData
+        bannerGravity: this.config.bannerGravity
       })
     }
     if (this.config.adConfig.REWARD_ID.length > 0) {
       this._reward = new HwRewardAd(...this.config.adConfig.REWARD_ID)
     }
     if (this.config.adConfig.NATIVE_ID.length > 0) {
-      this._native = new HwNativeAd(...this.config.adConfig.NATIVE_ID, this.systemInfo)
+      this._native = new HwNativeAd(...this.config.adConfig.NATIVE_ID, {systemInfo: this.systemInfo})
     }
-    if (this.config.adConfig.NATIVE_BANNER_ID.length > 0) {
-      this._nativeBanner = new HwNativeBannerAd(...this.config.adConfig.NATIVE_BANNER_ID, this.systemInfo)
+    if (this.config.adConfig?.NATIVE_BANNER_ID?.length > 0) {
+      this._nativeBanner = new HwNativeBannerAd(...this.config.adConfig.NATIVE_BANNER_ID, {
+        systemInfo: this.systemInfo,
+        bannerGravity: this.config?.bannerGravity
+      })
     }
-    if (this.config.adConfig.NATIVE_ICON_ID.length > 0) {
-      this._nativeIcon = new HwNativeIconAd(...this.config.adConfig.NATIVE_ICON_ID, this.systemInfo)
+    if (this.config.adConfig?.NATIVE_ICON_ID?.length > 0) {
+      this._nativeIcon = new HwNativeIconAd(...this.config.adConfig.NATIVE_ICON_ID, {systemInfo: this.systemInfo})
     }
-    if (this.config.adConfig.NATIVE_INTERSTITIAL_ID.length > 0) {
-      this._nativeInters = new HwNativeIntersAd(...this.config.adConfig.NATIVE_INTERSTITIAL_ID, this.systemInfo)
+    if (this.config.adConfig?.NATIVE_INTERSTITIAL_ID?.length > 0) {
+      this._nativeInters = new HwNativeIntersAd(...this.config.adConfig.NATIVE_INTERSTITIAL_ID, {systemInfo: this.systemInfo})
     }
   }
   private showAd(

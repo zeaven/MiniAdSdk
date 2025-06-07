@@ -2,15 +2,14 @@ import { AdType } from "../../Types";
 import HwBaseAd from "./HwBaseAd";
 
 export default class HwBannerAd extends HwBaseAd {
-  protected type: AdType = AdType.Banner
   private bannerTop:number = 57
 
   constructor(...ids: any[]) {
-    super(...ids)
-    if(this.properties?.removeAdConfigData?.bannerGravity == 0){
+    super(AdType.Banner, ...ids)
+    if(this.properties?.bannerGravity == 'top'){
         this.bannerTop = 57
     } else {
-      this.bannerTop = this.properties?.removeAdConfigData?.safeArea?.height - 57
+      this.bannerTop = this.properties?.systemInfo?.safeArea?.height - 57
     }
   }
 
@@ -21,7 +20,7 @@ export default class HwBannerAd extends HwBaseAd {
       adIntervals: 30,
       style: {
         //top需要手机屏幕高度减去广告本身高度
-        top:this.bannerTop,
+        top: this.bannerTop,
         left:0,
         height:57,
         width:360,

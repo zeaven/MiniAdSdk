@@ -1,5 +1,7 @@
+import AdStrategyGroup from "../strategies/AdStrategyGroup";
+import { NativeAdView } from "../support/NativeAdLayout";
 import RemoteAdConfigData from "../support/RemoteAdConfigData";
-import { AdEventType, AdHandler, AdInitConfig, AdInitNext, AdInterceptor, AdInvokeNext, AdInvokeResult, AdInvokeResultVoid, AdParam, AdType, ApiReportData, IAdSdk } from "../Types";
+import { AdEventType, AdHandler, AdInitConfig, AdInitNext, AdInterceptor, AdInvokeNext, AdInvokeResult, AdInvokeResultVoid, AdParam, AdType, ApiReportData, IAdSdk, IAdStrategy } from "../Types";
 import { get_log } from "../utils/Log";
 import { Api } from "../utils/Service";
 
@@ -10,8 +12,9 @@ const log = get_log('AdStrategyInterceptor')
 export class AdStrategyInterceptor implements AdInterceptor {
     sdk: IAdSdk
     remoteAdConfigData: RemoteAdConfigData
-    showCountMap = {'reward': 0, 'inters': 0, 'native': 0}
-    reportDataDefault: ApiReportData;
+    showCountMap = {}
+    reportDataDefault: ApiReportData
+    strategyGroup: AdStrategyGroup
 
     attach(sdk: IAdSdk): void {
         this.sdk = sdk
@@ -40,8 +43,21 @@ export class AdStrategyInterceptor implements AdInterceptor {
     }
     async init(next: AdInitNext, param?: AdInitConfig): Promise<void> {
         // 这里还不能展示广告，因为广告适配器还没有执行init方法，广告类型也没初始化
-        // 自行实现，策略数据如 HuaWeiAdData，通过param传递给适配器
-        this.remoteAdConfigData = (param.remoteAdConfigData ?? new RemoteAdConfigData()) as RemoteAdConfigData
+        if (param?.remoteAdConfigData) {
+            this.remoteAdConfigData = param.remoteAdConfigData
+            delete param.remoteAdConfigData
+        } else {
+            this.remoteAdConfigData = new RemoteAdConfigData(null, param.adConfig)
+        }
+        // 合并后端返回的广告位配置信息
+        param.adConfig = this.remoteAdConfigData.getAdConfig()
+        // 将后台配置的策略数据转换为策略组
+        this.strategyGroup = new AdStrategyGroup(this.remoteAdConfigData)
+        if (this.strategyGroup.strategies[AdType.Banner]) {
+            // 传入 bannerGravity 给适配器，让banner支持自定义位置
+            param.bannerGravity = (this.strategyGroup.strategies[AdType.Banner] as IAdStrategy).gravity
+        }
+        
         this.reportDataDefault = {
             platform: param.loginData?.platform,
             packageName: param.loginData?.packageName,
@@ -60,42 +76,28 @@ export class AdStrategyInterceptor implements AdInterceptor {
         await next(param)
 
         /******* 初始化完成后，执行策略 ********/
-        // 自动展示 banner
-        this.sdk.showBanner()
-
-        /******* 激励视频 ************/
-        if (this.remoteAdConfigData.rewardGap) {
-            this.delayRepeatShow(() => this.sdk.showReward(), 'reward', this.remoteAdConfigData.rewardGap, this.remoteAdConfigData.rewardMaxCount)
-        }
-        if (this.remoteAdConfigData.rewardStart) {
-            this.delayRepeatShow(() => this.sdk.showReward(), 'reward', this.remoteAdConfigData.rewardStart)
+        log('初始化完成后，执行策略')
+        for (const [type, adStrategy] of Object.entries(this.strategyGroup.strategies)) {
+            if (adStrategy.autoStartTime) {
+                // 使用策略标识 'strategy' 作为触发源
+                this.delayRepeatShow(() => this.sdk.show(adStrategy.adType, {source: 'strategy'}), type, adStrategy.autoStartTime, adStrategy.autoInterval, adStrategy.autoRepeatTimes)
+            }
         }
 
-        /******* 插屏 ************/
-        if (this.remoteAdConfigData.interstitialGap) {
-            this.delayRepeatShow(() => this.sdk.showInters(), 'inters', this.remoteAdConfigData.interstitialGap, this.remoteAdConfigData.interstitialMaxCount)
-        }
-        if (this.remoteAdConfigData.interstitialStart) {
-            this.delayRepeatShow(() => this.sdk.showInters(), 'inters', this.remoteAdConfigData.interstitialStart)
-        }
-
-        /******* 原生 ************/
-        if (this.remoteAdConfigData.nativeGap) {
-            this.delayRepeatShow(() => this.sdk.showNative(), 'native', this.remoteAdConfigData.nativeGap, this.remoteAdConfigData.nativeMaxCount)
-        }
-        if (this.remoteAdConfigData.nativeStart) {
-            this.delayRepeatShow(() => this.sdk.showNative(), 'native', this.remoteAdConfigData.nativeStart)
-        }
     }
 
     /**
      * 
      * @param cb 展示回调
      * @param type 广告类型
-     * @param interval 展示延时时间
-     * @param repeat 重复次数，为0时，失败后不会再展示，默认是1
+     * @param delay 展示延时时间
+     * @param interval 展示间隔时间
+     * @param repeat 重复次数
      */
-    delayRepeatShow(cb: Function, type: string, interval: number, repeat: number = 1) {
+    delayRepeatShow(cb: Function, type: string, delay: number, interval: number, repeat: number) {
+        if (!(type in this.showCountMap)) {
+            this.showCountMap[type] = 0
+        }
         // 激励视频关闭后，再次展示
         setTimeout(() => {
             // 自动展示激励视频
@@ -108,10 +110,10 @@ export class AdStrategyInterceptor implements AdInterceptor {
                         return
                     }
                     // 关闭后重新执行
-                    res.onClose = () => repeat && this.delayRepeatShow(cb, type, interval, repeat)
+                    res.onClose = () => repeat && this.delayRepeatShow(cb, type, interval, interval, repeat)
                 }
-            }).catch(() => repeat && this.delayRepeatShow(cb, type, interval, repeat)) // 展示失败重新执行
-        }, interval * 1000)
+            }).catch(() => this.delayRepeatShow(cb, type, interval, interval, repeat)) // 展示失败重新执行
+        }, delay)
     }
 
 
@@ -123,7 +125,36 @@ export class AdStrategyInterceptor implements AdInterceptor {
         }
         return AdType[0]
     }
+
+    /**
+     * 广告策略展示概率逻辑
+     * @param type 广告类型
+     * @param param 广告参数
+     * @returns 
+     */
+    private invokeRate(type: AdType, param: AdParam): any {
+        // 屏蔽 strategy:rate和 strategy:error 等触发源，避免无限循环
+        if (param?.source?.startsWith('strategy:')) {
+            // 已经是概率触发，不再重复执行概率逻辑
+            return
+        }
+        const strategy: IAdStrategy = this.strategyGroup.strategies[type]
+        if (strategy?.showRate) {
+            let rate = Math.random() * 100
+            for (const rateType in strategy.showRate) {
+                if (rate <= strategy.showRate[rateType]) {
+                    param = {...param, source:'strategy:rate'}
+                    return this.sdk.show(AdType[rateType], param)
+                }
+                rate -= strategy.showRate[type]
+            }
+        }
+    }
+
     /********** 以下为策略测试逻辑 **********/
+    showBanner (next: AdInvokeNext, param?: AdParam): Promise<AdInvokeResultVoid> | void {
+        return this.invokeRate(AdType.Banner, param) ?? next(param)
+    }
     /**
      * 拦截插屏展示
      * 如果展示插屏失败，自动展示原生
@@ -131,57 +162,84 @@ export class AdStrategyInterceptor implements AdInterceptor {
      * @param param 
      */
     showInters (next: AdInvokeNext, param?: AdParam): Promise<AdInvokeResultVoid> | void {
-        return next(param).catch((err) => {
-            if (param?.auto) {
-                // 已经自动触发，不再自动触发，否则无限循环
-                throw err
-            }
-            // 增加 auto 标识自动触发
-            param = {...param, auto: true }
-            // 插屏展示失败，自动展示原生
-            return this.sdk.showNative(param)
-        })
+        return this.invokeRate(AdType.Interstitial, param) ?? next(param)
+            .catch((err) => {
+                if (param?.source === 'strategy:error') {
+                    // 已经自动触发，不再自动触发，否则无限循环
+                    throw err
+                }
+                // 增加 source 标识自动触发
+                param = {...param, type: AdType.NativeInterstitial, source: 'strategy:error' }
+                // 插屏展示失败，自动展示原生
+                return this.sdk.showNative(param)
+            })
     }
     /**
      * 拦截原生展示
-     * 如果展示原生失败，自动展示插屏
+     * 如果展示原生插屏失败，自动展示插屏
      * @param next 
      * @param param 
      * @returns 
      */
     showNative (next: AdInvokeNext, param?: AdParam): Promise<AdInvokeResultVoid> | void {
-        return next(param).catch((err) => {
-            if (param?.auto) {
-                // 已经自动触发，不再自动触发，否则无限循环
-                throw err
-            }
-            // 增加 auto 标识自动触发
-            param = {...param, auto: true }
-            // 原生展示失败，自动展示插屏
-            return this.sdk.showInters(param)
-        })  
+        let type = AdType.Native
+        if (param?.type === AdType.NativeInterstitial) {
+            type = AdType.NativeInterstitial
+        } else if (param?.type === AdType.NativeBanner) {
+            type = AdType.NativeBanner
+        } else if (param?.type === AdType.NativeIcon) {
+            type = AdType.NativeIcon
+        }
+        return this.invokeRate(type, param) ?? next(param)
+            .then((res) => {
+                const strategy: IAdStrategy = this.strategyGroup.strategies[type]
+                if (strategy && res && res.getNativeAdView) {
+                    const adView: NativeAdView = res.getNativeAdView()
+                    if (type === AdType.NativeInterstitial || param?.type === AdType.Native) {
+                        // 控制广告样式
+                        if (strategy.closeBtnIncorrectClickRate) {
+                            adView.setCloseBtnIncorrectClickRate?.(strategy.closeBtnIncorrectClickRate)
+                        }
+                        if (strategy.closeBtnAlpha) {
+                            adView.setCloseBtnAlpha?.(strategy.closeBtnAlpha)
+                        }
+                        if (strategy.closeBtnScale) {
+                            adView.setCloseBtnScale?.(strategy.closeBtnScale)
+                        }
+                        adView.setNativeDownloadBtnTransparent?.(strategy.nativeDownloadBtnTransparent)
+                    }
+                }
+                
+                return res
+            })
+            .catch((err) => {
+                if (param.type !== AdType.NativeInterstitial || param?.source === 'strategy:error') {
+                    // 已经自动触发，不再自动触发，否则无限循环
+                    throw err
+                }
+                // 增加 source 标识自动触发
+                param = {...param, source: 'strategy:error' }
+                // 原生展示失败，自动展示插屏
+                return this.sdk.showInters(param)
+            })  
     }
 
     /**
      * 拦截激励视频展示
-     * 展示完成后随机展示插屏或原生
+     * 展示完成后展示插屏
      * @param next 
      * @param param 
      * @returns 
      */
     showReward (next: AdInvokeNext, param?: AdParam): Promise<AdInvokeResultVoid> | void {
-        return next(param).then((res) => {
+        return this.invokeRate(AdType.Reward, param) ?? next(param).then((res) => {
             if (res && res.rewardPromise) {
                 // 未看完激励视频才展示
                 res.rewardPromise.catch((err) => {
                     if (Math.random() < 0.3) {
                         // 30%概率展示插屏
-                        // 随机展示插屏或原生
-                        if (Math.random() > 0.5) {
-                            this.sdk.showInters({auto: true})
-                        } else {
-                            this.sdk.showNative({auto: true})
-                        }
+                        param = {...param, source:'strategy:reward-error' }
+                        this.sdk.showInters(param)
                     }
                     throw err
                 })

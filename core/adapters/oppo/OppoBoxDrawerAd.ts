@@ -2,7 +2,9 @@ import { AdType, Runnable } from "../../Types";
 import OppoBaseAd from "./OppoBaseAd";
 
 export default class OppoBoxDrawerAd extends OppoBaseAd  {
-    protected type: AdType = AdType.Box
+    constructor(...ids: any[]) {
+        super(AdType.Box,...ids)
+    }
     protected createAd(_id: string): any {
         return globalThis.qg.createGameDrawerAd({
             adUnitId: _id,

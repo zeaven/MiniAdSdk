@@ -1,4 +1,3 @@
-import { AdInvokeResult, AdParam } from "../../Types";
 
 import AdBase from "../AdBase";
 import log from "./HwLog"

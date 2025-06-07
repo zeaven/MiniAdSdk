@@ -5,8 +5,10 @@
 import { AdParam, AdInvokeResult, AdType } from "../../Types";
 import TTBaseAd from "./TTBaseAd";
 
-export default class TTInsertAd extends TTBaseAd {
-  protected type: AdType = AdType.Interstitial;
+export default class TTIntersAd extends TTBaseAd {
+  constructor(...ids: any[]) {
+    super(AdType.Interstitial, ...ids);
+  }
   protected createAd(_id: string): any {
     if (!this.ad) {
       return globalThis.tt.createInterstitialAd({

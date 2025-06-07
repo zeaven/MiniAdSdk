@@ -64,6 +64,9 @@ export default class AdSdk implements IAdSdk {
     if (!AdSdk._instance) {
       const sdkProxy = {
         get: function(target: AdSdk, prop: string) {
+          if (prop === 'show') {
+            return target[prop]
+          }
           if ((prop.startsWith('show') || prop.startsWith('hide')) && typeof target[prop] === 'function') {
             return function (...args:any[]): Promise<AdInvokeResult>  {
               return target.invoke(prop, ...args)
@@ -194,8 +197,7 @@ export default class AdSdk implements IAdSdk {
           return this._adapter[method](...params)
         }
         // 拦截器调用链
-        let rr= this.callInterceptor(method, args, interceptors, next)
-        rr = rr.then(res => {
+        return this.callInterceptor(method, args, interceptors, next).then(res => {
           // 除了 showToast，其他展示方法都有返回值，没有返回值则是被拦截器取消
           if (method.startsWith('show') && method !== 'showToast' && !res) {
             return Promise.reject('广告被拦截')
@@ -203,10 +205,10 @@ export default class AdSdk implements IAdSdk {
           AdSdk.log(`${method}请求成功`, res)
           return res
         }).catch(err => {
+          console.error(err)
           AdSdk.log(`${method}请求失败`, err)
           return Promise.reject(err)
         })
-        return rr
       } else if (this._whitePackage) {
         return Promise.resolve( defaultInvokeResult )
       }
@@ -281,6 +283,18 @@ export default class AdSdk implements IAdSdk {
 
   public setWhitePackage(whitePackage: boolean) {
     this._whitePackage = whitePackage
+  }
+
+  show(adType: AdType, param?: AdParam): Promise<AdInvokeResult> {
+    const typeStr = AdType[adType];
+    const method = 'show' + typeStr.substring(0, 6)
+    if (typeStr.length > 6 && typeStr.includes('Native')) {
+      param = {
+        ...param,
+        type: adType,
+      }
+    }
+    return this.invoke(method, param)
   }
 
   showBox(param?: AdParam): Promise<AdInvokeResult> {

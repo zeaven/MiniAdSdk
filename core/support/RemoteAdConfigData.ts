@@ -54,7 +54,7 @@ interface AdStrategyData {
 const DEFAULT_CONFIG: AdStrategyData = {
     nativeBannerGap: 0,
     nativeBannerMaxCount: 0,
-    nativeBannerStart: 0,
+    nativeBannerStart: 10000,
 
     nativeInterstitialGap: 0,
     nativeInterstitialMaxCount: 0,

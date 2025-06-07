@@ -14,18 +14,18 @@
 
 import { AdParam, AdInvokeResult, Runnable, AdType } from "../../Types"
 import HwBaseAd from "./HwBaseAd"
-import HwNativeLayout, { NativeAdData, NativeAdView } from "./HwNativeLayout"
+import NativeAdLayout, { NativeAdData, NativeAdView } from "../../support/NativeAdLayout"
 
 
 export default class HwNativeAd extends HwBaseAd {
-  private nativeLayout: HwNativeLayout
+  private nativeLayout: NativeAdLayout
   private adView: NativeAdView
   protected type: AdType = AdType.Native
   private adData: NativeAdData
 
   constructor(...ids: any[]) {
-    super(...ids)
-    this.nativeLayout = new HwNativeLayout()
+    super(AdType.Native, ...ids)
+    this.nativeLayout = new NativeAdLayout()
   }
 
   protected getAdListeners(): Record<string, Runnable> {
@@ -102,39 +102,55 @@ export default class HwNativeAd extends HwBaseAd {
       }
       this.adView = this.createAdView(this.adData)
 
-      res.adView = this.adView
-      // 暴露额外方法，方便外部控制广告
-      if (param.showDownloadButton) {
-        this.showDownloadButton()
-      }
-      if (param.disableCloseBtn) {
-        this.adView.disableCloseBtn()
-      }
+      res.getNativeAdView = () => this.adView
+      
       this.ad.reportAdShow({adId: this.adData.adId})
       return res
     })
   }
+
+  /**
+   * 原生广告添加到场景
+   * @param node 父节点
+   * @returns 
+   */
+  attach(node: cc.Node): void {
+    if (!this.adView) {
+      return
+    }
+    this.adView.attach(node)
+  }
   
   protected createAdView(adData: NativeAdData): NativeAdView {
     // 把屏幕大小传入
-    this.adData.width = this.properties?.safeArea.width || cc.winSize.width
-    this.adData.height = this.properties?.safeArea.height || cc.winSize.height 
+    this.adData.width = cc.winSize.width
+    this.adData.height = cc.winSize.height
     const adView = this.nativeLayout.createLayout(adData, this.type)
     adView.onClick = this.onClick.bind(this)
     adView.onClose = this.close.bind(this)
     // 打开应用市场详情页
     adView.onLink = adView.openApp
+    // 暴露额外方法，方便外部控制广告
+    adView.setNativeDownloadBtnTransparent = (enable) => {
+      if (!enable) {
+        // 显示原生下载按钮，就把文字按钮隐藏
+        adView.disableLinkBtn?.()
+      }
+      this.showDownloadButton(enable)
+    }
     return adView
   }
 
-  protected showDownloadButton() {
+  protected showDownloadButton(enable: boolean) {
     // this.adView.disableLinkBtn()
     // 通过 this.node 节点的位置和大小，设置下载按钮位置，位于底部中间
     const width = cc.winSize.width
     const height = this.adData.height
-    const left = ((this.properties?.windowWidth || cc.winSize.width) * 0.5 - 50) * (this.properties?.pixelRatio || 1)
-    const top = ((this.properties?.windowHeight || cc.winSize.height) / 2) * (this.properties?.pixelRatio || 1)
+    const left = ((this.properties?.systemInfo.safeArea.width) * 0.5 - 50) * (this.properties?.systemInfo.pixelRatio || 1)
+    const top = ((this.properties?.systemInfo.safeArea.height) / 2) * (this.properties?.systemInfo.pixelRatio || 1)
     
+    // TODO: 实现透明按钮
+
     // 显示下载按钮
     this.ad.showDownloadButton({
         adId : this.adData.adId,
@@ -169,9 +185,12 @@ export default class HwNativeAd extends HwBaseAd {
 
   close(): void {
       super.close()
-      this.ad.hideDownloadButton({adId: this.adData.adId})
-      this.adView = null
-      this.adData = null
+      if (this.adData) {
+        this.ad.hideDownloadButton({adId: this.adData.adId})
+        this.adView?.close()
+        this.adView = null
+        this.adData = null
+      }
       // 触发 onClose 回调
       this.onClose(null)
   }

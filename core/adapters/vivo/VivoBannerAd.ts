@@ -6,7 +6,9 @@ import { AdType } from "../../Types";
 import VivoBaseAd from "./VivoBaseAd";
 
 export default class VivoBannerAd extends VivoBaseAd {
-  protected type: AdType = AdType.Banner
+  constructor(...ids: any[]) {
+    super(AdType.Banner, ...ids);
+  }
   protected createAd(_id: string): any {
     this.ready = true // 默认加载
     return globalThis.qg.createBannerAd({

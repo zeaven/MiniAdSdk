@@ -18,6 +18,10 @@ interface AdInitConfig{
   enableLogin?: boolean
   // 是否开启远程配置，默认开启
   enableRemoteConfig?: boolean
+  /**
+   * banner 定位
+   */
+  bannerGravity?: 'top' | 'bottom' | 'left' | 'right'
   [extra: string]: any
 }
 
@@ -50,19 +54,16 @@ type AdParam = {
   /**
    * /类型参数，用于区分同一种广告的不区类型，或者同一广告在不同场景展示的样式
    */
-  type?: number | null 
+  type?: number
   /**
    * 可以是广告样式数据或奖励数据等
    */
-  data?: any | null
+  data?: any
   /**
-   * 原生广告是否显示下载按钮
+   * 触发源，如游戏埋点触发默认为空，策略自动触发时由策略设置指定标识，防止策略重复触发
+   * 如：策略触发插屏广告，插屏广告触发原生广告，原生广告触发插屏广告，会导致无限循环
    */
-  showDownloadButton?: boolean
-  /**
-   * 原生广告是否显示关闭按钮
-   */
-  disableCloseBtn?: boolean
+  source?: any
   [extra: string]: any
 }
 /**
@@ -71,6 +72,7 @@ type AdParam = {
 interface AdSession {
   close(): void
   destroy(): void
+  attach?: (node: cc.Node) => void
 }
 /**
  * 广告处理接口，如banner、插屏、奖励视频等
@@ -78,9 +80,8 @@ interface AdSession {
 interface AdHandler extends AdSession {
   readonly name: string
   show(param?: AdParam): Promise<AdInvokeResult>
-  close(): void
-  destroy(): void
 }
+
 
 /**
  * 广告回调类型
@@ -95,11 +96,75 @@ interface AdInvokeResult {
    */
   rewardPromise?: Promise<void> | null
   /**
-   * 关闭代理回调
+   * 关闭代理回调，广告关闭后触发
    */
   onClose?: Runnable,
   [extra: string]: any
 }
+
+// #region 策略
+/**
+ * 广告策略
+ */
+interface IAdStrategy {
+  /**
+   * 广告类型
+   */
+  adType: AdType,
+  /**
+   * 自动展示时间，单位秒，0为不自动展示
+   */
+  autoStartTime?: number
+  /**
+   * 自动循环展示次数，0为不自动循环展示
+   */
+  autoRepeatTimes?: number
+  /**
+   * 自动循环展示间隔，单位秒，0为不自动循环展示
+   */
+  autoInterval?: number
+  /**
+   * 展示位置，ganner、icon有效
+   */
+  gravity?: 'top' | 'bottom' | 'left' | 'right'
+  /**
+   * 关闭按钮比例，0为不显示关闭按钮，1为默认大小，不显示则没有误触
+   */
+  closeBtnScale?: number
+  /**
+   * 关闭按钮不透明度百分率，0-100之间，0为不显示关闭按钮，1为展示按钮
+   */
+  closeBtnAlpha?: number
+  /**
+   * 关闭按钮错误点击率, 0-100之间，0为关闭
+   */
+  closeBtnIncorrectClickRate?: number
+  /**
+   * 原生广告下载按钮透明
+   */
+  nativeDownloadBtnTransparent?: boolean
+
+  /**
+   * 展示概率，每个广告类型的百分比，0-100之间，0为不展示
+   */
+  showRate?: Partial<Record<keyof typeof AdType, number>>
+}
+
+interface IAdStrategyGroup {
+  /**
+   * 策略组名称
+   */
+  readonly name: string
+  /**
+   * 广告策略列表
+   */
+  readonly strategies: Partial<Record<keyof typeof AdType, IAdStrategy>>
+  /**
+   * 是否展示广告标识
+   */
+  readonly adFlagEnable: boolean
+}
+// #endregion
 
 /******** 登录 **********/
 
@@ -138,6 +203,10 @@ interface AdInterface {
   hideBanner(param?: AdParam): Promise<void>
   showInters(param?: AdParam): Promise<AdInvokeResult>
   showReward(param?: AdParam): Promise<AdInvokeResult>
+  /**
+   * 原生广告类型，如：banner、icon等，请在 param.type 指定原生类型
+   * @param param 广告参数
+   */
   showNative(param?: AdParam): Promise<AdInvokeResult>
   hideNative(param?: AdParam): Promise<void>
   showCustom(param?: AdParam): Promise<AdInvokeResult>
@@ -150,6 +219,7 @@ interface IAdSdk extends AdInterface {
   config: Readonly<AdInitConfig>
   debug: boolean
   state: SdkState
+  show(adType: AdType, param?: AdParam): Promise<AdInvokeResult>
   addInterceptor(platform: string, interceptor: AdInterceptor): void
   on(adEvent: AdNodeEvent | AdType | AdEventType, callback: EventCallback, target?: any): Runnable
   setWhitePackage(whitePackage: boolean): void
@@ -165,9 +235,9 @@ enum SdkState {
  */
 enum AdType {
   None,
-  Banner ,
-  Interstitial ,
-  Reward ,
+  Banner,
+  Interstitial,
+  Reward,
   Custom,
   Native,
   NativeInterstitial,
@@ -223,6 +293,7 @@ class AdEventHandler {
   @property({tooltip: '广告数据, 如: 1、2等,在展示广告时判断展示样式'})
   data: string = ''
 }
+
 
 /**
  * 广告事件回调函数
@@ -293,5 +364,5 @@ export {
   AdParam, AdInvokeResult, AdInterface, AdHandler, Callback, AdType, AdNodeEvent, AdSession, Runnable,
   AdEventHandler, AdInterceptor,IAdConfig,AdInitNext,EventCallback,AdInvokeResultVoid,
   AdEventType, AdInitConfig,AdInvokeNext, IAdSdk, ILoginable,LoginResult, LoginCode,
-  ApiLoginData, AdHttpContext, ApiReportData, SdkState
+  ApiLoginData, AdHttpContext, ApiReportData, SdkState, IAdStrategyGroup, IAdStrategy
 }

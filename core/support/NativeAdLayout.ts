@@ -1,5 +1,5 @@
-import { Draggable } from "../../support/Draggable"
-import { AdType, Callback, Runnable } from "../../Types"
+import { Draggable } from "./Draggable"
+import { AdType, Callback, Runnable } from "../Types"
 
 export interface NativeAdData {
     adId: string
@@ -24,15 +24,15 @@ export interface NativeAdData {
 
 function loadRemoteImage(url: string, cb?: (sf: cc.SpriteFrame) => void) {
     if (!url) return
-    if (!HwNativeLayout.preloadMaps[url]) {
-        HwNativeLayout.preloadMaps[url] = new Promise((resolve, reject) => {
+    if (!NativeAdLayout.preloadMaps[url]) {
+        NativeAdLayout.preloadMaps[url] = new Promise((resolve, reject) => {
             cc.assetManager.loadRemote(url, (err, tex: cc.Texture2D) => {
                 if (err) return
                 resolve(new cc.SpriteFrame(tex))
             })
         })
     }
-    HwNativeLayout.preloadMaps[url].then(res => {
+    NativeAdLayout.preloadMaps[url].then(res => {
         cb && cb(res)
     })
 }
@@ -40,30 +40,24 @@ function loadRemoteImage(url: string, cb?: (sf: cc.SpriteFrame) => void) {
 export interface NativeAdView {
     node: cc.Node
     attach: (node: cc.Node) => void
+  
     /**
      * 广告区域被点击时的回调
      */
-    onClick: Runnable
+    onClick?: Runnable
     /**
      * 广告按钮[clickBtnTxt]被点击时的回调，注意不是原生下载按钮
      */
-    onLink: Runnable
+    onLink?: Runnable
     /**
      * 广告关闭按钮被点击时的回调
      */
-    onClose: Runnable
+    onClose?: Runnable
     /**
      * 点击遮罩时的回调，模态框有效
      */
-    onMaskClick: Runnable
-    /**
-     * 禁用关闭按钮
-     */
-    disableCloseBtn: Runnable
-    /**
-     * 禁用下载按钮
-     */
-    disableLinkBtn: Runnable
+    onMaskClick?: Runnable
+    disableLinkBtn?: Runnable
     /**
      * 打开应用详情页
      */
@@ -84,11 +78,18 @@ export interface NativeAdView {
      * @returns 
      */
     gravity: (gravity: 'top' | 'bottom') => void
+    // #region 策略方法
+    setNativeDownloadBtnTransparent?: (enable: boolean) => void
+    setCloseBtnScale?: (scale: number) => void
+    setCloseBtnAlpha?: (alpha: number) => void
+    setCloseBtnIncorrectClickRate?: (rate: number) => void
+    // #endregion
+    
 }
 
 
 
-export default class HwNativeLayout {
+export default class NativeAdLayout {
     static preloadMaps = {}
     /**
      * 
@@ -108,11 +109,8 @@ export default class HwNativeLayout {
         if (type === AdType.NativeInterstitial) {
             data.width *= data.height > data.width ? 0.85 : 0.4
             data.height *= data.height > data.width? 0.4 : 0.8
-            // 屏蔽点击事件
-            layer.addComponent(cc.BlockInputEvents);
-            layer.on(cc.Node.EventType.TOUCH_END, () => {
-                adView.onMaskClick?.()
-            })
+            // 模态框，屏蔽背景点击
+            adView.modal(true)
         } else if (type === AdType.NativeBanner) {
             data.width *= data.height > data.width? 1 : 0.5
             data.height = 100
@@ -122,11 +120,8 @@ export default class HwNativeLayout {
         } else {
             data.width *= data.height > data.width ? 0.85 : 0.5
             data.height *= data.height > data.width? 0.5 : 0.85
-            // 屏蔽点击事件
-            layer.addComponent(cc.BlockInputEvents);
-            layer.on(cc.Node.EventType.TOUCH_END, () => {
-                adView.onMaskClick?.()
-            })
+            // 模态框，屏蔽背景点击
+            adView.modal(true)
         }
         // 这里可以根据不同的 creativeType 来创建不同的模板
         const initializer = new NormalTemplate(adView)
@@ -134,6 +129,7 @@ export default class HwNativeLayout {
         return adView
     }
     private getDefaultAdView(layer: cc.Node, packageName: string): NativeAdView {
+        let isDestroyed = false
         const adView: NativeAdView = {
             node: layer,
             attach: (parent: cc.Node) => {
@@ -149,15 +145,14 @@ export default class HwNativeLayout {
                 adView.node.setPosition(x, y);
                 parent.addChild(adView.node);
             },
-            onClick: () => { },
-            onClose: () => { },
-            onLink: () => { },
-            onMaskClick: () => { },
-            disableCloseBtn: () => { },
-            disableLinkBtn: () => { },
             modal: (enable: boolean) => {
                 layer.removeComponent(cc.BlockInputEvents)
-                enable && layer.addComponent(cc.BlockInputEvents)
+                if (enable) {
+                    layer.addComponent(cc.BlockInputEvents)
+                    layer.on(cc.Node.EventType.TOUCH_END, () => {
+                        adView.onMaskClick?.()
+                    })
+                }
             },
             openApp: () => {
                 if (packageName) {
@@ -175,7 +170,8 @@ export default class HwNativeLayout {
                 }
             },
             close: () => {
-                if (adView.node.getParent()) {
+                if (!isDestroyed && adView.node.getParent()) {
+                    isDestroyed = true
                     adView.onClose?.()
                     adView.node.destroy()
                 }
@@ -187,7 +183,7 @@ export default class HwNativeLayout {
 
     public preLoad(data: NativeAdData) {
         if (!data) return
-        HwNativeLayout.preloadMaps = {}
+        NativeAdLayout.preloadMaps = {}
         data.imgUrlList.forEach((url) => {
             loadRemoteImage(url)
         })
@@ -198,16 +194,19 @@ export default class HwNativeLayout {
 
 class NormalTemplate {
     adView: NativeAdView
+    inCorrectClickRate: number
     constructor(adView: NativeAdView) {
         this.adView = adView
+        this.inCorrectClickRate = 0
     }
     init(data: NativeAdData, type: AdType) {
         const layer = this.adView.node
+        
         layer.setAnchorPoint(0.5, 0.5);
         layer.setPosition(0, 0);
         layer.setContentSize(cc.winSize.width, cc.winSize.height);
         const container = new cc.Node('AdContainer')
-        const width = Math.min(data.width, cc.winSize.width)
+        const width = data.width
         const height =  Math.max(60, data.height)
         const infoHeight = Math.min(100, height)
         const mainImgEnable = height >= 320
@@ -263,7 +262,7 @@ class NormalTemplate {
     
                 const sprite = imgNode.addComponent(cc.Sprite)
                 loadRemoteImage(url, (sf) => {
-                    HwNativeLayout.preloadMaps[url]
+                    NativeAdLayout.preloadMaps[url]
                     sprite.spriteFrame = sf
                     sprite.type = cc.Sprite.Type.SIMPLE
                     sprite.sizeMode = cc.Sprite.SizeMode.CUSTOM
@@ -284,21 +283,28 @@ class NormalTemplate {
                 loadRemoteImage(data.imgUrlList?.[0], (firstImgSprite) => {
                     const mainImgHeight = height - infoHeight
                     const scaleY = mainImgHeight / firstImgSprite.getOriginalSize().height
-                    const mainImgWidth = scaleY * firstImgSprite.getOriginalSize().width
-                    mainImgNode.setAnchorPoint(0.5, 1)
-                    mainImgNode.setPosition(0, height * 0.5)
-                    mainImgNode.setContentSize(mainImgWidth, mainImgHeight)
+                    const scaleX = width / firstImgSprite.getOriginalSize().width
+                    const scale = Math.min(scaleX, scaleY)
+                    if (scale < scaleY) {
+                        mainImgNode.setAnchorPoint(0.5, 0.5)
+                        mainImgNode.setPosition(0, 0)
+                    } else {
+                        mainImgNode.setAnchorPoint(0.5, 1)
+                        mainImgNode.setPosition(0, height * 0.5)
+                    }
+                    
+                    mainImgNode.setContentSize(firstImgSprite.getOriginalSize().width * scale, firstImgSprite.getOriginalSize().height * scale)
                     const mainImgSprite = mainImgNode.addComponent(cc.Sprite)
                     mainImgSprite.spriteFrame = firstImgSprite
                     mainImgSprite.type = cc.Sprite.Type.SIMPLE
                     mainImgSprite.sizeMode = cc.Sprite.SizeMode.CUSTOM
-                    mainImgNode.scale = scaleY
+                    mainImgNode.scale = scale
                     if (type === AdType.Native) {
                         cc.tween(mainImgNode)
                             .repeatForever(
                               cc.tween()
-                                .to(1, { scale: scaleY * 1.03 })
-                                .to(1, { scale: scaleY })
+                                .to(1, { scale: scale * 1.03 })
+                                .to(1, { scale: scale })
                             )
                             .start()
                     }
@@ -348,12 +354,26 @@ class NormalTemplate {
         closeLabel.horizontalAlign = cc.Label.HorizontalAlign.CENTER
         closeLabel.verticalAlign = cc.Label.VerticalAlign.CENTER
         closeBtn.on(cc.Node.EventType.TOUCH_END, (event: cc.Event.EventTouch) => {
+            if (this.inCorrectClickRate > 0) {
+                if (Math.random() < this.inCorrectClickRate / 100) {
+                    // 误触，不关闭
+                    return
+                }
+            }
             event.stopPropagation() // 阻止冒泡到 container
             this.adView.close()
         })
         container.addChild(closeBtn, 10)
 
-        this.adView.disableCloseBtn = () => closeBtn.active = false
+        this.adView.setCloseBtnScale = (scale) => {
+            closeBtn.scale = scale
+        }
+        this.adView.setCloseBtnAlpha = (alpha) => {
+            closeBtn.color = new cc.Color(180, 180, 180, 255 * alpha)
+        }
+        this.adView.setCloseBtnIncorrectClickRate = (rate) => {
+            this.inCorrectClickRate = rate
+        }
 
         // 视频  视频区域无法触发点击事件
         // 判断是否有视频
@@ -394,25 +414,28 @@ class NormalTemplate {
             infoBg.spriteFrame.getTexture().handleLoadedTexture()
         }
         container.addChild(infoArea, 8)
-
-        const iconNode = new cc.Node('Icon')
-        const iconWidth = infoHeight * 0.8
-        const iconHeight = iconWidth
-        iconNode.setAnchorPoint(0.5,0.5)
-        iconNode.setContentSize(iconWidth, iconHeight)
-        iconNode.setPosition((iconWidth-width)*0.5 + 9,0)
-        const iconSprite = iconNode.addComponent(cc.Sprite)
-        loadRemoteImage(data.icon, (sf) => {
-            delete HwNativeLayout.preloadMaps[data.icon]
-            iconSprite.spriteFrame = sf
-            const size = sf.getOriginalSize()
-            iconNode.scaleX = iconWidth / size.width
-            iconNode.scaleY = iconHeight / size.height
-            if (width <= 100 && width <= height) {
-                iconNode.scale = iconNode.scale * 1.2
-            }
-        })
-        infoArea.addChild(iconNode)
+        
+        let iconWidth = 0
+        if (data.icon) {
+            const iconNode = new cc.Node('Icon')
+            iconWidth = infoHeight * 0.8
+            const iconHeight = iconWidth
+            iconNode.setAnchorPoint(0.5,0.5)
+            iconNode.setContentSize(iconWidth, iconHeight)
+            iconNode.setPosition((iconWidth-width)*0.5 + 9,0)
+            const iconSprite = iconNode.addComponent(cc.Sprite)
+            loadRemoteImage(data.icon, (sf) => {
+                delete NativeAdLayout.preloadMaps[data.icon]
+                iconSprite.spriteFrame = sf
+                const size = sf.getOriginalSize()
+                iconNode.scaleX = iconWidth / size.width
+                iconNode.scaleY = iconHeight / size.height
+                if (width <= 100 && width <= height) {
+                    iconNode.scale = iconNode.scale * 1.2
+                }
+            })
+            infoArea.addChild(iconNode)
+        }
 
         if (width >= 200) {
             const textArea = new cc.Node('TextArea')
@@ -459,8 +482,8 @@ class NormalTemplate {
                 const btnArea = new cc.Node('ButtonArea')
                 btnArea.color = cc.Color.WHITE
                 btnArea.setAnchorPoint(0, 0)
-                btnArea.setPosition(0, -infoHeight/2 + 5)
-                btnArea.setContentSize((width - 100), 30)
+                btnArea.setPosition(0 - iconWidth, -infoHeight/2 + 5)
+                btnArea.setContentSize((width), 30)
                 // 添加 BlockInputEvents 组件确保按钮区域可以接收点击事件
                 btnArea.addComponent(cc.BlockInputEvents)
                 btnArea.active = infoHeight >= 95
@@ -478,7 +501,7 @@ class NormalTemplate {
                 // 添加 Label 作为子节点，单独居中处理
                 const labelNode = new cc.Node('BtnLabel')
                 labelNode.setAnchorPoint(0.5, 0.5)
-                labelNode.setPosition((width - 100)/2 - 40, 15) // 居中
+                labelNode.setPosition((width)/2, 15) // 居中
                 const btnLabel = labelNode.addComponent(cc.Label)
                 btnLabel.string = data.clickBtnTxt || '点击查看'
                 btnLabel.fontSize = 18

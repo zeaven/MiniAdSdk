@@ -7,7 +7,9 @@ import OppoBaseAd from './OppoBaseAd'
 import log from "./OppoLog"
 
 export default class OppoBoxBannerAd extends OppoBaseAd {
-  protected type: AdType = AdType.Box
+  constructor(...ids: any[]) {
+    super(AdType.Box, ...ids)
+  }
   protected getAdListeners(): Record<string, Runnable> {
     const listeners = super.getAdListeners()
     // TODO: 文档没有 onHide/onClose 事件

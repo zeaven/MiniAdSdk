@@ -7,7 +7,9 @@ import VivoBaseAd from './VivoBaseAd'
 import log from "./VivoLog"
 
 export default class VivoBoxPortalAd extends VivoBaseAd {
-  protected type: AdType = AdType.Portal
+  constructor(...ids: any[]) {
+    super(AdType.Portal,...ids)
+  }
   protected createInterval = 1000
   protected createAd(_id: string): any {
     if (globalThis.qg.createBoxPortalAd) {

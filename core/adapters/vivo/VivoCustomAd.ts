@@ -6,7 +6,9 @@ import { AdType } from '../../Types'
 import VivoBaseAd from './VivoBaseAd'
 
 export default class VivoCustomAd extends VivoBaseAd {
-  protected type: AdType = AdType.Custom
+  constructor(...ids: any[]) {
+    super(AdType.Custom,...ids)
+  }
 
   protected createAd(_id: string): any {
     if (globalThis.qg.createCustomAd)

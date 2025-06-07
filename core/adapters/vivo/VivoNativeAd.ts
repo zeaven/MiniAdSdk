@@ -3,7 +3,9 @@ import AdEventBus from "../../utils/AdEventBus";
 import VivoBaseAd from "./VivoBaseAd";
 
 export default class VivoNativeAd extends VivoBaseAd {
-  protected type: AdType = AdType.Native
+  constructor(...ids: any[]) {
+    super(AdType.Native,...ids)
+  }
   private adInfo: any
   protected createAd(_id: string) {
     this.ready = true // 默认加载

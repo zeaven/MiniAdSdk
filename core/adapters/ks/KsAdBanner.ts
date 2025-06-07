@@ -7,7 +7,9 @@ export default class KsAdBanner extends KsAdBase {
      * 当用户手动关闭banner广告后，下次小游戏启动时，会再次展示banner广告。
      */
     private userClosed: boolean = false
-    protected type: AdType = AdType.Banner
+    constructor(...ids: any[]) {
+        super(AdType.Banner, ...ids)
+    }
     protected createAd(_id: string) {
         // 快手banner广告通过show拉取，默认是ready状态
         this.ready = true
