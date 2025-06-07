@@ -15,6 +15,7 @@
 import { AdParam, AdInvokeResult, Runnable, AdType } from "../../Types"
 import HwBaseAd from "./HwBaseAd"
 import NativeAdLayout, { NativeAdData, NativeAdView } from "../../support/NativeAdLayout"
+import device from "../../support/Device"
 
 
 export default class HwNativeAd extends HwBaseAd {
@@ -123,63 +124,92 @@ export default class HwNativeAd extends HwBaseAd {
   
   protected createAdView(adData: NativeAdData): NativeAdView {
     // 把屏幕大小传入
-    this.adData.width = cc.winSize.width
-    this.adData.height = cc.winSize.height
     const adView = this.nativeLayout.createLayout(adData, this.type)
     adView.onClick = this.onClick.bind(this)
     adView.onClose = this.close.bind(this)
     // 打开应用市场详情页
     adView.onLink = adView.openApp
     // 暴露额外方法，方便外部控制广告
-    adView.setNativeDownloadBtnTransparent = (enable) => {
-      if (!enable) {
+    adView.setNativeDownloadBtnTransparent = (transparent) => {
+      if (!transparent) {
         // 显示原生下载按钮，就把文字按钮隐藏
         adView.disableLinkBtn?.()
       }
-      this.showDownloadButton(enable)
+      this.showDownloadButton(transparent)
     }
     return adView
   }
 
-  protected showDownloadButton(enable: boolean) {
+  protected showDownloadButton(transparent: boolean) {
     // this.adView.disableLinkBtn()
     // 通过 this.node 节点的位置和大小，设置下载按钮位置，位于底部中间
-    const width = cc.winSize.width
-    const height = this.adData.height
-    const left = ((this.properties?.systemInfo.safeArea.width) * 0.5 - 50) * (this.properties?.systemInfo.pixelRatio || 1)
-    const top = ((this.properties?.systemInfo.safeArea.height) / 2) * (this.properties?.systemInfo.pixelRatio || 1)
+    const container = this.adView.node.getChildByName('AdContainer')
+    const width = device.adaptFontSize(container.width)
+    const height = device.adaptFontSize(container.height)
+
+    const left = ((this.properties?.systemInfo.windowWidth || cc.winSize.width) * 0.5 - 50) * (this.properties?.systemInfo.pixelRatio || 1)
+    const top = ((this.properties?.systemInfo.windowHeight || cc.winSize.height) * 0.5 + height * 0.5 - 25) * (this.properties?.systemInfo.pixelRatio || 1)
     
-    // TODO: 实现透明按钮
+    let style
+    if (transparent) {
+      style = {
+        left:left,
+        top:top,
+        heightType:'normal',
+        width:300,
+        fixedWidth: true,
+        minWidth:200,
+        maxWidth:500,
+        textSize:1,
+        horizontalPadding:0,
+        cornerRadius:22,
+        normalTextColor:'#FFFFFFFF',
+        normalBackground:'#FFFFFFFF',
+        pressedColor:'#FFFFFFFF',
+        normalStroke:5,
+        normalStrokeCorlor:'#EEEEEEFF',
+        processingTextColor:'#EEEEEEFFF',
+        processingBackground:'#EEEEEEFF',
+        processingColor:'#EEEEEEFF',
+        processingStroke:10,
+        processingStrokeCorlor:'#EEEEEEFF',
+        installingTextColor:'#EEEEEEFF',
+        installingBackground:'#EEEEEEFF',
+        installingStroke:15,
+        installingStrokeCorlor:'#EEEEEEFF'
+      }
+    } else {
+      style = {
+        left:left,
+        top:top,
+        heightType:'normal',
+        width:300,
+        minWidth:200,
+        maxWidth:500,
+        textSize:50,
+        horizontalPadding:50,
+        cornerRadius:22,
+        normalTextColor:'#FFFFFF',
+        normalBackground:'#5291FF',
+        pressedColor:'#0A59F7',
+        normalStroke:5,
+        normalStrokeCorlor:'#FF000000',
+        processingTextColor:'#5291FF',
+        processingBackground:'#0F000000',
+        processingColor:'#000000',
+        processingStroke:10,
+        processingStrokeCorlor:'#0A59F7',
+        installingTextColor:'#000000',
+        installingBackground:'#FFFFFF',
+        installingStroke:15,
+        installingStrokeCorlor:'#5291FF'
+      }
+    }
 
     // 显示下载按钮
     this.ad.showDownloadButton({
         adId : this.adData.adId,
-        style : {
-            left:left,
-            top:top,
-            heightType:'normal',
-            width:width,
-            fixedWidth: true,
-            minWidth:599,
-            maxWidth:width,
-            textSize:1,
-            horizontalPadding:0,
-            cornerRadius:0,
-            normalTextColor:'#FFFFFFFF',
-            normalBackground:'#FFFFFFFF',
-            pressedColor:'#FFFFFFFF',
-            normalStroke:5,
-            normalStrokeCorlor:'#EEEEEEFF',
-            processingTextColor:'#EEEEEEFFF',
-            processingBackground:'#EEEEEEFF',
-            processingColor:'#EEEEEEFF',
-            processingStroke:10,
-            processingStrokeCorlor:'#EEEEEEFF',
-            installingTextColor:'#EEEEEEFF',
-            installingBackground:'#EEEEEEFF',
-            installingStroke:15,
-            installingStrokeCorlor:'#EEEEEEFF'
-        }
+        style
     })
   }
 

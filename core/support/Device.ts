@@ -12,6 +12,11 @@ class Device {
         }
     }
 
+    public isLandscape(): boolean {
+        const size = cc.view.getFrameSize();
+        return size.width > size.height;
+    }
+
     public get openCount() {
         return this._openCount
     }
@@ -37,6 +42,24 @@ class Device {
             }
             return (c === 'x' ? random : (random & 0x3) | 0x8).toString(16);
         });
+    }
+    getSize(): {width: number, height: number} {
+        const frameSize = cc.view.getFrameSize(); // 屏幕实际像素
+        const designSize = cc.view.getDesignResolutionSize(); // 设计分辨率
+
+        // 计算横向缩放比（像素 / 逻辑单位）
+        const scaleX = frameSize.width / designSize.width;
+        const scaleY = frameSize.height / designSize.height;
+
+        // 计算屏幕宽度在逻辑坐标系下的表现宽度
+        const visibleWidth = frameSize.width / Math.min(scaleX, scaleY);
+        const visibleHeight = frameSize.height / Math.min(scaleX, scaleY);
+        return {width: visibleWidth, height: visibleHeight}
+    }
+
+    adaptFontSize(baseFontSize: number, baseDesignWidth = 720): number {
+        const { width } = this.getSize();
+        return baseFontSize * (width / baseDesignWidth);
     }
 }
 const device = new Device()

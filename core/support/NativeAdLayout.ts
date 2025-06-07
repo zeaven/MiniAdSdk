@@ -1,5 +1,6 @@
 import { Draggable } from "./Draggable"
 import { AdType, Callback, Runnable } from "../Types"
+import device from "./Device"
 
 export interface NativeAdData {
     adId: string
@@ -18,8 +19,6 @@ export interface NativeAdData {
     versionName: string //应用版本号
     appDetailUrl: string //应用介绍页面对应的H5地址，建议通过qg.openDeeplink打开网页。
     permissionUrl: string //应用安装权限说明页面对应的H5地址，建议通过qg.openDeeplink打开网页。
-    width: number //广告宽度
-    height: number //广告高度
 }
 
 function loadRemoteImage(url: string, cb?: (sf: cc.SpriteFrame) => void) {
@@ -79,7 +78,7 @@ export interface NativeAdView {
      */
     gravity: (gravity: 'top' | 'bottom') => void
     // #region 策略方法
-    setNativeDownloadBtnTransparent?: (enable: boolean) => void
+    setNativeDownloadBtnTransparent?: (transparent: boolean) => void
     setCloseBtnScale?: (scale: number) => void
     setCloseBtnAlpha?: (alpha: number) => void
     setCloseBtnIncorrectClickRate?: (rate: number) => void
@@ -105,24 +104,7 @@ export default class NativeAdLayout {
         const packageName = match?.[1] ?? null;
 
         const adView: NativeAdView = this.getDefaultAdView(layer, packageName)
-
-        if (type === AdType.NativeInterstitial) {
-            data.width *= data.height > data.width ? 0.85 : 0.4
-            data.height *= data.height > data.width? 0.4 : 0.8
-            // 模态框，屏蔽背景点击
-            adView.modal(true)
-        } else if (type === AdType.NativeBanner) {
-            data.width *= data.height > data.width? 1 : 0.5
-            data.height = 100
-        } else if (type === AdType.NativeIcon) {
-            data.width = 100
-            data.height = 100
-        } else {
-            data.width *= data.height > data.width ? 0.85 : 0.5
-            data.height *= data.height > data.width? 0.5 : 0.85
-            // 模态框，屏蔽背景点击
-            adView.modal(true)
-        }
+        
         // 这里可以根据不同的 creativeType 来创建不同的模板
         const initializer = new NormalTemplate(adView)
         initializer.init(data, type)
@@ -201,13 +183,36 @@ class NormalTemplate {
     }
     init(data: NativeAdData, type: AdType) {
         const layer = this.adView.node
+
+        const isLandscape = device.isLandscape()
+        const deviceSize = device.getSize()
+        let width = deviceSize.width
+        let height = deviceSize.height
+        
+        if (type === AdType.NativeInterstitial) {
+            width *= isLandscape ? 0.4 : 0.85
+            height *= isLandscape ? 0.6 : 0.35
+            // 模态框，屏蔽背景点击
+            this.adView.modal(true)
+        } else if (type === AdType.NativeBanner) {
+            width *= isLandscape ? 0.5 : 1
+            // banner 调试是屏幕高度的8%，或最小为 60（横屏状态下）
+            height = isLandscape ? 60: height * 0.07
+        } else if (type === AdType.NativeIcon) {
+            // icon 大小为屏幕高度的10%，或最大为 70
+            width = Math.min(70, Math.max(height, width) * 0.07)
+            height = width
+        } else {
+            width *= isLandscape ? 0.4 : 0.85
+            height *= isLandscape ? 0.7 : 0.35
+            // 模态框，屏蔽背景点击
+            this.adView.modal(true)
+        }
         
         layer.setAnchorPoint(0.5, 0.5);
         layer.setPosition(0, 0);
         layer.setContentSize(cc.winSize.width, cc.winSize.height);
         const container = new cc.Node('AdContainer')
-        const width = data.width
-        const height =  Math.max(60, data.height)
         const infoHeight = Math.min(100, height)
         const mainImgEnable = height >= 320
         container.anchorX = 0.5
@@ -285,13 +290,8 @@ class NormalTemplate {
                     const scaleY = mainImgHeight / firstImgSprite.getOriginalSize().height
                     const scaleX = width / firstImgSprite.getOriginalSize().width
                     const scale = Math.min(scaleX, scaleY)
-                    if (scale < scaleY) {
-                        mainImgNode.setAnchorPoint(0.5, 0.5)
-                        mainImgNode.setPosition(0, 0)
-                    } else {
-                        mainImgNode.setAnchorPoint(0.5, 1)
-                        mainImgNode.setPosition(0, height * 0.5)
-                    }
+                    mainImgNode.setAnchorPoint(0.5, 1)
+                    mainImgNode.setPosition(0, height * 0.5)
                     
                     mainImgNode.setContentSize(firstImgSprite.getOriginalSize().width * scale, firstImgSprite.getOriginalSize().height * scale)
                     const mainImgSprite = mainImgNode.addComponent(cc.Sprite)
@@ -303,7 +303,7 @@ class NormalTemplate {
                         cc.tween(mainImgNode)
                             .repeatForever(
                               cc.tween()
-                                .to(1, { scale: scale * 1.03 })
+                                .to(1, { scale: scale * 0.97 })
                                 .to(1, { scale: scale })
                             )
                             .start()
@@ -315,19 +315,20 @@ class NormalTemplate {
 
         // 1. 广告标识（左上角）
         const logoNode = new cc.Node('Logo')
+        
         logoNode.setAnchorPoint(0, 1)
-        logoNode.setContentSize(35, 35)
+        logoNode.setContentSize(30, 30)
         logoNode.setPosition(-width / 2 + 20, height / 2 - 10) // 左上角偏移 10
         const logoBg = logoNode.addComponent(cc.Graphics)
         logoBg.clear()
-        logoBg.fillColor = cc.color(100, 100, 100, 150);  // 灰色背景
-        logoBg.roundRect(-20, -10, 40, 20, 5)
+        logoBg.fillColor = cc.color(100, 100, 100, 120);  // 灰色背景
+        logoBg.roundRect(-15, -10, 30, 20, 5)
         logoBg.fill()
         const logoNode2 = new cc.Node('LabelNode')
         logoNode2.setParent(logoNode)
         const logoLabel = logoNode2.addComponent(cc.Label)
-        logoLabel.string = '广告'
-        logoLabel.fontSize = 14
+        logoLabel.string = 'AD'
+        logoLabel.fontSize = 13
         logoLabel.lineHeight = 16
         logoLabel.horizontalAlign = cc.Label.HorizontalAlign.CENTER
         logoLabel.verticalAlign = cc.Label.VerticalAlign.CENTER
@@ -338,18 +339,18 @@ class NormalTemplate {
         // 2. 关闭按钮（右上角）
         const closeBtn = new cc.Node('CloseBtn')
         closeBtn.setAnchorPoint(0.5, 0.5)
-        closeBtn.setContentSize(16, 16)
+        closeBtn.setContentSize(14, 14)
         closeBtn.setPosition(width / 2 - 12, height / 2 - 10) // 右上角偏移 10
         const closeBg = closeBtn.addComponent(cc.Graphics)
         closeBg.clear()
         closeBg.fillColor = cc.color(100, 100, 100, 150);  // 灰色背景
-        closeBg.roundRect(-10, -10, 20, 20, 10)
+        closeBg.roundRect(-9, -9, 18, 18, 9)
         closeBg.fill()
         const closeNode2 = new cc.Node('LabelNode2')
         closeNode2.setParent(closeBtn)
         const closeLabel = closeNode2.addComponent(cc.Label)
         closeLabel.string = 'X'
-        closeLabel.fontSize = 16
+        closeLabel.fontSize = 12
         closeBtn.color = new cc.Color(180, 180, 180, 150)
         closeLabel.horizontalAlign = cc.Label.HorizontalAlign.CENTER
         closeLabel.verticalAlign = cc.Label.VerticalAlign.CENTER
@@ -410,12 +411,18 @@ class NormalTemplate {
             infoBg.sizeMode = cc.Sprite.SizeMode.CUSTOM
             infoBg.spriteFrame = new cc.SpriteFrame()
             infoBg.spriteFrame.setTexture(new cc.Texture2D())
-            infoBg.spriteFrame.getTexture().initWithData(new Uint8Array([0, 0, 0, mainImgEnable ? 0: 120]), cc.Texture2D.PixelFormat.RGBA8888, 1, 1)
+            infoBg.spriteFrame.getTexture().initWithData(new Uint8Array([0, 0, 0, mainImgEnable ? 0: 80]), cc.Texture2D.PixelFormat.RGBA8888, 1, 1)
             infoBg.spriteFrame.getTexture().handleLoadedTexture()
         }
         container.addChild(infoArea, 8)
         
         let iconWidth = 0
+        if (!data.icon) {
+            if (width === height && width < 100) {
+                //  icon 模式用主图代替
+                data.icon = data.imgUrlList?.[0]
+            }
+        }
         if (data.icon) {
             const iconNode = new cc.Node('Icon')
             iconWidth = infoHeight * 0.8
@@ -431,7 +438,8 @@ class NormalTemplate {
                 iconNode.scaleX = iconWidth / size.width
                 iconNode.scaleY = iconHeight / size.height
                 if (width <= 100 && width <= height) {
-                    iconNode.scale = iconNode.scale * 1.2
+                    iconNode.scaleX *= 1.2
+                    iconNode.scaleY *= 1.2
                 }
             })
             infoArea.addChild(iconNode)
@@ -439,17 +447,18 @@ class NormalTemplate {
 
         if (width >= 200) {
             const textArea = new cc.Node('TextArea')
-            textArea.setAnchorPoint(0, 0.5)
-            textArea.setPosition(-width * 0.5 + iconWidth+ 18, 0)
-            textArea.setContentSize(width - iconWidth - 20, infoHeight)
+            const textAreaWidth = width - iconWidth - 20
+            textArea.setAnchorPoint(0.5, 0.5)
+            textArea.setPosition(-textAreaWidth*0.5 + (iconWidth+10) * 0.5, 0)
+            textArea.setContentSize(textAreaWidth, infoHeight)
             infoArea.addChild(textArea)
 
             // appName
-            const fontSize = Math.min(infoHeight * .26, 18)
+            const fontSize = Math.max(infoHeight * .17, 14)
             const title = new cc.Node('Title')
-            title.setAnchorPoint(0, 1)
-            title.setPosition(0, (infoHeight / 2) * .8)
-            title.setContentSize(textArea.width, fontSize + 2)
+            title.setAnchorPoint(0.5, 1)
+            title.setPosition(textAreaWidth/2, (infoHeight / 2) * .8)
+            title.setContentSize(textAreaWidth, fontSize + 2)
             const titleLabel = title.addComponent(cc.Label)
             titleLabel.string = data.desc ? data.appName: data.source
             titleLabel.fontSize = fontSize
@@ -457,12 +466,12 @@ class NormalTemplate {
             titleLabel.horizontalAlign = cc.Label.HorizontalAlign.LEFT
             textArea.addChild(title)
 
-            if (width >= 300) {
+            if (width >= 300 && (data.desc || data.title)) {
                 // title
                 const subtitle = new cc.Node('Subtitle')
                 subtitle.setAnchorPoint(0, 1)
                 subtitle.setPosition(0, (infoHeight / 2) * .8 - (fontSize + 2))
-                subtitle.setContentSize(textArea.width, 40)
+                subtitle.setContentSize(textAreaWidth, 40)
                 const subtitleLabel = subtitle.addComponent(cc.Label)
                 subtitleLabel.string = data.desc || data.title
                 subtitleLabel.fontSize = fontSize - 2
@@ -475,6 +484,9 @@ class NormalTemplate {
                 // 这一步确保 node 的 width 设置好
                 subtitle.width = textArea.width;
                 textArea.addChild(subtitle)
+            } else {
+                title.setAnchorPoint(0.5, 0.5)
+                title.setPosition(textAreaWidth/2, 0)
             }
 
             if (infoHeight >= 95 && width > 300) {
@@ -482,8 +494,8 @@ class NormalTemplate {
                 const btnArea = new cc.Node('ButtonArea')
                 btnArea.color = cc.Color.WHITE
                 btnArea.setAnchorPoint(0, 0)
-                btnArea.setPosition(0 - iconWidth, -infoHeight/2 + 5)
-                btnArea.setContentSize((width), 30)
+                btnArea.setPosition(0, -infoHeight/2 + 5)
+                btnArea.setContentSize((textAreaWidth), 30)
                 // 添加 BlockInputEvents 组件确保按钮区域可以接收点击事件
                 btnArea.addComponent(cc.BlockInputEvents)
                 btnArea.active = infoHeight >= 95
@@ -501,11 +513,11 @@ class NormalTemplate {
                 // 添加 Label 作为子节点，单独居中处理
                 const labelNode = new cc.Node('BtnLabel')
                 labelNode.setAnchorPoint(0.5, 0.5)
-                labelNode.setPosition((width)/2, 15) // 居中
+                labelNode.setPosition((textAreaWidth)/2, 15) // 居中
                 const btnLabel = labelNode.addComponent(cc.Label)
                 btnLabel.string = data.clickBtnTxt || '点击查看'
-                btnLabel.fontSize = 18
-                btnLabel.lineHeight = 22
+                btnLabel.fontSize = fontSize
+                btnLabel.lineHeight = fontSize + 4
                 btnLabel.horizontalAlign = cc.Label.HorizontalAlign.CENTER
                 btnLabel.verticalAlign = cc.Label.VerticalAlign.CENTER
                 btnArea.addChild(labelNode)

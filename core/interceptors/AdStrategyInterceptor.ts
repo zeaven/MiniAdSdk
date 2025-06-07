@@ -138,7 +138,8 @@ export class AdStrategyInterceptor implements AdInterceptor {
             // 已经是概率触发，不再重复执行概率逻辑
             return
         }
-        const strategy: IAdStrategy = this.strategyGroup.strategies[type]
+        const typeStr = AdType[type]
+        const strategy: IAdStrategy = this.strategyGroup.strategies[typeStr]
         if (strategy?.showRate) {
             let rate = Math.random() * 100
             for (const rateType in strategy.showRate) {
@@ -146,7 +147,7 @@ export class AdStrategyInterceptor implements AdInterceptor {
                     param = {...param, source:'strategy:rate'}
                     return this.sdk.show(AdType[rateType], param)
                 }
-                rate -= strategy.showRate[type]
+                rate -= strategy.showRate[rateType]
             }
         }
     }
@@ -190,9 +191,10 @@ export class AdStrategyInterceptor implements AdInterceptor {
         } else if (param?.type === AdType.NativeIcon) {
             type = AdType.NativeIcon
         }
+        const typeStr = AdType[type]
         return this.invokeRate(type, param) ?? next(param)
             .then((res) => {
-                const strategy: IAdStrategy = this.strategyGroup.strategies[type]
+                const strategy: IAdStrategy = this.strategyGroup.strategies[typeStr]
                 if (strategy && res && res.getNativeAdView) {
                     const adView: NativeAdView = res.getNativeAdView()
                     if (type === AdType.NativeInterstitial || param?.type === AdType.Native) {
