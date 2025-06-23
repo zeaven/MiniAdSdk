@@ -68,6 +68,7 @@ export default class HwNativeAd extends HwBaseAd {
     // 先处理参数，需要上报后台
     this.adData = this.convertData(res)
     super.onLoad(res)
+    this.ready = false
     if (!this.adData.adId) {
       return
     }
@@ -105,7 +106,6 @@ export default class HwNativeAd extends HwBaseAd {
 
       res.getNativeAdView = () => this.adView
       
-      this.ad.reportAdShow({adId: this.adData.adId})
       return res
     })
   }
@@ -120,6 +120,7 @@ export default class HwNativeAd extends HwBaseAd {
       return
     }
     this.adView.attach(node)
+    this.ad.reportAdShow({adId: this.adData.adId})
   }
   
   protected createAdView(adData: NativeAdData): NativeAdView {

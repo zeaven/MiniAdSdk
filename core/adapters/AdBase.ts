@@ -231,7 +231,7 @@ export default abstract class AdBase implements AdHandler {
     }
     this.log(this.name + '展示')
     return new Promise<AdInvokeResult>((resolve, reject) => {
-      const showResult = this.ad.show() ?? Promise.resolve()
+      const showResult = this.ad.show?.() ?? Promise.resolve()
       showResult.then(() => {
           // 如果广告默认有 onShow事件，则无需手动触发onShow事件
           if (typeof this.ad['onShow'] !== 'function') {
