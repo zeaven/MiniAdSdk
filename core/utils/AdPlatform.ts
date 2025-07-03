@@ -9,12 +9,15 @@ const Platform = cc.Enum({
   WEB: 'web',
   OPPO: 'oppo',
   VIVO: 'vivo',
+  // 头条
   TT: 'tt',
   M4399: 'm4399',
   BOX4399: 'box4399',
   KS: 'ks',
   ALIPAY: 'alipay',
   HUAWEI: 'huawei',
+  // tiktok
+  TT_MINI: 'tt_mini',
 })
 
 
@@ -41,7 +44,9 @@ const getPlatform = (): string => {
       platform = Platform.OPPO
     } else if (cc.sys.platform === cc.sys.VIVO_GAME) {
       platform = Platform.VIVO
-    } else if (globalThis.tt) {
+    } else if (globalThis.TTMinis) {
+      platform = Platform.TT_MINI
+     }else if (globalThis.tt) {
       platform = Platform.TT
     } else if (globalThis.FBInstant) {
       platform = Platform.FB

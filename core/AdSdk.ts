@@ -23,6 +23,7 @@ const adapters: Record<string, () => Promise<any>> = {
   [Platform.OPPO]: () => import('./adapters/oppo/OppoAd'),
   [Platform.TT]: () => import('./adapters/tt/TtAd'),
   [Platform.VIVO]: () => import('./adapters/vivo/VivoAd'),
+  [Platform.TT_MINI]: () => import('./adapters/tt_mini/TTMiniAd'),
 }
 
 @ccclass

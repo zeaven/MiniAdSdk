@@ -30,6 +30,15 @@ class TTConfig implements IAdConfig {
   BOX_ID = ['']
   PORTAL_ID = ['']
 }
+class TT_MiniConfig implements IAdConfig {
+  BANNER_ID = ['']
+  INTERS_ID = ['']
+  REWARD_ID = ['']
+  CUSTOM_ID = ['']
+  NATIVE_ID = ['']
+  BOX_ID = ['']
+  PORTAL_ID = ['']
+}
 
 class KsConfig implements IAdConfig {
   APP_ID?: string = 'ks658932922141258643'
@@ -94,4 +103,5 @@ export default {
   M4399Config,
   AlipayConfig,
   HuaweiConfig,
+  TT_MiniConfig,
 }

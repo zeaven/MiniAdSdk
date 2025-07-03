@@ -30,7 +30,7 @@ export class RemoteConfigInterceptor implements AdInterceptor {
             // 更新打开次数，修改建议：打开次数应该由后端返回
             device.incOpenCount()
             // 缓存Api登录信息
-            Store.cache(Store.KEY.API_LOGIN_RESULT, res)
+            Store.saveItem(Store.KEY.API_LOGIN_RESULT, res)
             // 删除登录参数，防止参数泄露
             delete param.loginData
             log('请求后端接口返回广告配置', res)

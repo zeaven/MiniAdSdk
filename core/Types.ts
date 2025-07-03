@@ -344,6 +344,7 @@ interface ApiLoginData {
   ot: string
   sdkVersion: string
   platform: string
+  openId?: string
 }
 interface ApiReportData {
   /**

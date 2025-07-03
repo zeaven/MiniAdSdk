@@ -16,6 +16,7 @@ export default abstract class AdBase implements AdHandler {
   protected isShowed: boolean = false // 是否展示
   protected invokeResult: AdInvokeResult // 当前展示的回调
   protected ready: boolean // 是否准备加载成功
+  protected created: boolean // 是否创建
   protected delayShowWaitTimeout = 2000 // showOnLoadPromise 等待加载完成超时时间
   // 当调用广告展示时，广告还未加载完成，则等待加载完成后再展示，否则返回加载超时错误
   private showOnLoadPromise: ManualPromise<void>
@@ -64,8 +65,10 @@ export default abstract class AdBase implements AdHandler {
     return {}
   }
 
-  protected loadAd() {
+  protected loadAd(force: boolean = false) {
     if (this.ids.length === 0) return
+    if (this.created && !force) return
+    this.created = true
     if (this.idx >= this.ids.length) {
       this.idx = 0
     }
@@ -103,7 +106,7 @@ export default abstract class AdBase implements AdHandler {
           // 手动超时不算加载失败
           this.isLoading = false
           this.log(this.name + '加载超时')
-          this.loadAd()
+          this.loadAd(true)
           resolve()
         } else {
           // this.log(this.name + '加载超时已经成功')
@@ -157,6 +160,7 @@ export default abstract class AdBase implements AdHandler {
   protected onClose(res?: any): void {
     this.log(this.name + '关闭')
     this.isShowed = false
+    this.created = false
     AdEventBus.instance.emit(AdEventType.AdClosed, this)
     // 外部监听的关闭事件
     this.invokeResult?.onClose?.()
@@ -188,6 +192,8 @@ export default abstract class AdBase implements AdHandler {
         this.createInterval * this.reloadCount
       )
     }
+    // 当广告关闭自动触发加载时，因为延时期间，用户可能再次调用广告，在show方法内会判断非自动加载的广告，会再次触发加载
+    // 这里可能会导致重复加载，所以loadAd需要判断是否已经创建，通过参数true来强制加载
     setTimeout(() => this.loadAd(), delayMilliSeconds)
   }
 
@@ -263,6 +269,7 @@ export default abstract class AdBase implements AdHandler {
     this.ready = false
     this.isShowed = false
     this.isLoading = false
+    this.created = false
     if (this.unbindAdListeners) {
       this.unbindAdListeners()
       this.unbindAdListeners = undefined

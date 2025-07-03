@@ -85,10 +85,17 @@ declare namespace my {
   function createRewardedAd(options: any): any;
 }
 
+declare namespace TTMinis {
+  interface game {
+    login: (options: any) => any;
+  }
+}
+
 declare global {
   interface Window {
     qg: typeof qg;
     my: typeof my;
+    TTMinis: typeof TTMinis;
   }
 
   // OPPO/Vivo specific extensions
